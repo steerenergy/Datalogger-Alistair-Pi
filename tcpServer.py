@@ -202,9 +202,9 @@ def streamLog(logQueue, clientsocket):
             rowData = logMeta.logData.timeStamp[i] + ','
             rowData += str(logMeta.logData.time[i]) + ','
             for column in logMeta.logData.rawData:
-                rowData += str(column[i]) + ','
+                rowData += str(Decimal(column[i])) + ','
             for column in logMeta.logData.convData:
-                rowData += str(column[i]) + ','
+                rowData += str(Decimal(column[i])) + ','
             TcpSend(clientsocket, rowData[:-1])
         TcpSend(clientsocket, "EoLog")
         # Let queue know that log has been sent
