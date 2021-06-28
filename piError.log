@@ -1,0 +1,155 @@
+
+
+---------------------------------------------------------------------------
+NEW INSTANCE OF LOGGER GUI @ 2020-11-21 16:46:58.628806
+---------------------------------------------------------------------------
+
+2020-11-21 16:47:00.321583  - Traceback (most recent call last):
+2020-11-21 16:47:03.450256  -   File "C:/Users/owner/PycharmProjects/SteerLogger2/gui.py", line 208, in <module>
+2020-11-21 16:47:04.894881  - img = PhotoImage(file='icon.png')
+2020-11-21 16:47:05.953989  -   File "C:\Users\owner\Anaconda3\lib\tkinter\__init__.py", line 4061, in __init__
+2020-11-21 16:47:06.975719  - Image.__init__(self, 'photo', name, cnf, master, **kw)
+2020-11-21 16:47:07.880526  -   File "C:\Users\owner\Anaconda3\lib\tkinter\__init__.py", line 4006, in __init__
+2020-11-21 16:47:08.846937  - self.tk.call(('image', 'create', imgtype, name,) + options)
+2020-11-21 16:47:09.754300  - _tkinter
+2020-11-21 16:47:10.203699  - .
+2020-11-21 16:47:10.660759  - TclError
+2020-11-21 16:47:11.106993  - :
+2020-11-21 16:47:11.569100  - couldn't open "icon.png": no such file or directory
+
+
+---------------------------------------------------------------------------
+NEW INSTANCE OF LOGGER GUI @ 2021-03-18 11:22:37.252121
+---------------------------------------------------------------------------
+
+
+GUI Closed Successfully
+
+
+---------------------------------------------------------------------------
+NEW INSTANCE OF LOGGER GUI @ 2021-03-18 11:24:12.437296
+---------------------------------------------------------------------------
+
+2021-03-18 11:28:01.440701  - Exception in thread
+2021-03-18 11:28:06.615942  - Thread-3
+2021-03-18 11:28:08.182653  - :
+2021-03-18 11:28:08.784595  - Traceback (most recent call last):
+2021-03-18 11:28:09.459355  -   File "C:\Users\owner\anaconda3\lib\threading.py", line 932, in _bootstrap_inner
+2021-03-18 11:28:10.455323  - self.run()
+2021-03-18 11:28:11.121321  -   File "C:\Users\owner\anaconda3\lib\threading.py", line 870, in run
+2021-03-18 11:28:11.600636  - self._target(*self._args, **self._kwargs)
+2021-03-18 11:28:12.151518  -   File "C:\Users\owner\PycharmProjects\SteerLogger2\tcpServer.py", line 329, in new_client
+2021-03-18 11:28:12.728628  - SearchLog(clientsocket)
+2021-03-18 11:28:13.767654  -   File "C:\Users\owner\PycharmProjects\SteerLogger2\tcpServer.py", line 280, in SearchLog
+2021-03-18 11:28:14.718919  - SendLogs(clientsocket)
+2021-03-18 11:28:15.703007  -   File "C:\Users\owner\PycharmProjects\SteerLogger2\tcpServer.py", line 174, in SendLogs
+2021-03-18 11:28:16.735124  - logMeta = db.ReadLog(log)
+2021-03-18 11:28:17.760788  -   File "C:\Users\owner\PycharmProjects\SteerLogger2\databaseOp.py", line 271, in ReadLog
+2021-03-18 11:28:18.960674  - row = cur.execute('SELECT * FROM main WHERE id = ?',id).fetchone()
+2021-03-18 11:28:19.999364  - sqlite3
+2021-03-18 11:28:20.503190  - .
+2021-03-18 11:28:21.017916  - ProgrammingError
+2021-03-18 11:28:21.527349  - :
+2021-03-18 11:28:21.838885  - Incorrect number of bindings supplied. The current statement uses 1, and there are 2 supplied.
+2021-03-18 11:31:22.028004  - Exception in thread
+2021-03-18 11:31:34.639820  - Thread-12
+2021-03-18 11:31:35.078243  - :
+2021-03-18 11:31:35.451083  - Traceback (most recent call last):
+2021-03-18 11:31:35.691732  -   File "C:\Users\owner\anaconda3\lib\threading.py", line 932, in _bootstrap_inner
+2021-03-18 11:31:36.195339  - self.run()
+2021-03-18 11:31:36.569406  -   File "C:\Users\owner\anaconda3\lib\threading.py", line 870, in run
+2021-03-18 11:31:36.830226  - self._target(*self._args, **self._kwargs)
+2021-03-18 11:31:37.232149  -   File "C:\Users\owner\PycharmProjects\SteerLogger2\tcpServer.py", line 319, in new_client
+2021-03-18 11:31:37.636345  - GetRecentConfig(clientsocket)
+2021-03-18 11:31:37.919187  -   File "C:\Users\owner\PycharmProjects\SteerLogger2\tcpServer.py", line 99, in GetRecentConfig
+2021-03-18 11:31:38.267990  - interval = db.GetRecentInterval()
+2021-03-18 11:31:38.694425  -   File "C:\Users\owner\PycharmProjects\SteerLogger2\databaseOp.py", line 167, in GetRecentInterval
+2021-03-18 11:31:38.975076  - logInterval = cur.execute("SELECT time FROM main WHERE id = ?;", id).fetchone()
+2021-03-18 11:31:39.502369  - sqlite3
+2021-03-18 11:31:39.747040  - .
+2021-03-18 11:31:39.817410  - ProgrammingError
+2021-03-18 11:31:39.988696  - :
+2021-03-18 11:31:40.150609  - Incorrect number of bindings supplied. The current statement uses 1, and there are 2 supplied.
+2021-03-18 11:31:59.581979  - Traceback (most recent call last):
+2021-03-18 11:32:00.463313  -   File ".\main.py", line 14, in <module>
+2021-03-18 11:32:01.947384  - gui.run()
+2021-03-18 11:32:02.149938  -   File "C:\Users\owner\PycharmProjects\SteerLogger2\gui.py", line 295, in run
+2021-03-18 11:32:02.422701  - root.mainloop()
+2021-03-18 11:32:02.734485  -   File "C:\Users\owner\anaconda3\lib\tkinter\__init__.py", line 1420, in mainloop
+2021-03-18 11:32:02.999389  - self.tk.mainloop(n)
+2021-03-18 11:32:03.241153  - KeyboardInterrupt
+
+
+---------------------------------------------------------------------------
+NEW INSTANCE OF LOGGER GUI @ 2021-03-18 11:32:13.272794
+---------------------------------------------------------------------------
+
+
+
+---------------------------------------------------------------------------
+NEW INSTANCE OF LOGGER GUI @ 2021-03-28 16:47:00.647661
+---------------------------------------------------------------------------
+
+
+
+---------------------------------------------------------------------------
+NEW INSTANCE OF LOGGER GUI @ 2021-03-30 10:13:26.015027
+---------------------------------------------------------------------------
+
+2021-03-30 10:16:35.062403  - Exception in thread
+2021-03-30 10:16:38.484818  - Thread-5
+2021-03-30 10:16:39.090758  - :
+2021-03-30 10:16:39.570901  - Traceback (most recent call last):
+2021-03-30 10:16:39.967449  -   File "C:\Users\owner\anaconda3\lib\threading.py", line 932, in _bootstrap_inner
+2021-03-30 10:16:41.034211  - self.run()
+2021-03-30 10:16:42.001792  -   File "C:\Users\owner\anaconda3\lib\threading.py", line 870, in run
+2021-03-30 10:16:42.838406  - self._target(*self._args, **self._kwargs)
+2021-03-30 10:16:43.681637  -   File "C:\Users\owner\PycharmProjects\SteerLogger2\tcpServer.py", line 317, in new_client
+2021-03-30 10:16:44.541623  - GetLogsToDownload(clientsocket)
+2021-03-30 10:16:45.260652  -   File "C:\Users\owner\PycharmProjects\SteerLogger2\tcpServer.py", line 153, in GetLogsToDownload
+2021-03-30 10:16:46.076266  - SendLogs(clientsocket)
+2021-03-30 10:16:46.897799  -   File "C:\Users\owner\PycharmProjects\SteerLogger2\tcpServer.py", line 174, in SendLogs
+2021-03-30 10:16:47.745841  - logMeta = db.ReadLog(log)
+2021-03-30 10:16:48.610023  -   File "C:\Users\owner\PycharmProjects\SteerLogger2\databaseOp.py", line 281, in ReadLog
+2021-03-30 10:16:49.499615  - logMeta.logData = ReadLogData(id)
+2021-03-30 10:16:50.321768  -   File "C:\Users\owner\PycharmProjects\SteerLogger2\databaseOp.py", line 340, in ReadLogData
+2021-03-30 10:16:51.146191  - data = cur.execute("SELECT * FROM " + dataName + ";").fetchall()
+2021-03-30 10:16:51.711568  - sqlite3
+2021-03-30 10:16:52.461682  - .
+2021-03-30 10:16:52.730757  - OperationalError
+2021-03-30 10:16:53.010609  - :
+2021-03-30 10:16:53.293635  - no such table: data1
+
+GUI Closed Successfully
+
+
+---------------------------------------------------------------------------
+NEW INSTANCE OF LOGGER GUI @ 2021-06-15 14:19:29.680547
+---------------------------------------------------------------------------
+
+
+GUI Closed Successfully
+
+
+---------------------------------------------------------------------------
+NEW INSTANCE OF LOGGER GUI @ 2021-06-15 15:12:51.271834
+---------------------------------------------------------------------------
+
+
+
+---------------------------------------------------------------------------
+NEW INSTANCE OF LOGGER GUI @ 2021-06-15 15:26:11.143082
+---------------------------------------------------------------------------
+
+
+
+---------------------------------------------------------------------------
+NEW INSTANCE OF LOGGER GUI @ 2021-06-15 15:40:10.144850
+---------------------------------------------------------------------------
+
+
+
+---------------------------------------------------------------------------
+NEW INSTANCE OF LOGGER GUI @ 2021-06-17 20:05:11.545137
+---------------------------------------------------------------------------
+
