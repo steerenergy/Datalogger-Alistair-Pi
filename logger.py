@@ -24,6 +24,7 @@ import databaseOp as db
 import pandas as pd
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
+import os
 from decimal import Decimal
 import numpy as np
 import gui
@@ -273,10 +274,12 @@ def log():
     uploadData()
 
 
-#Writes the config data for the log to archive folder
+# Writes the config data for the log to archive folder
 # (Objective 10)
 def WriteConfig(timestamp):
     global logComp
+    # Create files and outbox directories if they don't exist
+    os.makedirs(os.path.dirname("files/outbox/conf{}.ini".format(timestamp)), exist_ok=True)
     # Create new config file with timestamp of log as the name
     with open("files/outbox/conf{}.ini".format(timestamp),"w") as configfile:
         file_data = ""
