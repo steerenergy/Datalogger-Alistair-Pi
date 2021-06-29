@@ -134,3 +134,8 @@ logs.db
 # Ignore log files as will be different on other loggers
 tcpLog.txt
 piError.log
+.idea/vcs.xml
+.idea/inspectionProfiles/profiles_settings.xml
+.idea/inspectionProfiles/profiles_settings.xml
+.idea/Datalogger-Alistair-Pi.iml
+.idea/modules.xml
