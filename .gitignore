@@ -130,3 +130,7 @@ dmypy.json
 
 # Don't push log database as will be different for each logger
 logs.db
+
+# Ignore log files as will be different on other loggers
+tcpLog.txt
+piError.log
