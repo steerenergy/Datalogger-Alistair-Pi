@@ -194,7 +194,8 @@ def streamLog(logQueue, clientsocket):
         for pin in logMeta.config.pinList:
             pinData = (str(pin.id) + ',' + pin.name + ',' + str(pin.enabled) + ',' + pin.fName + ','
                        + pin.inputType + ',' + str(pin.gain) + ',' + str(pin.scaleMin) + ','
-                       + str(pin.scaleMax) + ',' + pin.units + ',' + str(Decimal(pin.m)) + ',' + str(Decimal(pin.c)))
+                       + str(pin.scaleMax) + ',' + pin.units + ','
+                       + str(f"{Decimal(pin.m):.10f}") + ',' + str(f"{Decimal(pin.c):.10f}"))
             TcpSend(clientsocket, pinData)
         TcpSend(clientsocket, "EoConfig")
         # Write data for each row to a packet and send to client
@@ -202,9 +203,9 @@ def streamLog(logQueue, clientsocket):
             rowData = logMeta.logData.timeStamp[i] + ','
             rowData += str(logMeta.logData.time[i]) + ','
             for column in logMeta.logData.rawData:
-                rowData += str(Decimal(column[i])) + ','
+                rowData += str(f"{Decimal(column[i]):.14f}") + ','
             for column in logMeta.logData.convData:
-                rowData += str(Decimal(column[i])) + ','
+                rowData += str(f"{Decimal(column[i]):.14f}") + ','
             TcpSend(clientsocket, rowData[:-1])
         TcpSend(clientsocket, "EoLog")
         # Let queue know that log has been sent
