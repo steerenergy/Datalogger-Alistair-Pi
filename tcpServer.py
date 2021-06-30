@@ -195,7 +195,7 @@ def streamLog(logQueue, clientsocket):
             pinData = (str(pin.id) + ',' + pin.name + ',' + str(pin.enabled) + ',' + pin.fName + ','
                        + pin.inputType + ',' + str(pin.gain) + ',' + str(pin.scaleMin) + ','
                        + str(pin.scaleMax) + ',' + pin.units + ','
-                       + str(f"{Decimal(pin.m):.10f}") + ',' + str(f"{Decimal(pin.c):.10f}"))
+                       + str(f"{Decimal(pin.m):.14f}") + ',' + str(f"{Decimal(pin.c):.14f}"))
             TcpSend(clientsocket, pinData)
         TcpSend(clientsocket, "EoConfig")
         # Write data for each row to a packet and send to client
