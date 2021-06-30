@@ -10,20 +10,23 @@ from decimal import Decimal
 
 # Used to send TCP data to client
 def TcpSend(clientsocket, data):
-    response = ""
+    #response = ""
     # Send data until client confirms it has been received
-    while response != "Received":
-        # Data is encoded as bytes using utf-8
-        clientsocket.send(bytes(data, "utf-8"))
-        response = clientsocket.recv(2048).decode("utf-8").strip("\n")
+    #while response != "Received":
+    #    # Data is encoded as bytes using utf-8
+    #    clientsocket.send(bytes(data, "utf-8"))
+    #    response = clientsocket.recv(2048).decode("utf-8").strip("\n")
+    clientsocket.send(bytes(data, "utf-8"))
 
 
 # Used to received TCP data
 # Returns the TCP data decoded usign utf-8 to a string format
 def TcpReceive(clientsocket):
-    response = clientsocket.recv(2048).decode("utf-8").strip("\n")
+    #response = clientsocket.recv(2048).decode("utf-8").strip("\n")
     # Confirm to client that data was received
-    clientsocket.send(b"Received")
+    #clientsocket.send(b"Received")
+    #return response
+    response = clientsocket.recv(2048).decode("utf-8").strip("\n")
     return response
 
 
