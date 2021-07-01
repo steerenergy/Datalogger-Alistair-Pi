@@ -131,7 +131,7 @@ def GetRecentConfig(clientsocket):
     # Retrieves config data from database
     # (Objective 2.1)
     path = db.GetConfigPath(db.GetRecentId())
-    recentConfig = file_rw.ReadLogConfig(path).config
+    recentConfig = file_rw.ReadLogConfig(path)
     # Sends the interval to the user computer
     intervalStr = str(interval)
     # (Objective 2.2)

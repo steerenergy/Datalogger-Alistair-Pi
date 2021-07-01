@@ -55,13 +55,13 @@ def ReadLogConfig(path):
             pin.gain = config[section].getint('gain')
             pin.scaleMin = config[section].getfloat('scalelow')
             pin.scaleMax = config[section].getfloat('scalehigh')
-            pin.unit = config[section]['unit']
+            pin.units = config[section]['unit']
             if "m" in config[section] and "c" in config[section]:
                 pin.m = config[section].getfloat('m')
                 pin.c = config[section].getfloat('c')
             log.config.pinList.append(pin)
 
-    return log
+    return log.config
 
 
 def WriteLogConfig(log,name):
@@ -92,4 +92,4 @@ def WriteLogConfig(log,name):
 
 def RenameConfig(path,timestamp):
     newpath = "files/outbox/conf{}.ini".format(timestamp)
-    os.rename(path,newpath)
+    os.rename(src=path,dst=newpath)

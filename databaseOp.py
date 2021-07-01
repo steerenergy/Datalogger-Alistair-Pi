@@ -256,7 +256,7 @@ def GetConfigPath(id):
     conn = sqlite3.connect(database)
     cur = conn.cursor()
     # Updates date of log to the current date when log was started
-    path = cur.execute("SELECT config FROM main WHERE id = ?", [str(id)]).fetchone()
+    path = cur.execute("SELECT config FROM main WHERE id = ?", [str(id)]).fetchone()[0]
     conn.commit()
     conn.close()
     return path
@@ -267,7 +267,7 @@ def GetDataPath(id):
     conn = sqlite3.connect(database)
     cur = conn.cursor()
     # Updates date of log to the current date when log was started
-    path = cur.execute("SELECT data FROM main WHERE id = ?", [str(id)]).fetchone()
+    path = cur.execute("SELECT data FROM main WHERE id = ?", [str(id)]).fetchone()[0]
     conn.commit()
     conn.close()
     return path
