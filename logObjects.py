@@ -93,6 +93,8 @@ class LogMeta():
     downloadedBy = ""
     config = ConfigFile()
     logData = LogData()
+    config_path = ""
+    data_path = ""
 
     def GetMeta(self):
         values = {}

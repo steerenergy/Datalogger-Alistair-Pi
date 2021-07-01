@@ -8,6 +8,7 @@ import logger
 from datetime import datetime
 from threading import Thread
 from decimal import Decimal
+import file_rw
 
 
 # Used to send TCP data to client
@@ -100,7 +101,7 @@ def ReceiveLogMeta(clientsocket,dataQueue):
     newLog.logData = lgOb.LogData()
     # Write log data and config data to database
     db.WriteLog(newLog)
-    db.WriteConfig(newLog.config)
+    file_rw.WriteLogConfig(newLog,newLog.name)
     return
 
 
@@ -129,7 +130,8 @@ def GetRecentConfig(clientsocket):
         return
     # Retrieves config data from database
     # (Objective 2.1)
-    recentConfig = db.GetRecentConfig()
+    path = db.GetConfigPath(db.GetRecentId())
+    recentConfig = file_rw.ReadLogConfig(path).config
     # Sends the interval to the user computer
     intervalStr = str(interval)
     # (Objective 2.2)
@@ -316,7 +318,7 @@ def SendConfig(clientsocket,dataQueue):
         return
     # Read config data from database
     interval = db.ReadInterval(requestedConfig)
-    config = db.ReadConfig(requestedConfig)
+    config = file_rw.ReadLogConfig(db.GetConfigPath(requestedConfig))
     TcpSend(clientsocket, str(interval))
     # Write data for each Pin to packet and send each packet to client
     for pin in config.pinList:

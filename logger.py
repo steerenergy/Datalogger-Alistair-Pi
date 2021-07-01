@@ -19,6 +19,8 @@ import csv
 import threading
 import shutil
 import os
+
+import file_rw
 import logObjects as lgOb
 import databaseOp as db
 import pandas as pd
@@ -96,7 +98,8 @@ def inputImport():
     try:
         global logComp
         # Gets the most recent config data from the database
-        logComp.config = db.GetRecentConfig()
+        logComp.config_path = db.GetConfigPath(db.GetRecentId())
+        logComp.config = file_rw.ReadLogConfig(logComp.config_path)
 
         # ADC Pin Map List - created now the gain information has been grabbed.
         # This gives the list of possible functions that can be run to grab data from a pin.
@@ -205,6 +208,7 @@ def log():
     # Update date on database
     # (Objective 11.1)
     db.AddDate(timeStamp,logComp.id)
+    file_rw.RenameConfig(logComp.config_path,timeStamp)
     logComp.date = timeStamp
 
     # FILE MANAGEMENT
@@ -229,7 +233,7 @@ def log():
 
     # Write config data to archive folder
     # (Objective 10)
-    WriteConfig(timeStamp)
+    #WriteConfig(timeStamp)
 
     # CSV - Create/Open CSV file and print headers
     with open('files/outbox/raw{}.csv'.format(timeStamp), 'w', newline='') as csvfile:
@@ -271,9 +275,9 @@ def log():
             time.sleep(timeInterval - (timeDiff % timeInterval))
         # Wait until live data thread is finished
         dataThread.join()
-    uploadData()
+    db.UpdateDataPath(logComp.id,"files/outbox/raw{}.csv".format(timeStamp))
 
-
+"""
 # Writes the config data for the log to archive folder
 # (Objective 10)
 def WriteConfig(timestamp):
@@ -309,6 +313,7 @@ def WriteConfig(timestamp):
                 file_data += "scalehigh = 0.0\n"
                 file_data += "unit = Edit Me\n\n"
         configfile.write(file_data)
+"""
 
 
 # Live Data Output
@@ -397,6 +402,7 @@ def animate(i):
     guiFrame.ax1.plot(xData,yData)
 
 
+"""
 # Read logged data from CSV and upload to database
 # (Objective 13)
 def uploadData():
@@ -440,6 +446,7 @@ def uploadData():
     # Write logged data to database
     # (Objective 13.2)
     db.WriteLogData(logComp, headerList)
+"""
 
 
 # Contains functions for normal run of logger
@@ -467,7 +474,7 @@ def run(frame):
             logComp.id += 1
             # Write new log entry to database
             db.WriteLog(logComp)
-            db.WriteConfig(logComp.config)
+            file_rw.WriteLogConfig(logComp,logComp.name)
         # Print Settings
         settingsOutput()
         # Run Logging
