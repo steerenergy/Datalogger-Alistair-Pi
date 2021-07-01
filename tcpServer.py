@@ -19,6 +19,7 @@ def TcpSend(clientsocket, data):
     #    clientsocket.send(bytes(data, "utf-8"))
     #    response = clientsocket.recv(2048).decode("utf-8").strip("\n")
     clientsocket.send(bytes(data + "\n", "utf-8"))
+    #time.sleep(0.001)
 
 
 def TcpListen(clientsocket,address,dataQueue):
@@ -220,7 +221,7 @@ def streamLog(logQueue, clientsocket):
             pinData = (str(pin.id) + ',' + pin.name + ',' + str(pin.enabled) + ',' + pin.fName + ','
                        + pin.inputType + ',' + str(pin.gain) + ',' + str(pin.scaleMin) + ','
                        + str(pin.scaleMax) + ',' + pin.units + ','
-                       + str(f"{Decimal(pin.m):.14f}") + ',' + str(f"{Decimal(pin.c):.14f}"))
+                       + str(f"{Decimal(pin.m):.14f}").rstrip('0').rstrip('.') + ',' + str(f"{Decimal(pin.c):.14f}").rstrip('0').rstrip('.'))
             TcpSend(clientsocket, pinData)
         TcpSend(clientsocket, "EoConfig")
         # Write data for each row to a packet and send to client
@@ -228,9 +229,9 @@ def streamLog(logQueue, clientsocket):
             rowData = logMeta.logData.timeStamp[i] + ','
             rowData += str(logMeta.logData.time[i]) + ','
             for column in logMeta.logData.rawData:
-                rowData += str(f"{Decimal(column[i]):.14f}") + ','
+                rowData += str(f"{Decimal(column[i]):.14f}").rstrip('0').rstrip('.') + ','
             for column in logMeta.logData.convData:
-                rowData += str(f"{Decimal(column[i]):.14f}") + ','
+                rowData += str(f"{Decimal(column[i]):.14f}").rstrip('0').rstrip('.') + ','
             TcpSend(clientsocket, rowData[:-1])
         TcpSend(clientsocket, "EoLog")
         # Let queue know that log has been sent
