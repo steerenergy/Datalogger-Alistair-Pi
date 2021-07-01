@@ -12,20 +12,34 @@ from decimal import Decimal
 
 # Used to send TCP data to client
 def TcpSend(clientsocket, data):
-    response = ""
+    #response = ""
     # Send data until client confirms it has been received
-    while response != "Received":
-        # Data is encoded as bytes using utf-8
-        clientsocket.send(bytes(data, "utf-8"))
-        response = clientsocket.recv(2048).decode("utf-8").strip("\n")
-    #clientsocket.send(bytes(data, "utf-8"))
+    #while response != "Received":
+    #    # Data is encoded as bytes using utf-8
+    #    clientsocket.send(bytes(data, "utf-8"))
+    #    response = clientsocket.recv(2048).decode("utf-8").strip("\n")
+    clientsocket.send(bytes(data + "\n", "utf-8"))
 
 
-def TcpListen(clientsocket,dataQueue):
-    while True:
-        data = clientsocket.recv(2048).decode("utf-8").split("\n")
-        for i in range(0, len(data) - 1):
-            dataQueue.put(data[i].strip("\n"))
+def TcpListen(clientsocket,address,dataQueue):
+    buffer = ""
+    try:
+        while True:
+            data = []
+            if buffer != "":
+                data.append(buffer)
+            for line in clientsocket.recv(2048).decode("utf-8").split("\n"):
+                data.append(line)
+            if data[-1] != "":
+                buffer = data[-1]
+            for i in range(0, len(data) - 1):
+                dataQueue.put(data[i].strip("\n"))
+    except ConnectionError or ConnectionResetError or ConnectionAbortedError:
+        # Log forced disconnect i.e. if the user program is not closed properly
+        print("@" + address[0] + " disconnected.")
+    return
+
+
 
 
 # Used to received TCP data
@@ -313,13 +327,27 @@ def SendConfig(clientsocket,dataQueue):
     TcpSend(clientsocket, "Config_Sent")
 
 
+# Sends commands to client (more used for interfacing with powershell
+def PrintHelp(cliensocket):
+    TcpSend(cliensocket,"Available Commands:")
+    TcpSend(cliensocket, "Recent_Logs_To_Download - Get logs user has not yet downloaded")
+    TcpSend(cliensocket, "Request_Recent_Config - Get the most recent config from Logger")
+    TcpSend(cliensocket, "Upload_Config - Upload config to Logger")
+    TcpSend(cliensocket, "Check_Name - Checks Log name not already in use")
+    TcpSend(cliensocket, "Start_Log - Starts a log")
+    TcpSend(cliensocket, "Stop_Log - Stops a log")
+    TcpSend(cliensocket, "Search_Log - Search for and download a log")
+    TcpSend(cliensocket, "Help - Display this message")
+    TcpSend(cliensocket, "Quit - Disconnect from Logger")
+
+
 # Client interfaces with logger using commands sent using TCP
 # Subroutine receives incoming commands from client
 # (Objective 1.3)
 def new_client(clientsocket, address):
     quit = False
     dataQueue = queue.Queue()
-    listener = Thread(target=TcpListen,args=(clientsocket,dataQueue))
+    listener = Thread(target=TcpListen,args=(clientsocket,address,dataQueue))
     listener.daemon = True
     listener.start()
     try:
@@ -343,6 +371,8 @@ def new_client(clientsocket, address):
                 StopLog(clientsocket)
             elif command == "Search_Log":
                 SearchLog(clientsocket,dataQueue)
+            elif command == "Help":
+                PrintHelp(clientsocket)
             elif command == "Quit":
                 print("@" + address[0] + " quitting.")
                 quit = True
