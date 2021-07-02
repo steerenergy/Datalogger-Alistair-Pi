@@ -13,14 +13,14 @@ from collections import OrderedDict
 import configparser
 import functools
 # Uncomment below for real adc (if running on Pi)
-import adafruit_ads1x15.ads1115 as ADS
-from adafruit_ads1x15.analog_in import AnalogIn
+#import adafruit_ads1x15.ads1115 as ADS
+#from adafruit_ads1x15.analog_in import AnalogIn
 from adafruit_ads1x15.ads1x15 import Mode
-import busio
-import board
+#import busio
+#import board
 # Uncomment below for fake adc simulation if using a PC
-#from AnalogInFake import AnalogIn as AnalogIn
-#import ADS1115Fake as ADS
+from AnalogInFake import AnalogIn as AnalogIn
+import ADS1115Fake as ADS
 
 import csv
 import threading
@@ -60,8 +60,8 @@ def init():
     logComp = lgOb.LogMeta()
     # Create the I2C bus
     global i2c
-    i2c = busio.I2C(board.SCL, board.SDA, frequency=1000000)
-    #i2c = "fake"
+    #i2c = busio.I2C(board.SCL, board.SDA, frequency=1000000)
+    i2c = "fake"
     # A/D Setup - Create 4 Global instances of ADS1115 ADC (16-bit) according to Adafruit Libraries
     # (Objective 7)
     #global adc0
@@ -248,77 +248,79 @@ def log():
     #WriteConfig(timeStamp)
 
     # CSV - Create/Open CSV file and print headers
-    with open('files/outbox/raw{}.csv'.format(timeStamp), 'w', newline='') as csvfile:
-        writer = csv.writer(csvfile, dialect="excel", delimiter=',', quotechar='|', quoting=csv.QUOTE_MINIMAL)
-        writer.writerow(['Date/Time', 'Time Interval (seconds)'] + adcHeader)
-        print("\nStart Logging...\n")
+    #with open('files/outbox/raw{}.csv'.format(timeStamp), 'w', newline='') as csvfile:
+    #    writer = csv.writer(csvfile, dialect="excel", delimiter=',', quotechar='|', quoting=csv.QUOTE_MINIMAL)
+    #    writer.writerow(['Date/Time', 'Time Interval (seconds)'] + adcHeader)
+    #    print("\nStart Logging...\n")
 
         # Start live data thread
         # (Objective 12)
-        dataThread = threading.Thread(target=liveData)
-        dataThread.start()
+    #    dataThread = threading.Thread(target=liveData)
+    #    dataThread.start()
 
         # Set startTime (method used ignores changes in system clock time)
-        startTime = time.perf_counter()
+    #    startTime = time.perf_counter()
 
         # Beginning of reading script
-        while logEnbl is True:
+    #    while logEnbl is True:
             # Get time and send to Log
-            currentDateTime = datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")
-            timeElapsed = round(time.perf_counter() - startTime, 2)
+    #        currentDateTime = datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")
+    #        timeElapsed = round(time.perf_counter() - startTime, 2)
 
             # (Objective 11.3)
-            for currentPin, channel in enumerate(adcToLog):
+    #        for currentPin, channel in enumerate(adcToLog):
                 # Get Raw data from A/D, and add to adcValues list corresponding to the current pin
-                adcValues[currentPin] = channel.value
+    #            adcValues[currentPin] = channel.value
 
             # Export Data to Spreadsheet inc current datetime and time elapsed
             # (Objective 11.4)
-            writer.writerow([currentDateTime] + [timeElapsed] + adcValues)
+    #        writer.writerow([currentDateTime] + [timeElapsed] + adcValues)
             # Copy list for data output and reset list values (so we can see if code fails)
-            global adcValuesCompl
-            adcValuesCompl = adcValues
-            adcValues = [0] * csvRows
+    #        global adcValuesCompl
+    #        adcValuesCompl = adcValues
+    #        adcValues = [0] * csvRows
 
             # Work out time delay needed until next set of values taken based on user given value
             # (Using some clever maths)
             # (objective 11.2)
-            timeDiff = (time.perf_counter() - startTime)
-            time.sleep(timeInterval - (timeDiff % timeInterval))
+    #        timeDiff = (time.perf_counter() - startTime)
+    #        time.sleep(timeInterval - (timeDiff % timeInterval))
         # Wait until live data thread is finished
-        dataThread.join()
-#    dataQueue = queue.Queue()
-#    writer = threading.Thread(target=Writer,args=(dataQueue,timeStamp))
-#    writer.start()
-#    print("\nStart Logging...\n")
-#    startTime = time.perf_counter()
-#    while logEnbl is True:
+    #    dataThread.join()
+    dataThread = threading.Thread(target=liveData)
+    dataThread.start()
+    dataQueue = queue.Queue()
+    writer = threading.Thread(target=Writer,args=(dataQueue,timeStamp))
+    writer.start()
+    print("\nStart Logging...\n")
+    startTime = time.perf_counter()
+    while logEnbl is True:
         # Get time and send to Log
-#        currentDateTime = datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")
-#        timeElapsed = round(time.perf_counter() - startTime, 2)
+        currentDateTime = datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")
+        timeElapsed = round(time.perf_counter() - startTime, 2)
 
         # (Objective 11.3)
-#        for currentPin, chan in enumerate(adcToLog):
+        for currentPin, chan in enumerate(adcToLog):
         # Get Raw data from A/D, and add to adcValues list corresponding to the current pin
-#            adcValues[currentPin] = chan.value
-#        dataQueue.put([currentDateTime] + [timeElapsed] + adcValues)
+            adcValues[currentPin] = chan.value
+        dataQueue.put([currentDateTime] + [timeElapsed] + adcValues)
         # Export Data to Spreadsheet inc current datetime and time elapsed
         # (Objective 11.4)
-        #print(currentDateTime + " " + str(timeElapsed) + " " + (" ").join(adcValues))
+
         # Copy list for data output and reset list values (so we can see if code fails)
-        #global adcValuesCompl
-        #adcValuesCompl = adcValues
-#        adcValues = [0] * csvRows
+        global adcValuesCompl
+        adcValuesCompl = adcValues
+        adcValues = [0] * csvRows
 
         # Work out time delay needed until next set of values taken based on user given value
         # (Using some clever maths)
         # (objective 11.2)
-#        timeDiff = (time.perf_counter() - startTime)
-#        time.sleep(timeInterval - (timeDiff % timeInterval))
-#    writer.join()
+        timeDiff = (time.perf_counter() - startTime)
+        time.sleep(timeInterval - (timeDiff % timeInterval))
+    writer.join()
     db.UpdateDataPath(logComp.id,"files/outbox/raw{}.csv".format(timeStamp))
 
-"""
+
 def Writer(dataQueue,timeStamp):
     global adcHeader
     with open('files/outbox/raw{}.csv'.format(timeStamp), 'w', newline='') as csvfile:
@@ -327,7 +329,7 @@ def Writer(dataQueue,timeStamp):
         while logEnbl == True or dataQueue.empty() != True:
             data = dataQueue.get()
             writer.writerow(data)
-"""
+
 
 
 

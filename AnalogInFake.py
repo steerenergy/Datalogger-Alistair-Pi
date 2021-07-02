@@ -11,6 +11,7 @@ differential ADC readings.
 """
 
 import random
+import time
 
 _ADS1X15_DIFF_CHANNELS = {(0, 1): 0, (0, 3): 1, (1, 3): 2, (2, 3): 3}
 _ADS1X15_PGA_RANGE = {2 / 3: 6.144, 1: 4.096, 2: 2.048, 4: 1.024, 8: 0.512, 16: 0.256}
@@ -31,4 +32,5 @@ class AnalogIn:
     @property
     def value(self):
         """Returns the value of an ADC pin as an integer."""
+        time.sleep(0.005)
         return random.randint(0, 32767)
