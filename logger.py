@@ -292,7 +292,7 @@ def log():
     while logEnbl is True:
         # Get time and send to Log
         currentDateTime = datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")
-        timeElapsed = round(time.perf_counter() - startTime, 5)
+        timeElapsed = round(time.perf_counter() - startTime, 2)
 
         # (Objective 11.3)
         for currentPin, chan in enumerate(adcToLog):
@@ -310,8 +310,8 @@ def log():
         # Work out time delay needed until next set of values taken based on user given value
         # (Using some clever maths)
         # (objective 11.2)
-        #timeDiff = (time.perf_counter() - startTime)
-        #time.sleep(timeInterval - (timeDiff % timeInterval))
+        timeDiff = (time.perf_counter() - startTime)
+        time.sleep(timeInterval - (timeDiff % timeInterval))
     writer.join()
     db.UpdateDataPath(logComp.id,"files/outbox/raw{}.csv".format(timeStamp))
 
