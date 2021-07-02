@@ -90,7 +90,7 @@ def GetRecentInterval():
     conn = sqlite3.connect(database)
     cur = conn.cursor()
     # Retrieve time interval from row with most recent id
-    logInterval = cur.execute("SELECT time FROM main WHERE id = ?;", id).fetchone()
+    logInterval = cur.execute("SELECT time FROM main WHERE id = ?;", [id]).fetchone()
     conn.close()
     return logInterval[0]
 

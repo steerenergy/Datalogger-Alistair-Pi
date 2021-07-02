@@ -6,15 +6,20 @@
 # 3. Setup logging (time interval etc.) then iterate through devices, grab data and save to CSV until stopped.
 
 # Import Packages/Modules
+import queue
 import time
 from datetime import datetime, timedelta
 from collections import OrderedDict
 import configparser
 import functools
 # Uncomment below for real adc (if running on Pi)
-# import Adafruit_ADS1x15
+import adafruit_ads1x15.ads1115 as ADS
+from adafruit_ads1x15.analog_in import AnalogIn
+from adafruit_ads1x15.ads1x15 import Mode
+import busio
+import board
 # Uncomment below for fake adc simulation if using a PC
-import Adafruit_ADS1x15Fake as Adafruit_ADS1x15
+#import Adafruit_ADS1x15Fake as Adafruit_ADS1x15
 import csv
 import threading
 import shutil
@@ -51,16 +56,20 @@ def init():
     # Log object used to hold general settings, config file and log data
     global logComp
     logComp = lgOb.LogMeta()
+    # Create the I2C bus
+    global i2c
+    i2c = busio.I2C(board.SCL, board.SDA, frequency=1000000)
     # A/D Setup - Create 4 Global instances of ADS1115 ADC (16-bit) according to Adafruit Libraries
     # (Objective 7)
-    global adc0
-    global adc1
-    global adc2
-    global adc3
-    adc0 = Adafruit_ADS1x15.ADS1115(address=0x48, busnum=1)
-    adc1 = Adafruit_ADS1x15.ADS1115(address=0x49, busnum=1)
-    adc2 = Adafruit_ADS1x15.ADS1115(address=0x4a, busnum=1)
-    adc3 = Adafruit_ADS1x15.ADS1115(address=0x4b, busnum=1)
+    #global adc0
+    #global adc1
+    #global adc2
+    #global adc3
+    #adc0 = ADS.ADS1115(i2c, address=0x48, mode=Mode.CONTINUOUS, data_rate=dataRate)
+    #adc1 = ADS.ADS1115(i2c, address=0x49, mode=Mode.CONTINUOUS, data_rate=dataRate)
+    #adc2 = ADS.ADS1115(i2c, address=0x4a, mode=Mode.CONTINUOUS, data_rate=dataRate)
+    #adc3 = ADS.ADS1115(i2c, address=0x4b, mode=Mode.CONTINUOUS, data_rate=dataRate)
+
 
     # Run Code to import general information
     # (Objective 7)
@@ -105,22 +114,22 @@ def inputImport():
         # This gives the list of possible functions that can be run to grab data from a pin.
         global adcPinMap
         adcPinMap = {
-                "0A0": functools.partial(adc0.read_adc, 0, gain=logComp.config.pinList[0].gain, data_rate=dataRate),
-                "0A1": functools.partial(adc0.read_adc, 1, gain=logComp.config.pinList[1].gain, data_rate=dataRate),
-                "0A2": functools.partial(adc0.read_adc, 2, gain=logComp.config.pinList[2].gain, data_rate=dataRate),
-                "0A3": functools.partial(adc0.read_adc, 3, gain=logComp.config.pinList[3].gain, data_rate=dataRate),
-                "1A0": functools.partial(adc1.read_adc, 0, gain=logComp.config.pinList[4].gain, data_rate=dataRate),
-                "1A1": functools.partial(adc1.read_adc, 1, gain=logComp.config.pinList[5].gain, data_rate=dataRate),
-                "1A2": functools.partial(adc1.read_adc, 2, gain=logComp.config.pinList[6].gain, data_rate=dataRate),
-                "1A3": functools.partial(adc1.read_adc, 3, gain=logComp.config.pinList[7].gain, data_rate=dataRate),
-                "2A0": functools.partial(adc2.read_adc, 0, gain=logComp.config.pinList[8].gain, data_rate=dataRate),
-                "2A1": functools.partial(adc2.read_adc, 1, gain=logComp.config.pinList[9].gain, data_rate=dataRate),
-                "2A2": functools.partial(adc2.read_adc, 2, gain=logComp.config.pinList[10].gain, data_rate=dataRate),
-                "2A3": functools.partial(adc2.read_adc, 3, gain=logComp.config.pinList[11].gain, data_rate=dataRate),
-                "3A0": functools.partial(adc3.read_adc, 0, gain=logComp.config.pinList[12].gain, data_rate=dataRate),
-                "3A1": functools.partial(adc3.read_adc, 1, gain=logComp.config.pinList[13].gain, data_rate=dataRate),
-                "3A2": functools.partial(adc3.read_adc, 2, gain=logComp.config.pinList[14].gain, data_rate=dataRate),
-                "3A3": functools.partial(adc3.read_adc, 3, gain=logComp.config.pinList[15].gain, data_rate=dataRate)
+            "0A0": functools.partial(AnalogIn, ADS.ADS1115(i2c, address=0x48, mode=Mode.CONTINUOUS, data_rate=dataRate, gain=logComp.config.pinList[0].gain), ADS.P0),
+            "0A1": functools.partial(AnalogIn, ADS.ADS1115(i2c, address=0x48, mode=Mode.CONTINUOUS, data_rate=dataRate, gain=logComp.config.pinList[1].gain), ADS.P1),
+            "0A2": functools.partial(AnalogIn, ADS.ADS1115(i2c, address=0x48, mode=Mode.CONTINUOUS, data_rate=dataRate, gain=logComp.config.pinList[2].gain), ADS.P2),
+            "0A3": functools.partial(AnalogIn, ADS.ADS1115(i2c, address=0x48, mode=Mode.CONTINUOUS, data_rate=dataRate, gain=logComp.config.pinList[3].gain), ADS.P3),
+            "1A0": functools.partial(AnalogIn, ADS.ADS1115(i2c, address=0x49, mode=Mode.CONTINUOUS, data_rate=dataRate, gain=logComp.config.pinList[4].gain), ADS.P0),
+            "1A1": functools.partial(AnalogIn, ADS.ADS1115(i2c, address=0x49, mode=Mode.CONTINUOUS, data_rate=dataRate, gain=logComp.config.pinList[5].gain), ADS.P1),
+            "1A2": functools.partial(AnalogIn, ADS.ADS1115(i2c, address=0x49, mode=Mode.CONTINUOUS, data_rate=dataRate, gain=logComp.config.pinList[6].gain), ADS.P2),
+            "1A3": functools.partial(AnalogIn, ADS.ADS1115(i2c, address=0x49, mode=Mode.CONTINUOUS, data_rate=dataRate, gain=logComp.config.pinList[7].gain), ADS.P3),
+            "2A0": functools.partial(AnalogIn, ADS.ADS1115(i2c, address=0x4a, mode=Mode.CONTINUOUS, data_rate=dataRate, gain=logComp.config.pinList[8].gain), ADS.P0),
+            "2A1": functools.partial(AnalogIn, ADS.ADS1115(i2c, address=0x4a, mode=Mode.CONTINUOUS, data_rate=dataRate, gain=logComp.config.pinList[9].gain), ADS.P1),
+            "2A2": functools.partial(AnalogIn, ADS.ADS1115(i2c, address=0x4a, mode=Mode.CONTINUOUS, data_rate=dataRate, gain=logComp.config.pinList[10].gain), ADS.P2),
+            "2A3": functools.partial(AnalogIn, ADS.ADS1115(i2c, address=0x4a, mode=Mode.CONTINUOUS, data_rate=dataRate, gain=logComp.config.pinList[11].gain), ADS.P3),
+            "3A0": functools.partial(AnalogIn, ADS.ADS1115(i2c, address=0x4b, mode=Mode.CONTINUOUS, data_rate=dataRate, gain=logComp.config.pinList[12].gain), ADS.P0),
+            "3A1": functools.partial(AnalogIn, ADS.ADS1115(i2c, address=0x4b, mode=Mode.CONTINUOUS, data_rate=dataRate, gain=logComp.config.pinList[13].gain), ADS.P1),
+            "3A2": functools.partial(AnalogIn, ADS.ADS1115(i2c, address=0x4b, mode=Mode.CONTINUOUS, data_rate=dataRate, gain=logComp.config.pinList[14].gain), ADS.P2),
+            "3A3": functools.partial(AnalogIn, ADS.ADS1115(i2c, address=0x4b, mode=Mode.CONTINUOUS, data_rate=dataRate, gain=logComp.config.pinList[15].gain), ADS.P3),
         }
         # Run code to choose which pins to be logged.
         for pin in logComp.config.pinList:
@@ -236,46 +245,88 @@ def log():
     #WriteConfig(timeStamp)
 
     # CSV - Create/Open CSV file and print headers
-    with open('files/outbox/raw{}.csv'.format(timeStamp), 'w', newline='') as csvfile:
-        writer = csv.writer(csvfile, dialect="excel", delimiter=',', quotechar='|', quoting=csv.QUOTE_MINIMAL)
-        writer.writerow(['Date/Time', 'Time Interval (seconds)'] + adcHeader)
-        print("\nStart Logging...\n")
+#    with open('files/outbox/raw{}.csv'.format(timeStamp), 'w', newline='') as csvfile:
+#        writer = csv.writer(csvfile, dialect="excel", delimiter=',', quotechar='|', quoting=csv.QUOTE_MINIMAL)
+#        writer.writerow(['Date/Time', 'Time Interval (seconds)'] + adcHeader)
+#        print("\nStart Logging...\n")
 
         # Start live data thread
         # (Objective 12)
-        dataThread = threading.Thread(target=liveData)
-        dataThread.start()
+        #dataThread = threading.Thread(target=liveData)
+        #dataThread.start()
 
         # Set startTime (method used ignores changes in system clock time)
-        startTime = time.perf_counter()
+#        startTime = time.perf_counter()
 
         # Beginning of reading script
-        while logEnbl is True:
+#        while logEnbl is True:
             # Get time and send to Log
-            currentDateTime = datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")
-            timeElapsed = round(time.perf_counter() - startTime, 2)
+#            currentDateTime = datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")
+#            timeElapsed = round(time.perf_counter() - startTime, 2)
 
             # (Objective 11.3)
-            for currentPin, value in enumerate(adcToLog):
+#            for currentPin, value in enumerate(adcToLog):
                 # Get Raw data from A/D, and add to adcValues list corresponding to the current pin
-                adcValues[currentPin] = (value())
+#                adcValues[currentPin] = (value())
 
             # Export Data to Spreadsheet inc current datetime and time elapsed
             # (Objective 11.4)
-            writer.writerow([currentDateTime] + [timeElapsed] + adcValues)
+#            writer.writerow([currentDateTime] + [timeElapsed] + adcValues)
             # Copy list for data output and reset list values (so we can see if code fails)
-            global adcValuesCompl
-            adcValuesCompl = adcValues
-            adcValues = [0] * csvRows
+#            global adcValuesCompl
+#            adcValuesCompl = adcValues
+#            adcValues = [0] * csvRows
 
             # Work out time delay needed until next set of values taken based on user given value
             # (Using some clever maths)
             # (objective 11.2)
-            timeDiff = (time.perf_counter() - startTime)
-            time.sleep(timeInterval - (timeDiff % timeInterval))
+            #timeDiff = (time.perf_counter() - startTime)
+            #time.sleep(timeInterval - (timeDiff % timeInterval))
         # Wait until live data thread is finished
-        dataThread.join()
+        #dataThread.join()
+    dataQueue = queue.Queue()
+    writer = threading.Thread(target=Writer,args=(dataQueue,timeStamp))
+    writer.start()
+    print("\nStart Logging...\n")
+    startTime = time.perf_counter()
+    while logEnbl is True:
+        # Get time and send to Log
+        currentDateTime = datetime.now()
+        timeElapsed = round(time.perf_counter() - startTime, 5)
+
+        # (Objective 11.3)
+        for currentPin, chan in enumerate(adcToLog):
+        # Get Raw data from A/D, and add to adcValues list corresponding to the current pin
+            adcValues[currentPin] = (chan.value)
+        dataQueue.put([currentDateTime] + [timeElapsed] + adcValues)
+        # Export Data to Spreadsheet inc current datetime and time elapsed
+        # (Objective 11.4)
+        #print(currentDateTime + " " + str(timeElapsed) + " " + (" ").join(adcValues))
+        # Copy list for data output and reset list values (so we can see if code fails)
+        #global adcValuesCompl
+        #adcValuesCompl = adcValues
+        adcValues = [0] * csvRows
+
+        # Work out time delay needed until next set of values taken based on user given value
+        # (Using some clever maths)
+        # (objective 11.2)
+        #timeDiff = (time.perf_counter() - startTime)
+        #time.sleep(timeInterval - (timeDiff % timeInterval))
+    writer.join()
     db.UpdateDataPath(logComp.id,"files/outbox/raw{}.csv".format(timeStamp))
+
+
+def Writer(dataQueue,timeStamp):
+    global adcHeader
+    with open('files/outbox/raw{}.csv'.format(timeStamp), 'w', newline='') as csvfile:
+        writer = csv.writer(csvfile, dialect="excel", delimiter=',', quotechar='|', quoting=csv.QUOTE_MINIMAL)
+        writer.writerow(['Date/Time', 'Time Interval (seconds)'] + adcHeader)
+        while logEnbl == True or dataQueue.empty() != True:
+            data = dataQueue.get()
+            writer.writerow([data[0].strftime("%Y-%m-%d %H:%M:%S.%f")] + [data[1]])
+
+
+
 
 """
 # Writes the config data for the log to archive folder
