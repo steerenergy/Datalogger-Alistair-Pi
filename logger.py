@@ -291,7 +291,7 @@ def log():
     startTime = time.perf_counter()
     while logEnbl is True:
         # Get time and send to Log
-        currentDateTime = datetime.now()
+        currentDateTime = datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")
         timeElapsed = round(time.perf_counter() - startTime, 5)
 
         # (Objective 11.3)
@@ -323,8 +323,7 @@ def Writer(dataQueue,timeStamp):
         writer.writerow(['Date/Time', 'Time Interval (seconds)'] + adcHeader)
         while logEnbl == True or dataQueue.empty() != True:
             data = dataQueue.get()
-            writer.writerow([data[0].strftime("%Y-%m-%d %H:%M:%S.%f")] + [data[1]] + data[2])
-        print("Exiting")
+            writer.writerow(data)
 
 
 
