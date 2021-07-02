@@ -13,14 +13,14 @@ from collections import OrderedDict
 import configparser
 import functools
 # Uncomment below for real adc (if running on Pi)
-#import adafruit_ads1x15.ads1115 as ADS
-#from adafruit_ads1x15.analog_in import AnalogIn
+import adafruit_ads1x15.ads1115 as ADS
+from adafruit_ads1x15.analog_in import AnalogIn
 from adafruit_ads1x15.ads1x15 import Mode
-#import busio
-#import board
+import busio
+import board
 # Uncomment below for fake adc simulation if using a PC
-from AnalogInFake import AnalogIn as AnalogIn
-import ADS1115Fake as ADS
+#from AnalogInFake import AnalogIn as AnalogIn
+#import ADS1115Fake as ADS
 
 import csv
 import threading
@@ -60,8 +60,8 @@ def init():
     logComp = lgOb.LogMeta()
     # Create the I2C bus
     global i2c
-    #i2c = busio.I2C(board.SCL, board.SDA, frequency=1000000)
-    i2c = "fake"
+    i2c = busio.I2C(board.SCL, board.SDA, frequency=1000000)
+    #i2c = "fake"
     # A/D Setup - Create 4 Global instances of ADS1115 ADC (16-bit) according to Adafruit Libraries
     # (Objective 7)
     #global adc0
@@ -315,8 +315,8 @@ def log():
         # Work out time delay needed until next set of values taken based on user given value
         # (Using some clever maths)
         # (objective 11.2)
-        timeDiff = (time.perf_counter() - startTime)
-        time.sleep(timeInterval - (timeDiff % timeInterval))
+        #timeDiff = (time.perf_counter() - startTime)
+        #time.sleep(timeInterval - (timeDiff % timeInterval))
     writer.join()
     db.UpdateDataPath(logComp.id,"files/outbox/raw{}.csv".format(timeStamp))
 
@@ -381,7 +381,7 @@ def liveData():
     global guiFrame
 
     # Set up variables for creating a live graph
-    ani = animation.FuncAnimation(guiFrame, animate, interval=logComp.time * 1000)
+    ani = animation.FuncAnimation(guiFrame, animate, interval=max(logComp.time*1000,1000))
     timeData = []
     logData = []
     for pin in adcHeader:
