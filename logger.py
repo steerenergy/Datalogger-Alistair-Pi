@@ -114,22 +114,22 @@ def inputImport():
         # This gives the list of possible functions that can be run to grab data from a pin.
         global adcPinMap
         adcPinMap = {
-            "0A0": functools.partial(AnalogIn, ADS.ADS1115(i2c, address=0x48, mode=Mode.CONTINUOUS, data_rate=dataRate, gain=logComp.config.pinList[0].gain), ADS.P0),
-            "0A1": functools.partial(AnalogIn, ADS.ADS1115(i2c, address=0x48, mode=Mode.CONTINUOUS, data_rate=dataRate, gain=logComp.config.pinList[1].gain), ADS.P1),
-            "0A2": functools.partial(AnalogIn, ADS.ADS1115(i2c, address=0x48, mode=Mode.CONTINUOUS, data_rate=dataRate, gain=logComp.config.pinList[2].gain), ADS.P2),
-            "0A3": functools.partial(AnalogIn, ADS.ADS1115(i2c, address=0x48, mode=Mode.CONTINUOUS, data_rate=dataRate, gain=logComp.config.pinList[3].gain), ADS.P3),
-            "1A0": functools.partial(AnalogIn, ADS.ADS1115(i2c, address=0x49, mode=Mode.CONTINUOUS, data_rate=dataRate, gain=logComp.config.pinList[4].gain), ADS.P0),
-            "1A1": functools.partial(AnalogIn, ADS.ADS1115(i2c, address=0x49, mode=Mode.CONTINUOUS, data_rate=dataRate, gain=logComp.config.pinList[5].gain), ADS.P1),
-            "1A2": functools.partial(AnalogIn, ADS.ADS1115(i2c, address=0x49, mode=Mode.CONTINUOUS, data_rate=dataRate, gain=logComp.config.pinList[6].gain), ADS.P2),
-            "1A3": functools.partial(AnalogIn, ADS.ADS1115(i2c, address=0x49, mode=Mode.CONTINUOUS, data_rate=dataRate, gain=logComp.config.pinList[7].gain), ADS.P3),
-            "2A0": functools.partial(AnalogIn, ADS.ADS1115(i2c, address=0x4a, mode=Mode.CONTINUOUS, data_rate=dataRate, gain=logComp.config.pinList[8].gain), ADS.P0),
-            "2A1": functools.partial(AnalogIn, ADS.ADS1115(i2c, address=0x4a, mode=Mode.CONTINUOUS, data_rate=dataRate, gain=logComp.config.pinList[9].gain), ADS.P1),
-            "2A2": functools.partial(AnalogIn, ADS.ADS1115(i2c, address=0x4a, mode=Mode.CONTINUOUS, data_rate=dataRate, gain=logComp.config.pinList[10].gain), ADS.P2),
-            "2A3": functools.partial(AnalogIn, ADS.ADS1115(i2c, address=0x4a, mode=Mode.CONTINUOUS, data_rate=dataRate, gain=logComp.config.pinList[11].gain), ADS.P3),
-            "3A0": functools.partial(AnalogIn, ADS.ADS1115(i2c, address=0x4b, mode=Mode.CONTINUOUS, data_rate=dataRate, gain=logComp.config.pinList[12].gain), ADS.P0),
-            "3A1": functools.partial(AnalogIn, ADS.ADS1115(i2c, address=0x4b, mode=Mode.CONTINUOUS, data_rate=dataRate, gain=logComp.config.pinList[13].gain), ADS.P1),
-            "3A2": functools.partial(AnalogIn, ADS.ADS1115(i2c, address=0x4b, mode=Mode.CONTINUOUS, data_rate=dataRate, gain=logComp.config.pinList[14].gain), ADS.P2),
-            "3A3": functools.partial(AnalogIn, ADS.ADS1115(i2c, address=0x4b, mode=Mode.CONTINUOUS, data_rate=dataRate, gain=logComp.config.pinList[15].gain), ADS.P3),
+            "0A0": AnalogIn(ADS.ADS1115(i2c, address=0x48, mode=Mode.CONTINUOUS, data_rate=dataRate, gain=logComp.config.pinList[0].gain), ADS.P0),
+            "0A1": AnalogIn(ADS.ADS1115(i2c, address=0x48, mode=Mode.CONTINUOUS, data_rate=dataRate, gain=logComp.config.pinList[1].gain), ADS.P1),
+            "0A2": AnalogIn(ADS.ADS1115(i2c, address=0x48, mode=Mode.CONTINUOUS, data_rate=dataRate, gain=logComp.config.pinList[2].gain), ADS.P2),
+            "0A3": AnalogIn(ADS.ADS1115(i2c, address=0x48, mode=Mode.CONTINUOUS, data_rate=dataRate, gain=logComp.config.pinList[3].gain), ADS.P3),
+            "1A0": AnalogIn(ADS.ADS1115(i2c, address=0x49, mode=Mode.CONTINUOUS, data_rate=dataRate, gain=logComp.config.pinList[4].gain), ADS.P0),
+            "1A1": AnalogIn(ADS.ADS1115(i2c, address=0x49, mode=Mode.CONTINUOUS, data_rate=dataRate, gain=logComp.config.pinList[5].gain), ADS.P1),
+            "1A2": AnalogIn(ADS.ADS1115(i2c, address=0x49, mode=Mode.CONTINUOUS, data_rate=dataRate, gain=logComp.config.pinList[6].gain), ADS.P2),
+            "1A3": AnalogIn(ADS.ADS1115(i2c, address=0x49, mode=Mode.CONTINUOUS, data_rate=dataRate, gain=logComp.config.pinList[7].gain), ADS.P3),
+            "2A0": AnalogIn(ADS.ADS1115(i2c, address=0x4a, mode=Mode.CONTINUOUS, data_rate=dataRate, gain=logComp.config.pinList[8].gain), ADS.P0),
+            "2A1": AnalogIn(ADS.ADS1115(i2c, address=0x4a, mode=Mode.CONTINUOUS, data_rate=dataRate, gain=logComp.config.pinList[9].gain), ADS.P1),
+            "2A2": AnalogIn(ADS.ADS1115(i2c, address=0x4a, mode=Mode.CONTINUOUS, data_rate=dataRate, gain=logComp.config.pinList[10].gain), ADS.P2),
+            "2A3": AnalogIn(ADS.ADS1115(i2c, address=0x4a, mode=Mode.CONTINUOUS, data_rate=dataRate, gain=logComp.config.pinList[11].gain), ADS.P3),
+            "3A0": AnalogIn(ADS.ADS1115(i2c, address=0x4b, mode=Mode.CONTINUOUS, data_rate=dataRate, gain=logComp.config.pinList[12].gain), ADS.P0),
+            "3A1": AnalogIn(ADS.ADS1115(i2c, address=0x4b, mode=Mode.CONTINUOUS, data_rate=dataRate, gain=logComp.config.pinList[13].gain), ADS.P1),
+            "3A2": AnalogIn(ADS.ADS1115(i2c, address=0x4b, mode=Mode.CONTINUOUS, data_rate=dataRate, gain=logComp.config.pinList[14].gain), ADS.P2),
+            "3A3": AnalogIn(ADS.ADS1115(i2c, address=0x4b, mode=Mode.CONTINUOUS, data_rate=dataRate, gain=logComp.config.pinList[15].gain), ADS.P3)
         }
         # Run code to choose which pins to be logged.
         for pin in logComp.config.pinList:
