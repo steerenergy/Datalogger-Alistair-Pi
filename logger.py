@@ -19,7 +19,7 @@ from adafruit_ads1x15.ads1x15 import Mode
 import busio
 import board
 # Uncomment below for fake adc simulation if using a PC
-#import Adafruit_ADS1x15Fake as Adafruit_ADS1x15
+#import AnalogInFake as AnalogIn
 import csv
 import threading
 import shutil
@@ -324,6 +324,7 @@ def Writer(dataQueue,timeStamp):
         while logEnbl == True or dataQueue.empty() != True:
             data = dataQueue.get()
             writer.writerow(data)
+            print(data)
 
 
 
