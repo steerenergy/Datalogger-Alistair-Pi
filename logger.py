@@ -297,7 +297,7 @@ def log():
         # (Objective 11.3)
         for currentPin, chan in enumerate(adcToLog):
         # Get Raw data from A/D, and add to adcValues list corresponding to the current pin
-            adcValues[currentPin] = (chan.value)
+            adcValues[currentPin] = chan.value
         dataQueue.put([currentDateTime] + [timeElapsed] + adcValues)
         # Export Data to Spreadsheet inc current datetime and time elapsed
         # (Objective 11.4)
@@ -324,6 +324,7 @@ def Writer(dataQueue,timeStamp):
         while logEnbl == True or dataQueue.empty() != True:
             data = dataQueue.get()
             writer.writerow([data[0].strftime("%Y-%m-%d %H:%M:%S.%f")] + [data[1]] + data[2])
+        print("Exiting")
 
 
 
