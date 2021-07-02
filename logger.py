@@ -324,7 +324,7 @@ def Writer(dataQueue,timeStamp):
         writer.writerow(['Date/Time', 'Time Interval (seconds)'] + adcHeader)
         while logEnbl == True or dataQueue.empty() != True:
             data = dataQueue.get()
-            writer.writerow([data[0].strftime("%Y-%m-%d %H:%M:%S.%f")] + [data[1]])
+            writer.writerow([data[0].strftime("%Y-%m-%d %H:%M:%S.%f")] + [data[1]] + data[2])
 
 
 
