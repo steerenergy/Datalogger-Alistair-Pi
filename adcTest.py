@@ -38,7 +38,7 @@ def ADCReader(pins):
         while True:
             for pin in pins:
                 timeElapsed = time.perf_counter() - startTime
-                worker_writer.writerow([timeElapsed] + [pin.value[0]])
+                worker_writer.writerow([timeElapsed] + [pin[0].value])
 
 
 def run():
@@ -90,7 +90,7 @@ def run():
         while True:
             for pin in adcPinMap["1AX"].values():
                 timeElapsed = time.perf_counter() - startTime
-                writer.writerow([timeElapsed] + [pin.value[0]])
+                writer.writerow([timeElapsed] + [pin[0].value])
 
 if __name__ == "__main__":
     run()
