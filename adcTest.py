@@ -32,18 +32,18 @@ import numpy as np
 import gui
 
 
-def ADCReader(pins,name):
-    startTime = time.perf_counter()
-    with open("worker{}test.csv".format(name),"w") as file:
+#def ADCReader(pins,name):
+#    startTime = time.perf_counter()
+#    with open("worker{}test.csv".format(name),"w") as file:
         #worker_writer = csv.writer(file, dialect="excel", delimiter=',', quotechar='|', quoting=csv.QUOTE_MINIMAL)
-        timeElapsed = 0
-        while timeElapsed < 10:
-            for pin in pins:
-                timeElapsed = time.perf_counter() - startTime
+#        timeElapsed = 0
+#        while timeElapsed < 10:
+#            for pin in pins:
+#                timeElapsed = time.perf_counter() - startTime
                 #worker_writer.writerow([timeElapsed] + [pin[0].value])
-                file.write(str(timeElapsed) + str(pin[0].value) + "\n")
+#                file.write(str(timeElapsed) + str(pin[0].value) + "\n")
                 #file.write(str(timeElapsed) + "test\n")
-                time.sleep(0.001)
+#                time.sleep(0.001)
 
 
 #def ADCReader1(pins,name):
@@ -110,38 +110,23 @@ def run():
         }
     }
 
-    for name,adc in adcPinMap.items():
-        pins = []
-        for pin in adc.values():
-            pins.append(pin)
-        worker = threading.Thread(target=ADCReader,args=(pins,name))
-        #worker.daemon = True
-        worker.start()
-
-    #pins = []
-    #for pin in adcPinMap["1AX"].values():
-    #    pins.append(pin)
-    #worker1 = threading.Thread(target=ADCReader1,args=(pins,"1AX"))
-    #worker1.daemon = True
-    #worker1.start()
-
-    #pins = []
-    #for pin in adcPinMap["2AX"].values():
-    #    pins.append(pin)
-    #worker2 = threading.Thread(target=ADCReader2,args=(pins,"2AX"))
-    #worker1.daemon = True
-    #worker2.start()
-
-
+#    for name,adc in adcPinMap.items():
+#        pins = []
+#        for pin in adc.values():
+#            pins.append(pin)
+#        worker = threading.Thread(target=ADCReader,args=(pins,name))
+#        #worker.daemon = True
+#        worker.start()
     startTime = time.perf_counter()
-    print(startTime)
-    #with open("test.csv","w") as file:
-    #    writer = csv.writer(file, dialect="excel", delimiter=',', quotechar='|', quoting=csv.QUOTE_MINIMAL)
-    #    while True:
-    #        for pin in adcPinMap["3AX"].values():
-    #            timeElapsed = time.perf_counter() - startTime
-    #            writer.writerow([timeElapsed] + [pin[0].value])
-    #            file.write(str(timeElapsed) + str(pin[0].value) + "\n")
+    with open("test.csv","r") as file:
+        while timeElapsed < 10:
+            for adc in adcPinMap.values():
+                for pin in adc.values():
+                    timeElapsed = time.perf_counter() - startTime
+                    #worker_writer1.writerow([timeElapsed] + [pin[0].value])
+                    #file.write(str(timeElapsed) + str(pin[0].value) + "\n")
+                    file.write(str(timeElapsed) + str(pin[0].value) + "\n")
+
 
 if __name__ == "__main__":
     run()
