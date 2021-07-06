@@ -68,13 +68,13 @@ def run():
             "2A1": [AnalogIn(ads=adc2, gain=1, positive_pin=ADS.P1), 9],
             "2A2": [AnalogIn(ads=adc2, gain=1, positive_pin=ADS.P2), 10],
             "2A3": [AnalogIn(ads=adc2, gain=1, positive_pin=ADS.P3), 11]
-        },
-        "3AX": {
-            "3A0": [AnalogIn(ads=adc3, gain=1, positive_pin=ADS.P0), 12],
-            "3A1": [AnalogIn(ads=adc3, gain=1, positive_pin=ADS.P1), 13],
-            "3A2": [AnalogIn(ads=adc3, gain=1, positive_pin=ADS.P2), 14],
-            "3A3": [AnalogIn(ads=adc3, gain=1, positive_pin=ADS.P3), 15]
         }
+        #"3AX": {
+        #    "3A0": [AnalogIn(ads=adc3, gain=1, positive_pin=ADS.P0), 12],
+        #    "3A1": [AnalogIn(ads=adc3, gain=1, positive_pin=ADS.P1), 13],
+        #    "3A2": [AnalogIn(ads=adc3, gain=1, positive_pin=ADS.P2), 14],
+        #    "3A3": [AnalogIn(ads=adc3, gain=1, positive_pin=ADS.P3), 15]
+        #}
     }
     for name,adc in adcPinMap.items():
         pins = []
@@ -89,7 +89,7 @@ def run():
     with open("test.csv","w") as file:
         writer = csv.writer(file, dialect="excel", delimiter=',', quotechar='|', quoting=csv.QUOTE_MINIMAL)
         while True:
-            for pin in adcPinMap["1AX"].values():
+            for pin in adcPinMap["3AX"].values():
                 timeElapsed = time.perf_counter() - startTime
                 writer.writerow([timeElapsed] + [pin[0].value])
 
