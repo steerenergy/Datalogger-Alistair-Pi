@@ -118,7 +118,7 @@ def run():
 #        #worker.daemon = True
 #        worker.start()
     startTime = time.perf_counter()
-    with open("test.csv","r") as file:
+    with open("test.csv","w") as file:
         while timeElapsed < 10:
             for adc in adcPinMap.values():
                 for pin in adc.values():
