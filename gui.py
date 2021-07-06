@@ -299,9 +299,9 @@ class WindowTop(Frame):
                         # Update yData and xData which are plotted on live graph
                         yData = logData[channel - 1]
                         xData = timeData
+                        self.ax1.clear()
                         self.ax1.plot(xData,yData)
-                        self.canvas.draw_idle()
-                        time.sleep(max(1,logComp.time))
+                        self.canvas.draw()
             time.sleep(0.001)
 
 
