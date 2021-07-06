@@ -36,7 +36,8 @@ def ADCReader0(pins,name):
     startTime = time.perf_counter()
     with open("worker{}test.csv".format(name),"w") as file:
         #worker_writer = csv.writer(file, dialect="excel", delimiter=',', quotechar='|', quoting=csv.QUOTE_MINIMAL)
-        while True:
+        timeElapsed = 0
+        while timeElapsed < 10:
             for pin in pins:
                 timeElapsed = time.perf_counter() - startTime
                 #worker_writer.writerow([timeElapsed] + [pin[0].value])
@@ -49,7 +50,8 @@ def ADCReader1(pins,name):
     startTime = time.perf_counter()
     with open("worker{}test.csv".format(name),"w") as file1:
         #worker_writer1 = csv.writer(file, dialect="excel", delimiter=',', quotechar='|', quoting=csv.QUOTE_MINIMAL)
-        while True:
+        timeElapsed = 0
+        while timeElapsed < 10:
             for pin in pins:
                 timeElapsed = time.perf_counter() - startTime
                 #worker_writer1.writerow([timeElapsed] + [pin[0].value])
@@ -62,7 +64,8 @@ def ADCReader2(pins,name):
     startTime = time.perf_counter()
     with open("worker{}test.csv".format(name),"w") as file2:
         #worker_writer1 = csv.writer(file, dialect="excel", delimiter=',', quotechar='|', quoting=csv.QUOTE_MINIMAL)
-        while True:
+        timeElapsed = 0
+        while timeElapsed < 10:
             for pin in pins:
                 timeElapsed = time.perf_counter() - startTime
                 #worker_writer1.writerow([timeElapsed] + [pin[0].value])
