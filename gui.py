@@ -304,6 +304,7 @@ class WindowTop(Frame):
                         self.ax1.clear()
                         self.ax1.plot(xData,yData)
                         self.canvas.draw_idle()
+                        time.sleep(max(1,logComp.time))
             time.sleep(0.001)
 
 
