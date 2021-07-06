@@ -6,14 +6,14 @@ from collections import OrderedDict
 import configparser
 import functools
 # Uncomment below for real adc (if running on Pi)
-import adafruit_ads1x15.ads1115 as ADS
-from adafruit_ads1x15.analog_in import AnalogIn
+#import adafruit_ads1x15.ads1115 as ADS
+#from adafruit_ads1x15.analog_in import AnalogIn
 from adafruit_ads1x15.ads1x15 import Mode
-import busio
-import board
+#import busio
+#import board
 # Uncomment below for fake adc simulation if using a PC
-#from AnalogInFake import AnalogIn as AnalogIn
-#import ADS1115Fake as ADS
+from AnalogInFake import AnalogIn as AnalogIn
+import ADS1115Fake as ADS
 
 import csv
 import threading
@@ -42,7 +42,7 @@ def ADCReader0(pins,name):
                 timeElapsed = time.perf_counter() - startTime
                 #worker_writer.writerow([timeElapsed] + [pin[0].value])
                 #file.write(str(timeElapsed) + str(pin[0].value) + "\n")
-                file.write(str(timeElapsed) + "test")
+                file.write(str(timeElapsed) + "test\n")
                 time.sleep(0.001)
 
 
@@ -56,7 +56,7 @@ def ADCReader1(pins,name):
                 timeElapsed = time.perf_counter() - startTime
                 #worker_writer1.writerow([timeElapsed] + [pin[0].value])
                 #file.write(str(timeElapsed) + str(pin[0].value) + "\n")
-                file1.write(str(timeElapsed) + "test")
+                file1.write(str(timeElapsed) + "test\n")
                 time.sleep(0.001)
 
 
@@ -70,11 +70,12 @@ def ADCReader2(pins,name):
                 timeElapsed = time.perf_counter() - startTime
                 #worker_writer1.writerow([timeElapsed] + [pin[0].value])
                 #file.write(str(timeElapsed) + str(pin[0].value) + "\n")
-                file2.write(str(timeElapsed) + "test")
+                file2.write(str(timeElapsed) + "test\n")
                 time.sleep(0.001)
 
 def run():
-    i2c = busio.I2C(board.SCL, board.SDA, frequency=1000000)
+    #i2c = busio.I2C(board.SCL, board.SDA, frequency=1000000)
+    i2c = "fake"
     dataRate = 860
 
     adc0 = ADS.ADS1115(i2c, address=0x48, mode=Mode.CONTINUOUS, data_rate=dataRate)
