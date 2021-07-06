@@ -311,18 +311,6 @@ def log():
         dataThread = threading.Thread(target=liveData)
         dataThread.start()
 
-        global adcbuffer
-        adcbuffer = [0] * csvRows
-        for board in adcPinMap.values():
-            pins = []
-            for pin in board.values():
-                if pin in adcToLog:
-                    pins.append(pin)
-            worker = threading.Thread(target=ADCReader,args=(pins,))
-            worker.daemon = True
-            worker.start()
-        print("\nStart Logging...\n")
-        time.sleep(0.1)
         startTime = time.perf_counter()
         while logEnbl is True:
             # Get time and send to Log
@@ -330,11 +318,13 @@ def log():
             timeElapsed = round(time.perf_counter() - startTime, 2)
 
             # Export Data to Spreadsheet inc current datetime and time elapsed
-            writer.writerow([currentDateTime] + [timeElapsed] + adcbuffer)
+            for idx, pin in adcToLog:
+                adcValues[idx] = pin.value
+            writer.writerow([currentDateTime] + [timeElapsed] + adcValues)
             # Copy list for data output and reset list values (so we can see if code fails)
             global adcValuesCompl
-            adcValuesCompl = adcbuffer
-            adcbuffer = [0] * csvRows
+            adcValuesCompl = adcValues
+            adcValues = [0] * csvRows
 
             # Work out time delay needed until next set of values taken based on user given value
             # (Using some clever maths)
@@ -342,13 +332,6 @@ def log():
             timeDiff = (time.perf_counter() - startTime)
             time.sleep(timeInterval - (timeDiff % timeInterval))
     db.UpdateDataPath(logComp.id,"files/outbox/raw{}.csv".format(timeStamp))
-
-
-def ADCReader(pins):
-    global adcbuffer
-    while logEnbl == True:
-        for pin in pins:
-           adcbuffer[pin[1]] = pin[0].value
 
 
 
