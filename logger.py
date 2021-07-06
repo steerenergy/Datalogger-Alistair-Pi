@@ -303,51 +303,44 @@ def log():
     #        time.sleep(timeInterval - (timeDiff % timeInterval))
         # Wait until live data thread is finished
     #    dataThread.join()
-    dataThread = threading.Thread(target=liveData)
-    dataThread.start()
-    dataQueue = queue.Queue()
-    writer = threading.Thread(target=Writer,args=(dataQueue,timeStamp))
-    writer.start()
+    # CSV - Create/Open CSV file and print headers
+    with open('files/outbox/raw{}.csv'.format(timeStamp), 'w', newline='') as csvfile:
+        writer = csv.writer(csvfile, dialect="excel", delimiter=',', quotechar='|', quoting=csv.QUOTE_MINIMAL)
+        writer.writerow(['Date/Time', 'Time Interval (seconds)'] + adcHeader)
+        print("\nStart Logging...\n")
+        dataThread = threading.Thread(target=liveData)
+        dataThread.start()
 
-    global adcbuffer
-    adcbuffer = [0] * csvRows
-    for board in adcPinMap.values():
-        pins = []
-        for pin in board.values():
-            if pin in adcToLog:
-                pins.append(pin)
-        worker = threading.Thread(target=ADCReader,args=(pins,))
-        worker.daemon = True
-        worker.start()
-    print("\nStart Logging...\n")
-    startTime = time.perf_counter()
-    while logEnbl is True:
-        # Get time and send to Log
-        currentDateTime = datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")
-        timeElapsed = round(time.perf_counter() - startTime, 2)
-
-
-        # (Objective 11.3)
-        #for pin, values in enumerate(adcToLog):
-        # Get Raw data from A/D, and add to adcValues list corresponding to the current pin
-            #adcValues[currentPin] = chan.value
-        #    adcValues[pin] = buffer[pin]
-        dataQueue.put([currentDateTime] + [timeElapsed] + adcbuffer)
-        # Export Data to Spreadsheet inc current datetime and time elapsed
-        # (Objective 11.4)
-
-        # Copy list for data output and reset list values (so we can see if code fails)
-        global adcValuesCompl
-        adcValuesCompl = adcbuffer
+        global adcbuffer
         adcbuffer = [0] * csvRows
+        for board in adcPinMap.values():
+            pins = []
+            for pin in board.values():
+                if pin in adcToLog:
+                    pins.append(pin)
+            worker = threading.Thread(target=ADCReader,args=(pins,))
+            worker.daemon = True
+            worker.start()
+        print("\nStart Logging...\n")
+        time.sleep(0.1)
+        startTime = time.perf_counter()
+        while logEnbl is True:
+            # Get time and send to Log
+            currentDateTime = datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")
+            timeElapsed = round(time.perf_counter() - startTime, 2)
 
-        # Work out time delay needed until next set of values taken based on user given value
-        # (Using some clever maths)
-        # (objective 11.2)
-        timeDiff = (time.perf_counter() - startTime)
-        time.sleep(timeInterval - (timeDiff % timeInterval))
-    if writer.is_alive():
-        writer.join()
+            # Export Data to Spreadsheet inc current datetime and time elapsed
+            writer.writerow([currentDateTime] + [timeElapsed] + adcbuffer)
+            # Copy list for data output and reset list values (so we can see if code fails)
+            global adcValuesCompl
+            adcValuesCompl = adcbuffer
+            adcbuffer = [0] * csvRows
+
+            # Work out time delay needed until next set of values taken based on user given value
+            # (Using some clever maths)
+            # (objective 11.2)
+            timeDiff = (time.perf_counter() - startTime)
+            time.sleep(timeInterval - (timeDiff % timeInterval))
     db.UpdateDataPath(logComp.id,"files/outbox/raw{}.csv".format(timeStamp))
 
 
@@ -356,18 +349,6 @@ def ADCReader(pins):
     while logEnbl == True:
         for pin in pins:
             adcbuffer[pin[3]] = AnalogIn(ads=pin[0], positive_pin=pin[2], gain=pin[1]).value
-
-
-
-def Writer(dataQueue,timeStamp):
-    global adcHeader
-    with open('files/outbox/raw{}.csv'.format(timeStamp), 'w', newline='') as csvfile:
-        writer = csv.writer(csvfile, dialect="excel", delimiter=',', quotechar='|', quoting=csv.QUOTE_MINIMAL)
-        writer.writerow(['Date/Time', 'Time Interval (seconds)'] + adcHeader)
-        while logEnbl == True or dataQueue.empty() != True:
-            data = dataQueue.get()
-            writer.writerow(data)
-
 
 
 
