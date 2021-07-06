@@ -95,12 +95,12 @@ def run():
     worker.daemon = True
     worker.start()
 
-    pins = []
-    for pin in adcPinMap["1AX"].values():
-        pins.append(pin)
-    worker1 = threading.Thread(target=ADCReader1,args=(pins,"1AX"))
-    worker1.daemon = True
-    worker1.start()
+    #pins = []
+    #for pin in adcPinMap["1AX"].values():
+    #    pins.append(pin)
+    #worker1 = threading.Thread(target=ADCReader1,args=(pins,"1AX"))
+    #worker1.daemon = True
+    #worker1.start()
 
 
     startTime = time.perf_counter()
