@@ -119,13 +119,16 @@ def run():
 #        worker.start()
     startTime = time.perf_counter()
     with open("test.csv","w") as file:
+        timeElapsed = time.perf_counter() - startTime
         while timeElapsed < 10:
+            values = []
             for adc in adcPinMap.values():
                 for pin in adc.values():
-                    timeElapsed = time.perf_counter() - startTime
-                    #worker_writer1.writerow([timeElapsed] + [pin[0].value])
-                    #file.write(str(timeElapsed) + str(pin[0].value) + "\n")
-                    file.write(str(timeElapsed) + str(pin[0].value) + "\n")
+                    values.append(pin[0].value)
+            timeElapsed = time.perf_counter() - startTime
+            #worker_writer1.writerow([timeElapsed] + [pin[0].value])
+            #file.write(str(timeElapsed) + str(pin[0].value) + "\n")
+            file.write(str(timeElapsed) + str(values) + "\n")
 
 
 if __name__ == "__main__":
