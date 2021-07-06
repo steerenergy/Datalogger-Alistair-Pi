@@ -85,7 +85,7 @@ def run():
 
 
     startTime = time.perf_counter()
-    with open("workertest.csv","w") as file:
+    with open("test.csv","w") as file:
         writer = csv.writer(file, dialect="excel", delimiter=',', quotechar='|', quoting=csv.QUOTE_MINIMAL)
         while True:
             for pin in adcPinMap["1AX"].values():
