@@ -31,7 +31,7 @@ from decimal import Decimal
 import numpy as np
 import gui
 
-def ADCReader(pins,name):
+def ADCReader0(pins,name):
     startTime = time.perf_counter()
     with open("worker{}test.csv".format(name),"w") as file:
         worker_writer = csv.writer(file, dialect="excel", delimiter=',', quotechar='|', quoting=csv.QUOTE_MINIMAL)
@@ -39,6 +39,15 @@ def ADCReader(pins,name):
             for pin in pins:
                 timeElapsed = time.perf_counter() - startTime
                 worker_writer.writerow([timeElapsed] + [pin[0].value])
+
+def ADCReader1(pins,name):
+    startTime = time.perf_counter()
+    with open("worker{}test.csv".format(name),"w") as file:
+        worker_writer1 = csv.writer(file, dialect="excel", delimiter=',', quotechar='|', quoting=csv.QUOTE_MINIMAL)
+        while True:
+            for pin in pins:
+                timeElapsed = time.perf_counter() - startTime
+                worker_writer1.writerow([timeElapsed] + [pin[0].value])
 
 
 def run():
@@ -76,14 +85,19 @@ def run():
             "3A3": [AnalogIn(ads=adc3, gain=1, positive_pin=ADS.P3), 15]
         }
     }
-    for name,adc in adcPinMap.items():
-        if name != "3AX" and name != "2AX":
-            pins = []
-            for pin in adc.values():
-                pins.append(pin)
-            worker = threading.Thread(target=ADCReader,args=(pins,name))
-            worker.daemon = True
-            worker.start()
+    pins = []
+    for pin in adcPinMap["0AX"].values():
+        pins.append(pin)
+    worker = threading.Thread(target=ADCReader0,args=(pins,"0AX"))
+    worker.daemon = True
+    worker.start()
+
+    pins = []
+    for pin in adcPinMap["1AX"].values():
+        pins.append(pin)
+    worker = threading.Thread(target=ADCReader1,args=(pins,"1AX"))
+    worker.daemon = True
+    worker.start()
 
 
     startTime = time.perf_counter()
