@@ -72,6 +72,7 @@ def ADCReader(pins):
         for pin in pins:
            adcbuffer[pin[1]] = pin[0].value
 
+global adcbuffer
 adcbuffer = [0] * 16
 for board in adcPinMap.values():
     pins = []
