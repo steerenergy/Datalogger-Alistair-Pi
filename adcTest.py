@@ -77,6 +77,6 @@ startTime = time.perf_counter()
 while True:
     values = []
     for idx, pin in enumerate(pins):
-        values[idx] = pin.value
+        values[idx] = pin[0].value
     timeElapsed = time.perf_counter() - startTime
     print("{}: {}".format(timeElapsed, (" ").join(values)))
