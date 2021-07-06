@@ -32,7 +32,7 @@ import numpy as np
 import gui
 
 
-def ADCReader0(pins,name):
+def ADCReader(pins,name):
     startTime = time.perf_counter()
     with open("worker{}test.csv".format(name),"w") as file:
         #worker_writer = csv.writer(file, dialect="excel", delimiter=',', quotechar='|', quoting=csv.QUOTE_MINIMAL)
@@ -74,7 +74,7 @@ def ADCReader0(pins,name):
 #                time.sleep(0.001)
 
 def run():
-    i2c = busio.I2C(board.SCL, board.SDA, frequency=1000000)
+    i2c = board.I2C()
     #i2c = "fake"
     dataRate = 860
 
@@ -114,7 +114,7 @@ def run():
         pins = []
         for pin in adc.values():
             pins.append(pin)
-        worker = threading.Thread(target=ADCReader0,args=(pins,name))
+        worker = threading.Thread(target=ADCReader,args=(pins,name))
         #worker.daemon = True
         worker.start()
 
@@ -136,11 +136,11 @@ def run():
     startTime = time.perf_counter()
     print(startTime)
     #with open("test.csv","w") as file:
-        #writer = csv.writer(file, dialect="excel", delimiter=',', quotechar='|', quoting=csv.QUOTE_MINIMAL)
+    #    writer = csv.writer(file, dialect="excel", delimiter=',', quotechar='|', quoting=csv.QUOTE_MINIMAL)
     #    while True:
     #        for pin in adcPinMap["3AX"].values():
     #            timeElapsed = time.perf_counter() - startTime
-                #writer.writerow([timeElapsed] + [pin[0].value])
+    #            writer.writerow([timeElapsed] + [pin[0].value])
     #            file.write(str(timeElapsed) + str(pin[0].value) + "\n")
 
 if __name__ == "__main__":
