@@ -92,25 +92,26 @@ def run():
     for pin in adcPinMap["0AX"].values():
         pins.append(pin)
     worker = threading.Thread(target=ADCReader0,args=(pins,"0AX"))
-    worker.daemon = True
+    #worker.daemon = True
     worker.start()
 
-    #pins = []
-    #for pin in adcPinMap["1AX"].values():
-    #    pins.append(pin)
-    #worker1 = threading.Thread(target=ADCReader1,args=(pins,"1AX"))
+    pins = []
+    for pin in adcPinMap["1AX"].values():
+        pins.append(pin)
+    worker1 = threading.Thread(target=ADCReader1,args=(pins,"1AX"))
     #worker1.daemon = True
-    #worker1.start()
+    worker1.start()
 
 
     startTime = time.perf_counter()
-    with open("test.csv","w") as file:
+    print(startTime)
+    #with open("test.csv","w") as file:
         #writer = csv.writer(file, dialect="excel", delimiter=',', quotechar='|', quoting=csv.QUOTE_MINIMAL)
-        while True:
-            for pin in adcPinMap["3AX"].values():
-                timeElapsed = time.perf_counter() - startTime
+    #    while True:
+    #        for pin in adcPinMap["3AX"].values():
+    #            timeElapsed = time.perf_counter() - startTime
                 #writer.writerow([timeElapsed] + [pin[0].value])
-                file.write(str(timeElapsed) + str(pin[0].value) + "\n")
+    #            file.write(str(timeElapsed) + str(pin[0].value) + "\n")
 
 if __name__ == "__main__":
     run()
