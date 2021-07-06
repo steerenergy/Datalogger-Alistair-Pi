@@ -46,32 +46,32 @@ def ADCReader0(pins,name):
                 time.sleep(0.001)
 
 
-def ADCReader1(pins,name):
-    startTime = time.perf_counter()
-    with open("worker{}test.csv".format(name),"w") as file1:
-        #worker_writer1 = csv.writer(file, dialect="excel", delimiter=',', quotechar='|', quoting=csv.QUOTE_MINIMAL)
-        timeElapsed = 0
-        while timeElapsed < 10:
-            for pin in pins:
-                timeElapsed = time.perf_counter() - startTime
-                #worker_writer1.writerow([timeElapsed] + [pin[0].value])
-                #file.write(str(timeElapsed) + str(pin[0].value) + "\n")
-                file1.write(str(timeElapsed) + "test\n")
-                time.sleep(0.001)
+#def ADCReader1(pins,name):
+#    startTime = time.perf_counter()
+#    with open("worker{}test.csv".format(name),"w") as file1:
+#        #worker_writer1 = csv.writer(file, dialect="excel", delimiter=',', quotechar='|', quoting=csv.QUOTE_MINIMAL)
+#        timeElapsed = 0
+#        while timeElapsed < 10:
+#            for pin in pins:
+#                timeElapsed = time.perf_counter() - startTime
+#                #worker_writer1.writerow([timeElapsed] + [pin[0].value])
+#                #file.write(str(timeElapsed) + str(pin[0].value) + "\n")
+#                file1.write(str(timeElapsed) + "test\n")
+#                time.sleep(0.001)
 
 
-def ADCReader2(pins,name):
-    startTime = time.perf_counter()
-    with open("worker{}test.csv".format(name),"w") as file2:
-        #worker_writer1 = csv.writer(file, dialect="excel", delimiter=',', quotechar='|', quoting=csv.QUOTE_MINIMAL)
-        timeElapsed = 0
-        while timeElapsed < 10:
-            for pin in pins:
-                timeElapsed = time.perf_counter() - startTime
-                #worker_writer1.writerow([timeElapsed] + [pin[0].value])
-                #file.write(str(timeElapsed) + str(pin[0].value) + "\n")
-                file2.write(str(timeElapsed) + "test\n")
-                time.sleep(0.001)
+#def ADCReader2(pins,name):
+#    startTime = time.perf_counter()
+#    with open("worker{}test.csv".format(name),"w") as file2:
+#        #worker_writer1 = csv.writer(file, dialect="excel", delimiter=',', quotechar='|', quoting=csv.QUOTE_MINIMAL)
+#        timeElapsed = 0
+#        while timeElapsed < 10:
+#            for pin in pins:
+#                timeElapsed = time.perf_counter() - startTime
+#                #worker_writer1.writerow([timeElapsed] + [pin[0].value])
+#                #file.write(str(timeElapsed) + str(pin[0].value) + "\n")
+#                file2.write(str(timeElapsed) + "test\n")
+#                time.sleep(0.001)
 
 def run():
     i2c = busio.I2C(board.SCL, board.SDA, frequency=1000000)
@@ -109,26 +109,28 @@ def run():
             "3A3": [AnalogIn(ads=adc3, gain=1, positive_pin=ADS.P3), 15]
         }
     }
-    pins = []
-    for pin in adcPinMap["0AX"].values():
-        pins.append(pin)
-    worker = threading.Thread(target=ADCReader0,args=(pins,"0AX"))
-    #worker.daemon = True
-    worker.start()
 
-    pins = []
-    for pin in adcPinMap["1AX"].values():
-        pins.append(pin)
-    worker1 = threading.Thread(target=ADCReader1,args=(pins,"1AX"))
-    #worker1.daemon = True
-    worker1.start()
+    for name,adc in adcPinMap.items():
+        pins = []
+        for pin in adc.values():
+            pins.append(pin)
+        worker = threading.Thread(target=ADCReader0,args=(pins,name))
+        #worker.daemon = True
+        worker.start()
 
-    pins = []
-    for pin in adcPinMap["2AX"].values():
-        pins.append(pin)
-    worker2 = threading.Thread(target=ADCReader2,args=(pins,"2AX"))
+    #pins = []
+    #for pin in adcPinMap["1AX"].values():
+    #    pins.append(pin)
+    #worker1 = threading.Thread(target=ADCReader1,args=(pins,"1AX"))
     #worker1.daemon = True
-    worker2.start()
+    #worker1.start()
+
+    #pins = []
+    #for pin in adcPinMap["2AX"].values():
+    #    pins.append(pin)
+    #worker2 = threading.Thread(target=ADCReader2,args=(pins,"2AX"))
+    #worker1.daemon = True
+    #worker2.start()
 
 
     startTime = time.perf_counter()
