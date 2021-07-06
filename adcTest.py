@@ -75,6 +75,8 @@ for pin in adcPinMap["0AX"].values():
 
 startTime = time.perf_counter()
 while True:
-    for pin in pins:
-        timeElapsed = time.perf_counter() - startTime
-        print("{}: {}".format(timeElapsed,pin[0].value))
+    values = []
+    for idx, pin in enumerate(pins):
+        values[idx] = pin.value
+    timeElapsed = time.perf_counter() - startTime
+    print("{}: {}".format(timeElapsed, (" ").join(values)))
