@@ -70,10 +70,10 @@ adcPinMap = {
 def ADCReader(pins):
     while True:
         for pin in pins:
-           adcbuffer[pin[1]] = pin[0].value
+           print("{}: {}".format(pin[1],pin[0]))
 
-global adcbuffer
-adcbuffer = [0] * 16
+#global adcbuffer
+#adcbuffer = [0] * 16
 for board in adcPinMap.values():
     pins = []
     for pin in board.values():
@@ -87,11 +87,12 @@ startTime = time.perf_counter()
 countTime = startTime
 timeInterval = 0.1
 
-with open("test.csv","w") as file:
-    print("Logging started")
-    writer = csv.writer(file, dialect="excel", delimiter=',', quotechar='|', quoting=csv.QUOTE_MINIMAL)
-    while True:
-        while (time.perf_counter() - countTime) > timeInterval:
-            timeElapsed = time.perf_counter() - startTime
-            writer.writerow([timeElapsed] + adcbuffer)
-            countTime = time.perf_counter()
+#with open("test.csv","w") as file:
+print("Logging started")
+#writer = csv.writer(file, dialect="excel", delimiter=',', quotechar='|', quoting=csv.QUOTE_MINIMAL)
+while True:
+    while (time.perf_counter() - countTime) > timeInterval:
+        timeElapsed = time.perf_counter() - startTime
+        #writer.writerow([timeElapsed] + adcbuffer)
+        countTime = time.perf_counter()
+        print(timeElapsed)
