@@ -70,7 +70,7 @@ adcPinMap = {
 def ADCReader(pins):
     while True:
         for pin in pins:
-           print("{}: {}".format(pin[1],pin[0]))
+           print("{}: {}".format(pin[1],pin[0].value))
 
 #global adcbuffer
 #adcbuffer = [0] * 16
