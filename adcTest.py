@@ -38,7 +38,7 @@ def ADCReader(pins):
         while True:
             for pin in pins:
                 timeElapsed = time.perf_counter() - startTime
-                worker_writer.writerow([timeElapsed] + [pin.value])
+                worker_writer.writerow([timeElapsed] + [pin.value[0]])
 
 
 def run():
@@ -88,9 +88,9 @@ def run():
     with open("workertest.csv","w") as file:
         writer = csv.writer(file, dialect="excel", delimiter=',', quotechar='|', quoting=csv.QUOTE_MINIMAL)
         while True:
-            for pin in pins:
+            for pin in adcPinMap["1AX"].values():
                 timeElapsed = time.perf_counter() - startTime
-                writer.writerow([timeElapsed] + [pin.value])
+                writer.writerow([timeElapsed] + [pin.value[0]])
 
 if __name__ == "__main__":
     run()
