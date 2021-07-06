@@ -268,6 +268,7 @@ class WindowTop(Frame):
             self.switchDisplay()
         # Livedata Loop - Loops Forever until LogEnbl is False (controlled by GUI)
         startTime = datetime.now()
+        drawTime = 0
         while logger.logEnbl is True:
             # Get Complete Set of Logged Data
             # If Data is different to that in the buffer
@@ -291,7 +292,7 @@ class WindowTop(Frame):
                 # (Objective 18.2)
                 print("{}|".format(ValuesPrint))
 
-                if self.textBox == False:
+                if self.textBox == False and (time.perf_counter() - drawTime) > max(1,logComp.time):
                     # Get channel to graph from dropdown menu in GUI
                     # (Objective 17)
                     channel = self.channelSelect.current()
@@ -301,7 +302,8 @@ class WindowTop(Frame):
                         xData = timeData
                         self.ax1.clear()
                         self.ax1.plot(xData,yData)
-                        self.canvas.draw()
+                        self.canvas.draw_idle()
+                    drawTime = time.perf_counter()
             time.sleep(0.001)
 
 
