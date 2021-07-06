@@ -34,20 +34,23 @@ import gui
 def ADCReader0(pins,name):
     startTime = time.perf_counter()
     with open("worker{}test.csv".format(name),"w") as file:
-        worker_writer = csv.writer(file, dialect="excel", delimiter=',', quotechar='|', quoting=csv.QUOTE_MINIMAL)
+        #worker_writer = csv.writer(file, dialect="excel", delimiter=',', quotechar='|', quoting=csv.QUOTE_MINIMAL)
         while True:
             for pin in pins:
                 timeElapsed = time.perf_counter() - startTime
-                worker_writer.writerow([timeElapsed] + [pin[0].value])
+                #worker_writer.writerow([timeElapsed] + [pin[0].value])
+                file.write(str(timeElapsed) + str(pin[0].value) + "\n")
+
 
 def ADCReader1(pins,name):
     startTime = time.perf_counter()
     with open("worker{}test.csv".format(name),"w") as file:
-        worker_writer1 = csv.writer(file, dialect="excel", delimiter=',', quotechar='|', quoting=csv.QUOTE_MINIMAL)
+        #worker_writer1 = csv.writer(file, dialect="excel", delimiter=',', quotechar='|', quoting=csv.QUOTE_MINIMAL)
         while True:
             for pin in pins:
                 timeElapsed = time.perf_counter() - startTime
-                worker_writer1.writerow([timeElapsed] + [pin[0].value])
+                #worker_writer1.writerow([timeElapsed] + [pin[0].value])
+                file.write(str(timeElapsed) + str(pin[0].value) + "\n")
 
 
 def run():
@@ -102,11 +105,12 @@ def run():
 
     startTime = time.perf_counter()
     with open("test.csv","w") as file:
-        writer = csv.writer(file, dialect="excel", delimiter=',', quotechar='|', quoting=csv.QUOTE_MINIMAL)
+        #writer = csv.writer(file, dialect="excel", delimiter=',', quotechar='|', quoting=csv.QUOTE_MINIMAL)
         while True:
             for pin in adcPinMap["3AX"].values():
                 timeElapsed = time.perf_counter() - startTime
-                writer.writerow([timeElapsed] + [pin[0].value])
+                #writer.writerow([timeElapsed] + [pin[0].value])
+                file.write(str(timeElapsed) + str(pin[0].value) + "\n")
 
 if __name__ == "__main__":
     run()
