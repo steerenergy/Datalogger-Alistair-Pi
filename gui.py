@@ -10,6 +10,7 @@ from tkinter import ttk
 from tkinter import font, messagebox
 import logger
 import matplotlib.pyplot as plt
+import matplotlib.animation as animation
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import sys
 
@@ -118,6 +119,8 @@ class WindowTop(Frame):
             # Load and Start Logger thread
             self.logThread = threading.Thread(target=logger.run,args=[self])
             self.logThread.start()
+            self.liveDataThread = threading.Thread(target=self.liveData,args=[self])
+            self.liveDataThread.start()
             # Change Button Text and re-enable
             self.logButton.config(text="Finish Logging")
             self.logButton['state'] = 'normal'
@@ -149,6 +152,7 @@ class WindowTop(Frame):
             # The timer works independently to the main thread, allowing the print statments to be processed
             # This stops the program freezing if logThread is trying to print but the GUI is occupied so it can't
             self.after(100, self.logThreadStopCheck)
+            self.liveDataThread.join()
 
 
     # Deal with commands passed to the GUI from tcp.py
@@ -226,6 +230,85 @@ class WindowTop(Frame):
             self.liveDataText.pack()
             self.liveTitle['text'] = "Live Data"
             self.textBox = True
+
+    # Live Data Output
+    # Function is run in separate thread to ensure it doesn't interfere with logging
+    # (Objectives 12 and 18)
+    def liveData(self):
+
+        # Set up variables for creating a live graph
+        ani = animation.FuncAnimation(self, animate, interval=max(logger.logComp.time * 1000, 1000))
+        timeData = []
+        logData = []
+        for pin in logger.adcHeader:
+            logData.append([])
+        global xData
+        global yData
+        yData = []
+        xData = []
+        avgPoint = 1
+
+        # Setup data buffer to hold most recent data
+        print("Live Data:\n")
+        # Print header for all pins being logged
+        adcHeaderPrint = ""
+        for pinName in logger.adcHeader:
+            adcHeaderPrint += ("|{:>3}{:>5}".format(pinName, logger.logComp.config.GetPin(pinName).units))
+        print("{}|".format(adcHeaderPrint))
+        # Print a nice vertical line so it all looks pretty
+        print("-" * (9 * len(logger.adcHeader) + 1))
+        buffer = 0
+        # Don't print live data when adcValuesCompl doesn't exist. Also if logging is stopped, exit loop
+        # while len(logComp.logData.timeStamp) == 0 and logEnbl is True:
+        #    pass
+        while not logger.adcValuesCompl and logger.logEnbl is True:
+            pass
+        # Always start logging with the textbox shown as it prints the current settings
+        if self.textBox == False:
+            self.switchDisplay()
+        # Livedata Loop - Loops Forever until LogEnbl is False (controlled by GUI)
+        startTime = datetime.now()
+        while logger.logEnbl is True:
+            # Get Complete Set of Logged Data
+            # If Data is different to that in the buffer
+            # (Objective 18.1)
+            if logger.adcValuesCompl != buffer:
+                # buffer = logComp.logData.GetLatest()
+                buffer = logger.adcValuesCompl
+                ValuesPrint = ""
+                # Create a nice string to print with the values in
+                # Only prints data that is being logged
+                timeData.append((datetime.now() - startTime).total_seconds())
+                for no, val in enumerate(logger.adcValuesCompl):
+                    # Get the name of the pin so it can be used to find the adc object
+                    pinName = logger.adcHeader[no]
+                    # Calculate converted value
+                    convertedVal = val * logger.logComp.config.GetPin(pinName).m + logger.logComp.config.GetPin(pinName).c
+                    logData[no].append(convertedVal)
+                    # Add converted value to the string being printed
+                    ValuesPrint += ("|{:>8}".format(round(convertedVal, 2)))
+                # Print data to textbox
+                # (Objective 18.2)
+                print("{}|".format(ValuesPrint))
+
+                if self.textBox == False:
+                    # Get channel to graph from dropdown menu in GUI
+                    # (Objective 17)
+                    channel = self.channelSelect.current()
+                    if channel != 0:
+                        # Update yData and xData which are plotted on live graph
+                        yData = logData[channel - 1]
+                        xData = timeData
+
+
+    # Function controls the plotting of the live graph
+    # (Objective 18.3)
+    def animate(self, i):
+        global xData
+        global yData
+        self.ax1.clear()
+        self.ax1.plot(xData,yData)
+
 
 
 

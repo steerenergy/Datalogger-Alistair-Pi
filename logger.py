@@ -305,8 +305,8 @@ def log():
         writer = csv.writer(csvfile, dialect="excel", delimiter=',', quotechar='|', quoting=csv.QUOTE_MINIMAL)
         writer.writerow(['Date/Time', 'Time Interval (seconds)'] + adcHeader)
         print("\nStart Logging...\n")
-        dataThread = threading.Thread(target=liveData)
-        dataThread.start()
+        #dataThread = threading.Thread(target=liveData)
+        #dataThread.start()
 
         startTime = time.perf_counter()
         while logEnbl is True:
@@ -369,92 +369,6 @@ def WriteConfig(timestamp):
                 file_data += "unit = Edit Me\n\n"
         configfile.write(file_data)
 """
-
-
-# Live Data Output
-# Function is run in separate thread to ensure it doesn't interfere with logging
-# (Objectives 12 and 18)
-def liveData():
-    global logComp
-    global adcValuesCompl
-    global guiFrame
-
-    # Set up variables for creating a live graph
-    ani = animation.FuncAnimation(guiFrame, animate, interval=max(logComp.time*1000,1000))
-    timeData = []
-    logData = []
-    for pin in adcHeader:
-        logData.append([])
-    global xData
-    global yData
-    yData = []
-    xData = []
-    avgPoint = 1
-
-
-    # Setup data buffer to hold most recent data
-    print("Live Data:\n")
-    # Print header for all pins being logged
-    adcHeaderPrint = ""
-    for pinName in adcHeader:
-        adcHeaderPrint += ("|{:>3}{:>5}".format(pinName, logComp.config.GetPin(pinName).units))
-    print("{}|".format(adcHeaderPrint))
-    # Print a nice vertical line so it all looks pretty
-    print("-" * (9 * len(adcHeader) + 1))
-    buffer = 0
-    # Don't print live data when adcValuesCompl doesn't exist. Also if logging is stopped, exit loop
-    #while len(logComp.logData.timeStamp) == 0 and logEnbl is True:
-    #    pass
-    while not adcValuesCompl and logEnbl is True:
-        pass
-    # Always start logging with the textbox shown as it prints the current settings
-    if guiFrame.textBox == False:
-        guiFrame.switchDisplay()
-    # Livedata Loop - Loops Forever until LogEnbl is False (controlled by GUI)
-    startTime = datetime.now()
-    while logEnbl is True:
-        # Get Complete Set of Logged Data
-        # If Data is different to that in the buffer
-        # (Objective 18.1)
-        if adcValuesCompl != buffer:
-            #buffer = logComp.logData.GetLatest()
-            buffer = adcValuesCompl
-            ValuesPrint = ""
-            # Create a nice string to print with the values in
-            # Only prints data that is being logged
-            timeData.append((datetime.now() - startTime).total_seconds())
-            for no, val in enumerate(adcValuesCompl):
-                # Get the name of the pin so it can be used to find the adc object
-                pinName = adcHeader[no]
-                # Calculate converted value
-                convertedVal = val * logComp.config.GetPin(pinName).m + logComp.config.GetPin(pinName).c
-                logData[no].append(convertedVal)
-                # Add converted value to the string being printed
-                ValuesPrint += ("|{:>8}".format(round(convertedVal, 2)))
-            # Print data to textbox
-            # (Objective 18.2)
-            print("{}|".format(ValuesPrint))
-
-            if guiFrame.textBox == False:
-                # Get channel to graph from dropdown menu in GUI
-                # (Objective 17)
-                channel = guiFrame.channelSelect.current()
-                if channel != 0:
-                    # Update yData and xData which are plotted on live graph
-                    yData = logData[channel - 1]
-                    xData = timeData
-
-        # Sleep - Don't want to go too fast
-        time.sleep(0.01)
-
-
-# Function controls the plotting of the live graph
-# (Objective 18.3)
-def animate(i):
-    global xData
-    global yData
-    guiFrame.ax1.clear()
-    guiFrame.ax1.plot(xData,yData)
 
 
 """
