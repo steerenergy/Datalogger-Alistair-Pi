@@ -83,10 +83,14 @@ for board in adcPinMap.values():
 
 
 startTime = time.perf_counter()
+countTime = startTime
+timeInterval = 0.1
 
 with open("test.csv","w") as file:
     print("Logging started")
     writer = csv.writer(file, dialect="excel", delimiter=',', quotechar='|', quoting=csv.QUOTE_MINIMAL)
     while True:
-        timeElapsed = time.perf_counter() - startTime
-        writer.writerow([timeElapsed] + adcbuffer)
+        while (time.perf_counter() - countTime) > timeInterval:
+            timeElapsed = time.perf_counter() - startTime
+            writer.writerow([timeElapsed] + adcbuffer)
+            countTime = time.perf_counter()
