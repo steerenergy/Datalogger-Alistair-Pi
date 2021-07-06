@@ -68,21 +68,22 @@ def run():
             "2A1": [AnalogIn(ads=adc2, gain=1, positive_pin=ADS.P1), 9],
             "2A2": [AnalogIn(ads=adc2, gain=1, positive_pin=ADS.P2), 10],
             "2A3": [AnalogIn(ads=adc2, gain=1, positive_pin=ADS.P3), 11]
+        },
+        "3AX": {
+            "3A0": [AnalogIn(ads=adc3, gain=1, positive_pin=ADS.P0), 12],
+            "3A1": [AnalogIn(ads=adc3, gain=1, positive_pin=ADS.P1), 13],
+            "3A2": [AnalogIn(ads=adc3, gain=1, positive_pin=ADS.P2), 14],
+            "3A3": [AnalogIn(ads=adc3, gain=1, positive_pin=ADS.P3), 15]
         }
-        #"3AX": {
-        #    "3A0": [AnalogIn(ads=adc3, gain=1, positive_pin=ADS.P0), 12],
-        #    "3A1": [AnalogIn(ads=adc3, gain=1, positive_pin=ADS.P1), 13],
-        #    "3A2": [AnalogIn(ads=adc3, gain=1, positive_pin=ADS.P2), 14],
-        #    "3A3": [AnalogIn(ads=adc3, gain=1, positive_pin=ADS.P3), 15]
-        #}
     }
     for name,adc in adcPinMap.items():
-        pins = []
-        for pin in adc.values():
-            pins.append(pin)
-        worker = threading.Thread(target=ADCReader,args=(pins,name))
-        worker.daemon = True
-        worker.start()
+        if name != "3AX":
+            pins = []
+            for pin in adc.values():
+                pins.append(pin)
+            worker = threading.Thread(target=ADCReader,args=(pins,name))
+            worker.daemon = True
+            worker.start()
 
 
     startTime = time.perf_counter()
