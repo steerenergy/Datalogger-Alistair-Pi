@@ -77,7 +77,7 @@ def run():
         }
     }
     for name,adc in adcPinMap.items():
-        if name != "3AX" and name != "2AX" and name != "1AX":
+        if name != "3AX" and name != "2AX":
             pins = []
             for pin in adc.values():
                 pins.append(pin)
