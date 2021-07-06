@@ -267,7 +267,7 @@ def run():
     # Warn Users of error locations
     print("Warning - all stderr output from this point onwards is logged in piError.log")
     # Redirect all stderr to text file. Comment the next line out for errors to be written to the console
-  #  sys.stderr.write = stderrRedirect
+    sys.stderr.write = stderrRedirect
     global root
     # Create Tkinter Instance
     root = Tk()
@@ -277,7 +277,7 @@ def run():
     root.tk.call('wm', 'iconphoto', root._w, img)
 
     # Size of the window (Uncomment for Full Screen)
-    # root.wm_attributes('-zoomed', 1)
+    root.wm_attributes('-zoomed', 1)
 
     # Fonts
     global bigFont
