@@ -76,9 +76,9 @@ def run():
             "3A3": [AnalogIn(ads=adc3, gain=1, positive_pin=ADS.P3), 15]
         }
     }
-    for board in adcPinMap.values():
+    for adc in adcPinMap.values():
         pins = []
-        for pin in board.values():
+        for pin in adc.values():
             pins.append(pin)
         worker = threading.Thread(target=ADCReader,args=(pins,board))
         worker.daemon = True
