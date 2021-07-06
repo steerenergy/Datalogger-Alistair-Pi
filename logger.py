@@ -147,10 +147,13 @@ def inputImport():
             }
         }
         # Run code to choose which pins to be logged.
+        i = 0
         for pin in logComp.config.pinList:
             if pin.enabled == True:
                 adcToLog.append(adcPinMap[pin.name[0] + "AX"][pin.name])
                 adcHeader.append(pin.name)
+                adcToLog[i].append(i)
+                i += 1
             else:
                 pass
         print("Success!")
@@ -220,6 +223,7 @@ def settingsOutput():
 def log():
     global logComp
     global adcHeader
+    global adcToLog
     # Set Time Interval
     # (Objective 11.2)
     timeInterval = float(logComp.time)
@@ -304,8 +308,17 @@ def log():
     dataQueue = queue.Queue()
     writer = threading.Thread(target=Writer,args=(dataQueue,timeStamp))
     writer.start()
- #   for name in adcToLog:
- #       worker = threading.Thread(target=)
+
+    global adcbuffer
+    adcbuffer = [0] * csvRows
+    for board in adcPinMap.values():
+        pins = []
+        for pin in board.values():
+            if pin in adcToLog:
+                pins.append(pin)
+        worker = threading.Thread(target=ADCReader,args=(pins,))
+        worker.daemon = True
+        worker.start()
     print("\nStart Logging...\n")
     startTime = time.perf_counter()
     while logEnbl is True:
@@ -315,29 +328,34 @@ def log():
 
 
         # (Objective 11.3)
-        for pin, values in enumerate(adcToLog):
+        #for pin, values in enumerate(adcToLog):
         # Get Raw data from A/D, and add to adcValues list corresponding to the current pin
             #adcValues[currentPin] = chan.value
-            adcValues[pin] = AnalogIn(ads=values[0],positive_pin=values[2],gain=values[1]).value
-        dataQueue.put([currentDateTime] + [timeElapsed] + adcValues)
+        #    adcValues[pin] = buffer[pin]
+        dataQueue.put([currentDateTime] + [timeElapsed] + adcbuffer)
         # Export Data to Spreadsheet inc current datetime and time elapsed
         # (Objective 11.4)
 
         # Copy list for data output and reset list values (so we can see if code fails)
         global adcValuesCompl
-        adcValuesCompl = adcValues
-        adcValues = [0] * csvRows
+        adcValuesCompl = adcbuffer
+        adcbuffer = [0] * csvRows
 
         # Work out time delay needed until next set of values taken based on user given value
         # (Using some clever maths)
         # (objective 11.2)
-        #timeDiff = (time.perf_counter() - startTime)
-        #time.sleep(timeInterval - (timeDiff % timeInterval))
-    writer.join()
+        timeDiff = (time.perf_counter() - startTime)
+        time.sleep(timeInterval - (timeDiff % timeInterval))
+    if writer.is_alive():
+        writer.join()
     db.UpdateDataPath(logComp.id,"files/outbox/raw{}.csv".format(timeStamp))
 
 
-#def ADCReader():
+def ADCReader(pins):
+    global adcbuffer
+    while logEnbl == True:
+        for pin in pins:
+            adcbuffer[pin[3]] = AnalogIn(ads=pin[0], positive_pin=pin[2], gain=pin[1]).value
 
 
 
