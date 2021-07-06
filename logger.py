@@ -13,14 +13,14 @@ from collections import OrderedDict
 import configparser
 import functools
 # Uncomment below for real adc (if running on Pi)
-import adafruit_ads1x15.ads1115 as ADS
-from adafruit_ads1x15.analog_in import AnalogIn
+#import adafruit_ads1x15.ads1115 as ADS
+#from adafruit_ads1x15.analog_in import AnalogIn
 from adafruit_ads1x15.ads1x15 import Mode
-import busio
-import board
+#import busio
+#import board
 # Uncomment below for fake adc simulation if using a PC
-#from AnalogInFake import AnalogIn as AnalogIn
-#import ADS1115Fake as ADS
+from AnalogInFake import AnalogIn as AnalogIn
+import ADS1115Fake as ADS
 
 import csv
 import threading
@@ -60,18 +60,18 @@ def init():
     logComp = lgOb.LogMeta()
     # Create the I2C bus
     global i2c
-    i2c = busio.I2C(board.SCL, board.SDA, frequency=1000000)
-    #i2c = "fake"
+    #i2c = busio.I2C(board.SCL, board.SDA, frequency=1000000)
+    i2c = "fake"
     # A/D Setup - Create 4 Global instances of ADS1115 ADC (16-bit) according to Adafruit Libraries
     # (Objective 7)
-    #global adc0
-    #global adc1
-    #global adc2
-    #global adc3
-    #adc0 = ADS.ADS1115(i2c, address=0x48, mode=Mode.CONTINUOUS, data_rate=dataRate)
-    #adc1 = ADS.ADS1115(i2c, address=0x49, mode=Mode.CONTINUOUS, data_rate=dataRate)
-    #adc2 = ADS.ADS1115(i2c, address=0x4a, mode=Mode.CONTINUOUS, data_rate=dataRate)
-    #adc3 = ADS.ADS1115(i2c, address=0x4b, mode=Mode.CONTINUOUS, data_rate=dataRate)
+    global adc0
+    global adc1
+    global adc2
+    global adc3
+    adc0 = ADS.ADS1115(i2c, address=0x48, mode=Mode.CONTINUOUS, data_rate=dataRate)
+    adc1 = ADS.ADS1115(i2c, address=0x49, mode=Mode.CONTINUOUS, data_rate=dataRate)
+    adc2 = ADS.ADS1115(i2c, address=0x4a, mode=Mode.CONTINUOUS, data_rate=dataRate)
+    adc3 = ADS.ADS1115(i2c, address=0x4b, mode=Mode.CONTINUOUS, data_rate=dataRate)
 
 
     # Run Code to import general information
@@ -113,31 +113,43 @@ def inputImport():
         logComp.config_path = db.GetConfigPath(db.GetRecentId())
         logComp.config = file_rw.ReadLogConfig(logComp.config_path)
 
+        global adc0
+        global adc1
+        global adc2
+        global adc3
         # ADC Pin Map List - created now the gain information has been grabbed.
         # This gives the list of possible functions that can be run to grab data from a pin.
         global adcPinMap
         adcPinMap = {
-            "0A0": AnalogIn(ADS.ADS1115(i2c, address=0x48, mode=Mode.SINGLE, data_rate=dataRate, gain=logComp.config.pinList[0].gain), ADS.P0),
-            "0A1": AnalogIn(ADS.ADS1115(i2c, address=0x48, mode=Mode.SINGLE, data_rate=dataRate, gain=logComp.config.pinList[1].gain), ADS.P1),
-            "0A2": AnalogIn(ADS.ADS1115(i2c, address=0x48, mode=Mode.SINGLE, data_rate=dataRate, gain=logComp.config.pinList[2].gain), ADS.P2),
-            "0A3": AnalogIn(ADS.ADS1115(i2c, address=0x48, mode=Mode.SINGLE, data_rate=dataRate, gain=logComp.config.pinList[3].gain), ADS.P3),
-            "1A0": AnalogIn(ADS.ADS1115(i2c, address=0x49, mode=Mode.SINGLE, data_rate=dataRate, gain=logComp.config.pinList[4].gain), ADS.P0),
-            "1A1": AnalogIn(ADS.ADS1115(i2c, address=0x49, mode=Mode.SINGLE, data_rate=dataRate, gain=logComp.config.pinList[5].gain), ADS.P1),
-            "1A2": AnalogIn(ADS.ADS1115(i2c, address=0x49, mode=Mode.SINGLE, data_rate=dataRate, gain=logComp.config.pinList[6].gain), ADS.P2),
-            "1A3": AnalogIn(ADS.ADS1115(i2c, address=0x49, mode=Mode.SINGLE, data_rate=dataRate, gain=logComp.config.pinList[7].gain), ADS.P3),
-            "2A0": AnalogIn(ADS.ADS1115(i2c, address=0x4a, mode=Mode.SINGLE, data_rate=dataRate, gain=logComp.config.pinList[8].gain), ADS.P0),
-            "2A1": AnalogIn(ADS.ADS1115(i2c, address=0x4a, mode=Mode.SINGLE, data_rate=dataRate, gain=logComp.config.pinList[9].gain), ADS.P1),
-            "2A2": AnalogIn(ADS.ADS1115(i2c, address=0x4a, mode=Mode.SINGLE, data_rate=dataRate, gain=logComp.config.pinList[10].gain), ADS.P2),
-            "2A3": AnalogIn(ADS.ADS1115(i2c, address=0x4a, mode=Mode.SINGLE, data_rate=dataRate, gain=logComp.config.pinList[11].gain), ADS.P3),
-            "3A0": AnalogIn(ADS.ADS1115(i2c, address=0x4b, mode=Mode.SINGLE, data_rate=dataRate, gain=logComp.config.pinList[12].gain), ADS.P0),
-            "3A1": AnalogIn(ADS.ADS1115(i2c, address=0x4b, mode=Mode.SINGLE, data_rate=dataRate, gain=logComp.config.pinList[13].gain), ADS.P1),
-            "3A2": AnalogIn(ADS.ADS1115(i2c, address=0x4b, mode=Mode.SINGLE, data_rate=dataRate, gain=logComp.config.pinList[14].gain), ADS.P2),
-            "3A3": AnalogIn(ADS.ADS1115(i2c, address=0x4b, mode=Mode.SINGLE, data_rate=dataRate, gain=logComp.config.pinList[15].gain), ADS.P3)
+            "0AX": {
+                "0A0": [adc0, logComp.config.pinList[0].gain, ADS.P0],
+                "0A1": [adc0, logComp.config.pinList[1].gain, ADS.P1],
+                "0A2": [adc0, logComp.config.pinList[2].gain, ADS.P2],
+                "0A3": [adc0, logComp.config.pinList[3].gain, ADS.P3]
+            },
+            "1AX": {
+                "1A0": [adc1, logComp.config.pinList[4].gain, ADS.P0],
+                "1A1": [adc1, logComp.config.pinList[5].gain, ADS.P1],
+                "1A2": [adc1, logComp.config.pinList[6].gain, ADS.P2],
+                "1A3": [adc1, logComp.config.pinList[7].gain, ADS.P3]
+            },
+            "2AX": {
+                "2A0": [adc2, logComp.config.pinList[8].gain, ADS.P0],
+                "2A1": [adc2, logComp.config.pinList[9].gain, ADS.P1],
+                "2A2": [adc2, logComp.config.pinList[10].gain, ADS.P2],
+                "2A3": [adc2, logComp.config.pinList[11].gain, ADS.P3]
+            },
+            "3AX": {
+                "3A0": [adc3, logComp.config.pinList[12].gain, ADS.P0],
+                "3A1": [adc3, logComp.config.pinList[13].gain, ADS.P1],
+                "3A2": [adc3, logComp.config.pinList[14].gain, ADS.P2],
+                "3A3": [adc3, logComp.config.pinList[15].gain, ADS.P3]
+            }
         }
         # Run code to choose which pins to be logged.
         for pin in logComp.config.pinList:
             if pin.enabled == True:
-                adcToLog.append(adcPinMap[pin.name])
+                adcToLog.append(adcPinMap[pin.name[0] + "AX"][pin.name])
                 adcHeader.append(pin.name)
             else:
                 pass
@@ -292,6 +304,8 @@ def log():
     dataQueue = queue.Queue()
     writer = threading.Thread(target=Writer,args=(dataQueue,timeStamp))
     writer.start()
+ #   for name in adcToLog:
+ #       worker = threading.Thread(target=)
     print("\nStart Logging...\n")
     startTime = time.perf_counter()
     while logEnbl is True:
@@ -299,10 +313,12 @@ def log():
         currentDateTime = datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")
         timeElapsed = round(time.perf_counter() - startTime, 2)
 
+
         # (Objective 11.3)
-        for currentPin, chan in enumerate(adcToLog):
+        for pin, values in enumerate(adcToLog):
         # Get Raw data from A/D, and add to adcValues list corresponding to the current pin
-            adcValues[currentPin] = chan.value
+            #adcValues[currentPin] = chan.value
+            adcValues[pin] = AnalogIn(ads=values[0],positive_pin=values[2],gain=values[1]).value
         dataQueue.put([currentDateTime] + [timeElapsed] + adcValues)
         # Export Data to Spreadsheet inc current datetime and time elapsed
         # (Objective 11.4)
@@ -319,6 +335,10 @@ def log():
         #time.sleep(timeInterval - (timeDiff % timeInterval))
     writer.join()
     db.UpdateDataPath(logComp.id,"files/outbox/raw{}.csv".format(timeStamp))
+
+
+#def ADCReader():
+
 
 
 def Writer(dataQueue,timeStamp):
