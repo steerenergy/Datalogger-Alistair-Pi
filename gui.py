@@ -245,10 +245,8 @@ class WindowTop(Frame):
         # Set up variables for creating a live graph
         timeData = []
         logData = []
-        for pin in adcHeader:
+        for i in range(0,len(adcHeader)):
             logData.append([])
-        yData = []
-        xData = []
 
         # Setup data buffer to hold most recent data
         print("Live Data:\n")
