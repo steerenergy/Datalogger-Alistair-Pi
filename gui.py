@@ -302,7 +302,7 @@ class WindowTop(Frame):
                         # Update yData and xData which are plotted on live graph
                         yData = logData[channel - 1]
                         xData = timeData
-            time.sleep(0.001)
+
 
 
     # Function controls the plotting of the live graph
