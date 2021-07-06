@@ -60,7 +60,7 @@ def init():
     logComp = lgOb.LogMeta()
     # Create the I2C bus
     global i2c
-    #i2c = busio.I2C(board.SCL, board.SDA, frequency=1000000)
+    i2c = busio.I2C(board.SCL, board.SDA, frequency=1000000)
     i2c = "fake"
     # A/D Setup - Create 4 Global instances of ADS1115 ADC (16-bit) according to Adafruit Libraries
     # (Objective 7)
@@ -122,28 +122,28 @@ def inputImport():
         global adcPinMap
         adcPinMap = {
             "0AX": {
-                "0A0": [adc0, logComp.config.pinList[0].gain, ADS.P0],
-                "0A1": [adc0, logComp.config.pinList[1].gain, ADS.P1],
-                "0A2": [adc0, logComp.config.pinList[2].gain, ADS.P2],
-                "0A3": [adc0, logComp.config.pinList[3].gain, ADS.P3]
+                "0A0": AnalogIn(ads=adc0, gain=logComp.config.pinList[0].gain, positive_pin=ADS.P0),
+                "0A1": AnalogIn(ads=adc0, gain=logComp.config.pinList[1].gain, positive_pin=ADS.P1),
+                "0A2": AnalogIn(ads=adc0, gain=logComp.config.pinList[2].gain, positive_pin=ADS.P2),
+                "0A3": AnalogIn(ads=adc0, gain=logComp.config.pinList[3].gain, positive_pin=ADS.P3)
             },
             "1AX": {
-                "1A0": [adc1, logComp.config.pinList[4].gain, ADS.P0],
-                "1A1": [adc1, logComp.config.pinList[5].gain, ADS.P1],
-                "1A2": [adc1, logComp.config.pinList[6].gain, ADS.P2],
-                "1A3": [adc1, logComp.config.pinList[7].gain, ADS.P3]
+                "1A0": AnalogIn(ads=adc1, gain=logComp.config.pinList[4].gain, positive_pin=ADS.P0),
+                "1A1": AnalogIn(ads=adc1, gain=logComp.config.pinList[5].gain, positive_pin=ADS.P1),
+                "1A2": AnalogIn(ads=adc1, gain=logComp.config.pinList[6].gain, positive_pin=ADS.P2),
+                "1A3": AnalogIn(ads=adc1, gain=logComp.config.pinList[7].gain, positive_pin=ADS.P3)
             },
             "2AX": {
-                "2A0": [adc2, logComp.config.pinList[8].gain, ADS.P0],
-                "2A1": [adc2, logComp.config.pinList[9].gain, ADS.P1],
-                "2A2": [adc2, logComp.config.pinList[10].gain, ADS.P2],
-                "2A3": [adc2, logComp.config.pinList[11].gain, ADS.P3]
+                "2A0": AnalogIn(ads=adc2, gain=logComp.config.pinList[8].gain, positive_pin=ADS.P0),
+                "2A1": AnalogIn(ads=adc2, gain=logComp.config.pinList[9].gain, positive_pin=ADS.P1),
+                "2A2": AnalogIn(ads=adc2, gain=logComp.config.pinList[10].gain, positive_pin=ADS.P2),
+                "2A3": AnalogIn(ads=adc2, gain=logComp.config.pinList[11].gain, positive_pin=ADS.P3)
             },
             "3AX": {
-                "3A0": [adc3, logComp.config.pinList[12].gain, ADS.P0],
-                "3A1": [adc3, logComp.config.pinList[13].gain, ADS.P1],
-                "3A2": [adc3, logComp.config.pinList[14].gain, ADS.P2],
-                "3A3": [adc3, logComp.config.pinList[15].gain, ADS.P3]
+                "3A0": AnalogIn(ads=adc3, gain=logComp.config.pinList[12].gain, positive_pin=ADS.P0),
+                "3A1": AnalogIn(ads=adc3, gain=logComp.config.pinList[13].gain, positive_pin=ADS.P1),
+                "3A2": AnalogIn(ads=adc3, gain=logComp.config.pinList[14].gain, positive_pin=ADS.P2),
+                "3A3": AnalogIn(ads=adc3, gain=logComp.config.pinList[15].gain, positive_pin=ADS.P3)
             }
         }
         # Run code to choose which pins to be logged.
@@ -348,7 +348,7 @@ def ADCReader(pins):
     global adcbuffer
     while logEnbl == True:
         for pin in pins:
-            adcbuffer[pin[3]] = AnalogIn(ads=pin[0], positive_pin=pin[2], gain=pin[1]).value
+           adcbuffer[pin[1]] = pin[0].value
 
 
 
