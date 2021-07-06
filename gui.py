@@ -2,6 +2,7 @@
 # Script connects to logger.py and acts a front end to it
 
 import logging
+import time
 from datetime import datetime
 import threading
 from threading import Thread
@@ -117,7 +118,7 @@ class WindowTop(Frame):
             # Scroll to Bottom of Blank Box
             self.liveDataText.see(END)
             # Load and Start Logger thread
-            self.logThread = threading.Thread(target=logger.run,args=[self])
+            self.logThread = threading.Thread(target=logger.run,args=[])
             self.logThread.start()
             self.liveDataThread = threading.Thread(target=self.liveData,args=())
             self.liveDataThread.start()
@@ -133,6 +134,7 @@ class WindowTop(Frame):
             # Change logEnbl variable to false which stops the loop in logThread and subsequently the live data
             logger.logEnbl = False
             # Check to see if logThread has ended
+            self.liveDataThread.join()
             self.logThreadStopCheck()
 
     # Is triggered when 'Stop Logging' ic clicked and is called until logThread is dead
@@ -152,7 +154,6 @@ class WindowTop(Frame):
             # The timer works independently to the main thread, allowing the print statments to be processed
             # This stops the program freezing if logThread is trying to print but the GUI is occupied so it can't
             self.after(100, self.logThreadStopCheck)
-            self.liveDataThread.join()
 
 
     # Deal with commands passed to the GUI from tcp.py
@@ -235,11 +236,16 @@ class WindowTop(Frame):
     # Function is run in separate thread to ensure it doesn't interfere with logging
     # (Objectives 12 and 18)
     def liveData(self):
-
+        time.sleep(0.5)
+        for pin in logger.logComp.config.pinList:
+            if pin.enabled == True:
+                self.channelSelect['values'] = (*self.channelSelect['values'], pin.fName)
         # Set up variables for creating a live graph
         ani = animation.FuncAnimation(self.liveFigure, self.animate, interval=max(logger.logComp.time * 1000, 1000))
         timeData = []
-        logData = [None] * len(logger.adcHeader)
+        logData = []
+        for pin in logger.adcHeader:
+            logData.append([])
         global xData
         global yData
         yData = []
@@ -296,6 +302,7 @@ class WindowTop(Frame):
                         # Update yData and xData which are plotted on live graph
                         yData = logData[channel - 1]
                         xData = timeData
+            time.sleep(0.01)
 
 
     # Function controls the plotting of the live graph
@@ -303,7 +310,6 @@ class WindowTop(Frame):
     def animate(self, i):
         global xData
         global yData
-        self.ax1.clear()
         self.ax1.plot(xData,yData)
 
 

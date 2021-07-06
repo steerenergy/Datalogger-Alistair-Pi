@@ -39,6 +39,8 @@ import numpy as np
 import gui
 
 
+
+
 # Initial Import and Setup
 def init():
     # Flag for multithreaded (GUI) use to be triggered to stop logging loop
@@ -171,8 +173,6 @@ def inputImport():
 # (Objective 9)
 def settingsOutput():
     global logComp
-    global guiFrame
-    guiFrame.channelSelect['values'] = ["None"]
     # Print General Settings then Input Settings
     print("\nCurrent General Settings:")
     metaData = logComp.GetMeta()
@@ -200,9 +200,6 @@ def settingsOutput():
                                                                                     pin.scaleMin,
                                                                                     pin.scaleMax,
                                                                                     pin.units))
-            # Add channel to dropdown menu for live graphing
-            # (Objective 17)
-            guiFrame.channelSelect['values'] = (*guiFrame.channelSelect['values'], pin.fName)
         # If channel not enabled
         else:
             print("|{:>2}|{:>4}|{:>5}|{:>10}|{:>10}|{:>4}|{:>7}{:>7}|{:>9}|".format(x, pin.name,
@@ -332,99 +329,12 @@ def log():
 
 
 
-"""
-# Writes the config data for the log to archive folder
-# (Objective 10)
-def WriteConfig(timestamp):
-    global logComp
-    # Create files and outbox directories if they don't exist
-    os.makedirs(os.path.dirname("files/outbox/conf{}.ini".format(timestamp)), exist_ok=True)
-    # Create new config file with timestamp of log as the name
-    with open("files/outbox/conf{}.ini".format(timestamp),"w") as configfile:
-        file_data = ""
-        file_data += "[General]\n"
-        file_data += "timeinterval = " + str(logComp.time) + "\n"
-        file_data += "name = " + logComp.name + "\n\n"
-
-        # Iterate through each Pin and write the data for that Pin
-        for pin in logComp.config.pinList:
-            file_data += "[" + pin.name + "]\n"
-            file_data += "enabled = " + str(pin.enabled) + "\n"
-            if pin.enabled == True:
-                file_data += "friendlyname = " + pin.fName + "\n"
-                file_data += "inputtype = " + pin.inputType + "\n"
-                file_data += "gain = " + str(pin.gain) + "\n"
-                file_data += "scalelow = " + str(pin.scaleMin) + "\n"
-                file_data += "scalehigh = " + str(pin.scaleMax) + "\n"
-                file_data += "unit = " + pin.units + "\n"
-                file_data += "m = " + str(pin.m) + "\n"
-                file_data += "c = " + str(pin.c) + "\n\n"
-            # If a Pin is not enabled, use these values in the config
-            else:
-                file_data += "friendlyname = Edit Me\n"
-                file_data += "inputtype = Edit Me\n"
-                file_data += "gain = 1\n"
-                file_data += "scalelow = 0.0\n"
-                file_data += "scalehigh = 0.0\n"
-                file_data += "unit = Edit Me\n\n"
-        configfile.write(file_data)
-"""
-
-
-"""
-# Read logged data from CSV and upload to database
-# (Objective 13)
-def uploadData():
-    global logComp
-    global adcHeader
-    # Create a logData object to store logged data
-    logComp.logData = lgOb.LogData()
-    logComp.logData.InitRawConv(len(adcHeader))
-    # Read logged CSV
-    # (Objective 13.1)
-    with open("files/outbox/raw{}.csv".format(logComp.date),"r") as data:
-        # Skip over header line
-        data.readline()
-        line = data.readline().split(",")
-        # Read each line and add data to logData object
-        while line != ['']:
-            logComp.logData.timeStamp.append(line[0])
-            logComp.logData.time.append(float(line[1]))
-            values = line[2:]
-            rawData = []
-            convData = []
-            for no, value in enumerate(values):
-                rawData.append(float(value))
-                pinName = adcHeader[no]
-                # Convert rawData using config settings
-                convertedVal = float(value) * logComp.config.GetPin(pinName).m + logComp.config.GetPin(pinName).c
-                convData.append(convertedVal)
-            logComp.logData.AddRawData(rawData)
-            logComp.logData.AddConvData(convData)
-            line = data.readline().split(",")
-
-    # Create list of headers for the database
-    headerList = ["\'Date/Time\'","\'Time Interval (seconds)\'"]
-    for pin in logComp.config.pinList:
-        if pin.enabled == True:
-            headerList.append("\'" + pin.name + "\'")
-    for pin in logComp.config.pinList:
-        if pin.enabled == True:
-            headerList.append("\'" + pin.fName + "|" + pin.name + "|" + pin.units + "\'")
-
-    # Write logged data to database
-    # (Objective 13.2)
-    db.WriteLogData(logComp, headerList)
-"""
-
-
 # Contains functions for normal run of logger
 # Starts the initialisation process
-def run(frame):
-    global guiFrame
-    guiFrame = frame
+def run():
     # Load Config Data and Setup
     init()
+    global logEnbl
     # Only continue if import was successful
     if logEnbl is True:
         global logComp
@@ -449,7 +359,7 @@ def run(frame):
         # Run Logging
         log()
     else:
-        frame.logToggle()
+        logEnbl = False
 
 
 # This is the code that is run when the program is loaded.

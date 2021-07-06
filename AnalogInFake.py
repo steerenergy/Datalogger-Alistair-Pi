@@ -33,5 +33,4 @@ class AnalogIn:
     @property
     def value(self):
         """Returns the value of an ADC pin as an integer."""
-        time.sleep(0.005)
         return random.randint(0, 32767)
