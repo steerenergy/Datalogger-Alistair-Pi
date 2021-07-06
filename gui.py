@@ -237,7 +237,7 @@ class WindowTop(Frame):
     def liveData(self):
 
         # Set up variables for creating a live graph
-        ani = animation.FuncAnimation(self, animate, interval=max(logger.logComp.time * 1000, 1000))
+        ani = animation.FuncAnimation(self.liveFigure, self.animate, interval=max(logger.logComp.time * 1000, 1000))
         timeData = []
         logData = []
         for pin in logger.adcHeader:
