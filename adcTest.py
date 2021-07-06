@@ -31,6 +31,7 @@ from decimal import Decimal
 import numpy as np
 import gui
 
+
 def ADCReader0(pins,name):
     startTime = time.perf_counter()
     with open("worker{}test.csv".format(name),"w") as file:
@@ -39,7 +40,9 @@ def ADCReader0(pins,name):
             for pin in pins:
                 timeElapsed = time.perf_counter() - startTime
                 #worker_writer.writerow([timeElapsed] + [pin[0].value])
-                file.write(str(timeElapsed) + str(pin[0].value) + "\n")
+                #file.write(str(timeElapsed) + str(pin[0].value) + "\n")
+                file.write(str(timeElapsed) + "test")
+                time.sleep(0.001)
 
 
 def ADCReader1(pins,name):
@@ -50,7 +53,9 @@ def ADCReader1(pins,name):
             for pin in pins:
                 timeElapsed = time.perf_counter() - startTime
                 #worker_writer1.writerow([timeElapsed] + [pin[0].value])
-                file.write(str(timeElapsed) + str(pin[0].value) + "\n")
+                #file.write(str(timeElapsed) + str(pin[0].value) + "\n")
+                file.write(str(timeElapsed) + "test")
+                time.sleep(0.001)
 
 
 def ADCReader2(pins,name):
@@ -61,8 +66,9 @@ def ADCReader2(pins,name):
             for pin in pins:
                 timeElapsed = time.perf_counter() - startTime
                 #worker_writer1.writerow([timeElapsed] + [pin[0].value])
-                file.write(str(timeElapsed) + str(pin[0].value) + "\n")
-
+                #file.write(str(timeElapsed) + str(pin[0].value) + "\n")
+                file.write(str(timeElapsed) + "test")
+                time.sleep(0.001)
 
 def run():
     i2c = busio.I2C(board.SCL, board.SDA, frequency=1000000)
