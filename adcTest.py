@@ -80,7 +80,7 @@ def run():
         pins = []
         for pin in adc.values():
             pins.append(pin)
-        worker = threading.Thread(target=ADCReader,args=(pins,board))
+        worker = threading.Thread(target=ADCReader,args=(pins,adc))
         worker.daemon = True
         worker.start()
 
