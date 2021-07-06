@@ -315,7 +315,7 @@ def log():
             timeElapsed = round(time.perf_counter() - startTime, 2)
 
             # Export Data to Spreadsheet inc current datetime and time elapsed
-            for idx, pin in adcToLog:
+            for idx, pin in enumerate(adcToLog):
                 adcValues[idx] = pin.value
             writer.writerow([currentDateTime] + [timeElapsed] + adcValues)
             # Copy list for data output and reset list values (so we can see if code fails)
