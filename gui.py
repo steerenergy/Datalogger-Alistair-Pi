@@ -237,17 +237,16 @@ class WindowTop(Frame):
     # (Objectives 12 and 18)
     def liveData(self):
         time.sleep(0.5)
-        for pin in logger.logComp.config.pinList:
+        adcHeader = logger.adcHeader
+        logComp = logger.logComp
+        for pin in logComp.config.pinList:
             if pin.enabled == True:
                 self.channelSelect['values'] = (*self.channelSelect['values'], pin.fName)
         # Set up variables for creating a live graph
-        ani = animation.FuncAnimation(self.liveFigure, self.animate, interval=max(logger.logComp.time * 1000, 1000))
         timeData = []
         logData = []
-        for pin in logger.adcHeader:
+        for pin in adcHeader:
             logData.append([])
-        global xData
-        global yData
         yData = []
         xData = []
 
@@ -255,11 +254,11 @@ class WindowTop(Frame):
         print("Live Data:\n")
         # Print header for all pins being logged
         adcHeaderPrint = ""
-        for pinName in logger.adcHeader:
-            adcHeaderPrint += ("|{:>3}{:>5}".format(pinName, logger.logComp.config.GetPin(pinName).units))
+        for pinName in adcHeader:
+            adcHeaderPrint += ("|{:>3}{:>5}".format(pinName, logComp.config.GetPin(pinName).units))
         print("{}|".format(adcHeaderPrint))
         # Print a nice vertical line so it all looks pretty
-        print("-" * (9 * len(logger.adcHeader) + 1))
+        print("-" * (9 * len(adcHeader) + 1))
         buffer = 0
         # Don't print live data when adcValuesCompl doesn't exist. Also if logging is stopped, exit loop
         # while len(logComp.logData.timeStamp) == 0 and logEnbl is True:
@@ -284,9 +283,9 @@ class WindowTop(Frame):
                 timeData.append((datetime.now() - startTime).total_seconds())
                 for no, val in enumerate(logger.adcValuesCompl):
                     # Get the name of the pin so it can be used to find the adc object
-                    pinName = logger.adcHeader[no]
+                    pinName = adcHeader[no]
                     # Calculate converted value
-                    convertedVal = val * logger.logComp.config.GetPin(pinName).m + logger.logComp.config.GetPin(pinName).c
+                    convertedVal = val * logComp.config.GetPin(pinName).m + logComp.config.GetPin(pinName).c
                     logData[no].append(convertedVal)
                     # Add converted value to the string being printed
                     ValuesPrint += ("|{:>8}".format(round(convertedVal, 2)))
@@ -302,16 +301,10 @@ class WindowTop(Frame):
                         # Update yData and xData which are plotted on live graph
                         yData = logData[channel - 1]
                         xData = timeData
-
-
-
-    # Function controls the plotting of the live graph
-    # (Objective 18.3)
-    def animate(self, i):
-        global xData
-        global yData
-        self.ax1.clear()
-        self.ax1.plot(xData,yData)
+                        self.ax1.clear()
+                        self.ax1.plot(xData,yData)
+                        self.canvas.draw_idle()
+            time.sleep(0.001)
 
 
 
