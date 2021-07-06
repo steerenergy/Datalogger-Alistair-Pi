@@ -41,8 +41,8 @@ def ADCReader0(pins,name):
             for pin in pins:
                 timeElapsed = time.perf_counter() - startTime
                 #worker_writer.writerow([timeElapsed] + [pin[0].value])
-                #file.write(str(timeElapsed) + str(pin[0].value) + "\n")
-                file.write(str(timeElapsed) + "test\n")
+                file.write(str(timeElapsed) + str(pin[0].value) + "\n")
+                #file.write(str(timeElapsed) + "test\n")
                 time.sleep(0.001)
 
 
