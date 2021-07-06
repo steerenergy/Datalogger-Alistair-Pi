@@ -239,14 +239,11 @@ class WindowTop(Frame):
         # Set up variables for creating a live graph
         ani = animation.FuncAnimation(self.liveFigure, self.animate, interval=max(logger.logComp.time * 1000, 1000))
         timeData = []
-        logData = []
-        for pin in logger.adcHeader:
-            logData.append([])
+        logData = [None] * len(logger.adcHeader)
         global xData
         global yData
         yData = []
         xData = []
-        avgPoint = 1
 
         # Setup data buffer to hold most recent data
         print("Live Data:\n")
