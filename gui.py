@@ -118,7 +118,8 @@ class WindowTop(Frame):
             # Scroll to Bottom of Blank Box
             self.liveDataText.see(END)
             # Load and Start Logger thread
-            self.logThread = threading.Thread(target=logger.run,args=[])
+            self.Logger = logger.Logger()
+            self.logThread = threading.Thread(target=self.Logger.run,args=())
             self.logThread.start()
             self.liveDataThread = threading.Thread(target=self.liveData,args=())
             self.liveDataThread.start()
