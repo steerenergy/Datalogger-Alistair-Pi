@@ -271,7 +271,7 @@ class WindowTop(Frame):
         # Livedata Loop - Loops Forever until LogEnbl is False (controlled by GUI)
         startTime = datetime.now()
         drawTime = 0
-        while logger.logEnbl is True:
+        while logger.logEnbl:
             # Get Complete Set of Logged Data
             # If Data is different to that in the buffer
             # (Objective 18.1)
