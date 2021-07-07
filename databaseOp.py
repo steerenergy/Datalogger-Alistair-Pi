@@ -164,7 +164,7 @@ def ReadInterval(id):
     conn = sqlite3.connect(database)
     cur = conn.cursor()
     # Retrieves the time interval for a log
-    interval = cur.execute("SELECT time FROM main WHERE id = ?",id).fetchone()[0]
+    interval = cur.execute("SELECT time FROM main WHERE id = ?",[id]).fetchone()[0]
     # If no time interval is found, throw error which is caught
     conn.close()
     if interval == None:

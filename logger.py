@@ -47,13 +47,9 @@ def init():
     global logEnbl
     logEnbl = True
     # dataRate of the A/D (see the ADS1115 datasheet for more info)
-    global dataRate
+    #global dataRate
     dataRate = 860
-    # List of pins to be logged and the list containing the logging functions
-    global adcToLog
-    adcToLog = []
-    global adcHeader
-    adcHeader = []
+
 
     global adcValuesCompl
     adcValuesCompl = []
@@ -61,15 +57,15 @@ def init():
     global logComp
     logComp = lgOb.LogMeta()
     # Create the I2C bus
-    global i2c
+    #global i2c
     i2c = busio.I2C(board.SCL, board.SDA, frequency=1000000)
     #i2c = "fake"
     # A/D Setup - Create 4 Global instances of ADS1115 ADC (16-bit) according to Adafruit Libraries
     # (Objective 7)
-    global adc0
-    global adc1
-    global adc2
-    global adc3
+    #global adc0
+    #global adc1
+    #global adc2
+    #global adc3
     adc0 = ADS.ADS1115(i2c, address=0x48, mode=Mode.CONTINUOUS, data_rate=dataRate)
     adc1 = ADS.ADS1115(i2c, address=0x49, mode=Mode.CONTINUOUS, data_rate=dataRate)
     adc2 = ADS.ADS1115(i2c, address=0x4a, mode=Mode.CONTINUOUS, data_rate=dataRate)
@@ -81,7 +77,8 @@ def init():
     generalImport()
     # Run code to import input settings
     # (Objective 8)
-    inputImport()
+    adcToLog, adcHeader = inputImport(adc0,adc1,adc2,adc3)
+    return adcToLog, adcHeader
 
 
 
@@ -103,7 +100,7 @@ def generalImport():
 
 # Import Input Settings
 # (Objective 8)
-def inputImport():
+def inputImport(adc0,adc1,adc2,adc3):
     # Load logEnbl variable
     global logEnbl
     print("Configuring Input Settings... ", end="", flush=True)
@@ -115,13 +112,13 @@ def inputImport():
         logComp.config_path = db.GetConfigPath(db.GetRecentId())
         logComp.config = file_rw.ReadLogConfig(logComp.config_path)
 
-        global adc0
-        global adc1
-        global adc2
-        global adc3
+        # List of pins to be logged and the list containing the logging functions
+        # global adcToLog
+        adcToLog = []
+        # global adcHeader
+        adcHeader = []
         # ADC Pin Map List - created now the gain information has been grabbed.
         # This gives the list of possible functions that can be run to grab data from a pin.
-        global adcPinMap
         adcPinMap = {
             "0AX": {
                 "0A0": AnalogIn(ads=adc0, gain=logComp.config.pinList[0].gain, positive_pin=ADS.P0),
@@ -162,6 +159,8 @@ def inputImport():
         if len(adcToLog) == 0:
             print("\nERROR - No Inputs set to Log! Please enable at least one input and try again")
             logEnbl = False
+
+        return adcToLog, adcHeader
 
     # Exception raised when no config returned from database
     except ValueError:
@@ -214,10 +213,8 @@ def settingsOutput():
 
 # Logging Script
 # (Objective 11)
-def log():
+def log(adcToLog, adcHeader):
     global logComp
-    global adcHeader
-    global adcToLog
     # Set Time Interval
     # (Objective 11.2)
     timeInterval = float(logComp.time)
@@ -331,7 +328,7 @@ def log():
 # Starts the initialisation process
 def run():
     # Load Config Data and Setup
-    init()
+    adcToLog, adcHeader = init()
     global logEnbl
     # Only continue if import was successful
     if logEnbl is True:
@@ -355,7 +352,7 @@ def run():
         # Print Settings
         settingsOutput()
         # Run Logging
-        log()
+        log(adcToLog,adcHeader)
     else:
         logEnbl = False
 
