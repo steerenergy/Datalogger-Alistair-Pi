@@ -241,51 +241,7 @@ class Logger():
               "\nIf you need more space, use the UI to download previous logs and delete them on the Pi."
             .format(timeRemDate.strftime("%Y-%m-%d %H:%M:%S")))
 
-        # Write config data to archive folder
-        # (Objective 10)
-        #WriteConfig(timeStamp)
-
         # CSV - Create/Open CSV file and print headers
-        #with open('files/outbox/raw{}.csv'.format(timeStamp), 'w', newline='') as csvfile:
-        #    writer = csv.writer(csvfile, dialect="excel", delimiter=',', quotechar='|', quoting=csv.QUOTE_MINIMAL)
-        #    writer.writerow(['Date/Time', 'Time Interval (seconds)'] + adcHeader)
-        #    print("\nStart Logging...\n")
-
-            # Start live data thread
-            # (Objective 12)
-  #    dataThread = threading.Thread(target=liveData)
-    #    dataThread.start()
-
-        # Set startTime (method used ignores changes in system clock time)
-    #    startTime = time.perf_counter()
-
-        # Beginning of reading script
-    #    while logEnbl is True:
-            # Get time and send to Log
-    #        currentDateTime = datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")
-    #        timeElapsed = round(time.perf_counter() - startTime, 2)
-
-            # (Objective 11.3)
-    #        for currentPin, channel in enumerate(adcToLog):
-                # Get Raw data from A/D, and add to adcValues list corresponding to the current pin
-    #            adcValues[currentPin] = channel.value
-
-            # Export Data to Spreadsheet inc current datetime and time elapsed
-            # (Objective 11.4)
-    #        writer.writerow([currentDateTime] + [timeElapsed] + adcValues)
-            # Copy list for data output and reset list values (so we can see if code fails)
-    #        global adcValuesCompl
-    #        adcValuesCompl = adcValues
-    #        adcValues = [0] * csvRows
-
-            # Work out time delay needed until next set of values taken based on user given value
-            # (Using some clever maths)
-            # (objective 11.2)
-    #        timeDiff = (time.perf_counter() - startTime)
-    #        time.sleep(timeInterval - (timeDiff % timeInterval))
-        # Wait until live data thread is finished
-    #    dataThread.join()
-    # CSV - Create/Open CSV file and print headers
         with open('files/outbox/raw{}.csv'.format(timeStamp), 'w', newline='') as csvfile:
             writer = csv.writer(csvfile, dialect="excel", delimiter=',', quotechar='|', quoting=csv.QUOTE_MINIMAL)
             writer.writerow(['Date/Time', 'Time Interval (seconds)'] + adcHeader)
@@ -293,7 +249,8 @@ class Logger():
             #dataThread = threading.Thread(target=liveData)
             #dataThread.start()
             startTime = time.perf_counter()
-            while self.logEnbl is True:
+            timeElapsed = 0
+            while self.logEnbl is True and timeElapsed < 20:
                 # Get time and send to Log
                 currentDateTime = datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")
                 timeElapsed = round(time.perf_counter() - startTime, 2)
