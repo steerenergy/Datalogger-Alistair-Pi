@@ -271,8 +271,8 @@ class Logger():
             #dataThread.start()
             startTime = time.perf_counter()
             timeElapsed = 0
-            while self.logEnbl and timeElapsed < 20:
-            #while self.logEnbl:
+            #while self.logEnbl and timeElapsed < 20:
+            while self.logEnbl:
                 # Get time and send to Log
                 currentDateTime = datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")
                 timeElapsed = round(time.perf_counter() - startTime, 2)
