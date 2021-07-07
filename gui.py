@@ -255,7 +255,7 @@ class WindowTop(Frame):
         adcHeaderPrint = ""
         for pin in logComp.config.pinList:
             if pin.enabled:
-                adcHeaderPrint += ("|{:>3}{:>5}".format(pin.name, logComp.config.GetPin(pin).units))
+                adcHeaderPrint += ("|{:>3}{:>5}".format(pin.name, pin.units))
         print("{}|".format(adcHeaderPrint))
         # Print a nice vertical line so it all looks pretty
         print("-" * (9 * logComp.config.enabled + 1))
