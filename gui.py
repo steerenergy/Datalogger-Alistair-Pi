@@ -9,7 +9,7 @@ from threading import Thread
 from tkinter import *
 from tkinter import ttk
 from tkinter import font, messagebox
-import logger
+import logger as logPy
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
@@ -118,8 +118,8 @@ class WindowTop(Frame):
             # Scroll to Bottom of Blank Box
             self.liveDataText.see(END)
             # Load and Start Logger thread
-            self.Logger = logger.Logger()
-            self.logThread = threading.Thread(target=self.Logger.run,args=())
+            self.logger = logPy.Logger()
+            self.logThread = threading.Thread(target=self.logger.run,args=())
             self.logThread.start()
             self.liveDataThread = threading.Thread(target=self.liveData,args=())
             self.liveDataThread.start()
@@ -133,7 +133,7 @@ class WindowTop(Frame):
             # Print button status
             print("\nStopping Logger")
             # Change logEnbl variable to false which stops the loop in logThread and subsequently the live data
-            logger.logEnbl = False
+            self.logger.logEnbl = False
             # Check to see if logThread has ended
             self.liveDataThread.join(0.5)
             self.logThreadStopCheck()
@@ -202,7 +202,7 @@ class WindowTop(Frame):
     def onClose(self):
         errorLogger = logging.getLogger('error_logger')
         try:
-            if logger.logEnbl is True:
+            if self.logger.logEnbl is True:
                 close = messagebox.askokcancel("Close", "Logging has not be finished. Are you sure you want to quit?")
                 if close:
                     self.logToggle()
@@ -238,7 +238,7 @@ class WindowTop(Frame):
     # (Objectives 12 and 18)
     def liveData(self):
         time.sleep(0.5)
-        logComp = logger.logComp
+        logComp = self.logger.logComp
         adcHeader = []
         for pin in logComp.config.pinList:
             if pin.enabled == True:
@@ -264,7 +264,7 @@ class WindowTop(Frame):
         # Don't print live data when adcValuesCompl doesn't exist. Also if logging is stopped, exit loop
         # while len(logComp.logData.timeStamp) == 0 and logEnbl is True:
         #    pass
-        while not logger.adcValuesCompl and logger.logEnbl is True:
+        while not self.logger.adcValuesCompl and self.logger.logEnbl is True:
             pass
         # Always start logging with the textbox shown as it prints the current settings
         if self.textBox == False:
@@ -272,18 +272,18 @@ class WindowTop(Frame):
         # Livedata Loop - Loops Forever until LogEnbl is False (controlled by GUI)
         startTime = datetime.now()
         drawTime = 0
-        while logger.logEnbl:
+        while self.logger.logEnbl:
             # Get Complete Set of Logged Data
             # If Data is different to that in the buffer
             # (Objective 18.1)
-            if logger.adcValuesCompl != buffer:
+            if self.logger.adcValuesCompl != buffer:
                 # buffer = logComp.logData.GetLatest()
-                buffer = logger.adcValuesCompl
+                buffer = self.logger.adcValuesCompl
                 ValuesPrint = ""
                 # Create a nice string to print with the values in
                 # Only prints data that is being logged
                 timeData.append((datetime.now() - startTime).total_seconds())
-                for no, val in enumerate(logger.adcValuesCompl):
+                for no, val in enumerate(self.logger.adcValuesCompl):
                     # Get the name of the pin so it can be used to find the adc object
                     pinName = adcHeader[no]
                     # Calculate converted value
