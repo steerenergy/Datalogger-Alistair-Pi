@@ -13,14 +13,14 @@ from collections import OrderedDict
 import configparser
 import functools
 # Uncomment below for real adc (if running on Pi)
-#import adafruit_ads1x15.ads1115 as ADS
-#from adafruit_ads1x15.analog_in import AnalogIn
+import adafruit_ads1x15.ads1115 as ADS
+from adafruit_ads1x15.analog_in import AnalogIn
 from adafruit_ads1x15.ads1x15 import Mode
-#import busio
-#import board
+import busio
+import board
 # Uncomment below for fake adc simulation if using a PC
-from AnalogInFake import AnalogIn as AnalogIn
-import ADS1115Fake as ADS
+#from AnalogInFake import AnalogIn as AnalogIn
+#import ADS1115Fake as ADS
 
 import csv
 import threading
