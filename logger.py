@@ -102,7 +102,7 @@ class Logger():
         try:
             # Gets the most recent config data from the database
             self.logComp.config_path = db.GetConfigPath(db.GetRecentId())
-            self.logComp.config = file_rw.ReadLogConfig(logComp.config_path)
+            self.logComp.config = file_rw.ReadLogConfig(self.logComp.config_path)
 
             # List of pins to be logged and the list containing the logging functions
             # global adcToLog
