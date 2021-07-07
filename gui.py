@@ -11,6 +11,7 @@ from tkinter import ttk
 from tkinter import font, messagebox
 import logger as logPy
 import matplotlib.pyplot as plt
+import multiprocessing
 import matplotlib.animation as animation
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import sys
@@ -84,7 +85,8 @@ class WindowTop(Frame):
         self.textThreshold = 250
 
         # Will later hold logThread
-        self.logThread = None
+        #self.logThread = None
+        self.logProcess = None
 
         # Will later hold liveDataThread
         self.liveDataThread = None
@@ -132,8 +134,10 @@ class WindowTop(Frame):
                 # Print Settings
                 self.logger.settingsOutput()
                 # Run Logging
-                self.logThread = threading.Thread(target=self.logger.log, args=(adcToLog,adcHeader))
-                self.logThread.start()
+                #self.logThread = threading.Thread(target=self.logger.log, args=(adcToLog,adcHeader))
+                #self.logThread.start()
+                self.logProcess = multiprocessing.Process(target=self.logger.log,args=(adcToLog,adcHeader))
+                self.logProcess.start()
             else:
                 self.logger.logEnbl = False
                 # Change Button Text
@@ -162,7 +166,7 @@ class WindowTop(Frame):
     # If logThread has finished the 'start logging' button is changed and enabled
     # Else, the function is triggered again after a certain period of time
     def logThreadStopCheck(self):
-        if self.logThread.isAlive() is False:
+        if self.logProcess.is_alive() is False:
             # Change Button Text
             self.logButton.config(text="Start Logging")
             # Tell user logging has stopped
