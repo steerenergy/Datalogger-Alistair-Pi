@@ -134,7 +134,7 @@ class WindowTop(Frame):
             # Change logEnbl variable to false which stops the loop in logThread and subsequently the live data
             logger.logEnbl = False
             # Check to see if logThread has ended
-            self.liveDataThread.join()
+            self.liveDataThread.join(0.5)
             self.logThreadStopCheck()
 
     # Is triggered when 'Stop Logging' ic clicked and is called until logThread is dead
