@@ -290,7 +290,7 @@ class WindowTop(Frame):
                     ValuesPrint += ("|{:>8}".format(round(convertedVal, 2)))
                 # Print data to textbox
                 # (Objective 18.2)
-                #print("{}|".format(ValuesPrint))
+                print("{}|".format(ValuesPrint))
 
                 if self.textBox == False and (time.perf_counter() - drawTime) > max(1,logComp.time):
                     # Get channel to graph from dropdown menu in GUI
