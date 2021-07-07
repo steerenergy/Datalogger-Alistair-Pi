@@ -273,7 +273,7 @@ class Logger():
             startTime = time.perf_counter()
             timeElapsed = 0
             #while self.logEnbl and timeElapsed < 20:
-            while logEnbl:
+            while logEnbl.is_set() == False:
                 # Get time and send to Log
                 currentDateTime = datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")
                 timeElapsed = round(time.perf_counter() - startTime, 2)

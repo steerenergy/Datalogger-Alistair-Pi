@@ -11,7 +11,7 @@ from tkinter import ttk
 from tkinter import font, messagebox
 import logger as logPy
 import matplotlib.pyplot as plt
-from multiprocessing import Process, Value
+from multiprocessing import Process, Value, Manager, Event
 import matplotlib.animation as animation
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import sys
@@ -87,6 +87,7 @@ class WindowTop(Frame):
         # Will later hold logThread
         #self.logThread = None
         self.logProcess = None
+        self.stop = Event()
 
         # Will later hold liveDataThread
         self.liveDataThread = None
@@ -136,7 +137,8 @@ class WindowTop(Frame):
                 # Run Logging
                 #self.logThread = threading.Thread(target=self.logger.log, args=(adcToLog,adcHeader))
                 #self.logThread.start()
-                self.logProcess = Process(target=self.logger.log,args=(adcToLog,adcHeader,Value(self.logger.logEnbl)))
+
+                self.logProcess = Process(target=self.logger.log,args=(adcToLog,adcHeader,self.stop))
                 self.logProcess.start()
             else:
                 self.logger.logEnbl = False
@@ -158,6 +160,7 @@ class WindowTop(Frame):
             print("\nStopping Logger")
             # Change logEnbl variable to false which stops the loop in logThread and subsequently the live data
             self.logger.logEnbl = False
+            self.stop.set()
             # Check to see if logThread has ended
             self.liveDataThread.join(0.5)
             self.logThreadStopCheck()
