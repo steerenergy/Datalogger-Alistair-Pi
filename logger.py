@@ -71,10 +71,10 @@ class Logger():
 
         # Run Code to import general information
         # (Objective 7)
-        generalImport()
+        self.generalImport()
         # Run code to import input settings
         # (Objective 8)
-        adcToLog, adcHeader = inputImport(adc0,adc1,adc2,adc3)
+        adcToLog, adcHeader = self.inputImport(adc0,adc1,adc2,adc3)
         return adcToLog, adcHeader
 
 
@@ -113,28 +113,28 @@ class Logger():
             # This gives the list of possible functions that can be run to grab data from a pin.
             adcPinMap = {
                 "0AX": {
-                    "0A0": AnalogIn(ads=adc0, gain=logComp.config.pinList[0].gain, positive_pin=ADS.P0),
-                    "0A1": AnalogIn(ads=adc0, gain=logComp.config.pinList[1].gain, positive_pin=ADS.P1),
-                    "0A2": AnalogIn(ads=adc0, gain=logComp.config.pinList[2].gain, positive_pin=ADS.P2),
-                    "0A3": AnalogIn(ads=adc0, gain=logComp.config.pinList[3].gain, positive_pin=ADS.P3)
+                    "0A0": AnalogIn(ads=adc0, gain=self.logComp.config.pinList[0].gain, positive_pin=ADS.P0),
+                    "0A1": AnalogIn(ads=adc0, gain=self.logComp.config.pinList[1].gain, positive_pin=ADS.P1),
+                    "0A2": AnalogIn(ads=adc0, gain=self.logComp.config.pinList[2].gain, positive_pin=ADS.P2),
+                    "0A3": AnalogIn(ads=adc0, gain=self.logComp.config.pinList[3].gain, positive_pin=ADS.P3)
                 },
                 "1AX": {
-                    "1A0": AnalogIn(ads=adc1, gain=logComp.config.pinList[4].gain, positive_pin=ADS.P0),
-                    "1A1": AnalogIn(ads=adc1, gain=logComp.config.pinList[5].gain, positive_pin=ADS.P1),
-                    "1A2": AnalogIn(ads=adc1, gain=logComp.config.pinList[6].gain, positive_pin=ADS.P2),
-                    "1A3": AnalogIn(ads=adc1, gain=logComp.config.pinList[7].gain, positive_pin=ADS.P3)
+                    "1A0": AnalogIn(ads=adc1, gain=self.logComp.config.pinList[4].gain, positive_pin=ADS.P0),
+                    "1A1": AnalogIn(ads=adc1, gain=self.logComp.config.pinList[5].gain, positive_pin=ADS.P1),
+                    "1A2": AnalogIn(ads=adc1, gain=self.logComp.config.pinList[6].gain, positive_pin=ADS.P2),
+                    "1A3": AnalogIn(ads=adc1, gain=self.logComp.config.pinList[7].gain, positive_pin=ADS.P3)
                 },
                 "2AX": {
-                    "2A0": AnalogIn(ads=adc2, gain=logComp.config.pinList[8].gain, positive_pin=ADS.P0),
-                    "2A1": AnalogIn(ads=adc2, gain=logComp.config.pinList[9].gain, positive_pin=ADS.P1),
-                    "2A2": AnalogIn(ads=adc2, gain=logComp.config.pinList[10].gain, positive_pin=ADS.P2),
-                    "2A3": AnalogIn(ads=adc2, gain=logComp.config.pinList[11].gain, positive_pin=ADS.P3)
+                    "2A0": AnalogIn(ads=adc2, gain=self.logComp.config.pinList[8].gain, positive_pin=ADS.P0),
+                    "2A1": AnalogIn(ads=adc2, gain=self.logComp.config.pinList[9].gain, positive_pin=ADS.P1),
+                    "2A2": AnalogIn(ads=adc2, gain=self.logComp.config.pinList[10].gain, positive_pin=ADS.P2),
+                    "2A3": AnalogIn(ads=adc2, gain=self.logComp.config.pinList[11].gain, positive_pin=ADS.P3)
                 },
                 "3AX": {
-                    "3A0": AnalogIn(ads=adc3, gain=logComp.config.pinList[12].gain, positive_pin=ADS.P0),
-                    "3A1": AnalogIn(ads=adc3, gain=logComp.config.pinList[13].gain, positive_pin=ADS.P1),
-                    "3A2": AnalogIn(ads=adc3, gain=logComp.config.pinList[14].gain, positive_pin=ADS.P2),
-                    "3A3": AnalogIn(ads=adc3, gain=logComp.config.pinList[15].gain, positive_pin=ADS.P3)
+                    "3A0": AnalogIn(ads=adc3, gain=self.logComp.config.pinList[12].gain, positive_pin=ADS.P0),
+                    "3A1": AnalogIn(ads=adc3, gain=self.logComp.config.pinList[13].gain, positive_pin=ADS.P1),
+                    "3A2": AnalogIn(ads=adc3, gain=self.logComp.config.pinList[14].gain, positive_pin=ADS.P2),
+                    "3A3": AnalogIn(ads=adc3, gain=self.logComp.config.pinList[15].gain, positive_pin=ADS.P3)
                 }
             }
             # Run code to choose which pins to be logged.
@@ -219,7 +219,7 @@ class Logger():
         # (Objective 11.1)
         db.AddDate(timeStamp,self.logComp.id)
         file_rw.RenameConfig(self.logComp.config_path,timeStamp)
-        logComp.date = timeStamp
+        self.logComp.date = timeStamp
 
         # FILE MANAGEMENT
         print("\nDisk Usage:")
