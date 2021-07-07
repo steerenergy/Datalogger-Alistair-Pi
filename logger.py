@@ -161,6 +161,25 @@ class Logger():
             logEnbl = False
 
 
+    def checkName(self):
+        # Check that the most recent log has no data table
+        # If it does, create a new log in the database from the loaded in settings
+        if db.CheckDataTable(str(self.logComp.id)) == True:
+            # Give new log entry a new name by adding a number on the end
+            # If there is already a number, increment the number by 1
+            try:
+                nameNum = int(self.logComp.name.split(' ')[-1])
+                nameNum += 1
+                self.logComp.name = (' ').join(self.logComp.name.split(' ')[:-1]) + " " + str(nameNum)
+            except ValueError:
+                nameNum = 1
+                self.logComp.name = self.logComp.name + " " + str(nameNum)
+            self.logComp.id += 1
+            # Write new log entry to database
+            db.WriteLog(self.logComp)
+            file_rw.WriteLogConfig(self.logComp, self.logComp.name)
+
+
     # Output Current Settings
     # (Objective 9)
     def settingsOutput(self):
@@ -250,7 +269,8 @@ class Logger():
             #dataThread.start()
             startTime = time.perf_counter()
             timeElapsed = 0
-            while self.logEnbl is True and timeElapsed < 20:
+            #while self.logEnbl and timeElapsed < 20:
+            while self.logEnbl:
                 # Get time and send to Log
                 currentDateTime = datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")
                 timeElapsed = round(time.perf_counter() - startTime, 2)
@@ -279,22 +299,6 @@ class Logger():
         adcToLog, adcHeader = self.init()
         # Only continue if import was successful
         if self.logEnbl is True:
-            # Check that the most recent log has no data table
-            # If it does, create a new log in the database from the loaded in settings
-            if db.CheckDataTable(str(self.logComp.id)) == True:
-                # Give new log entry a new name by adding a number on the end
-                # If there is already a number, increment the number by 1
-                try:
-                    nameNum = int(self.logComp.name.split(' ')[-1])
-                    nameNum += 1
-                    self.logComp.name = (' ').join(self.logComp.name.split(' ')[:-1]) + " " + str(nameNum)
-                except ValueError:
-                    nameNum = 1
-                    self.logComp.name = self.logComp.name + " " + str(nameNum)
-                self.logComp.id += 1
-                # Write new log entry to database
-                db.WriteLog(self.logComp)
-                file_rw.WriteLogConfig(self.logComp,self.logComp.name)
             # Print Settings
             self.settingsOutput()
             # Run Logging

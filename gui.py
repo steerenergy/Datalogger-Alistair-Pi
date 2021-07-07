@@ -97,6 +97,9 @@ class WindowTop(Frame):
         self.channelSelect.current(0)
         self.channelSelect.pack(pady=(10,10))
 
+        # Create instance of the logger class
+        self.logger = logPy.Logger()
+
 
 
     # Contains functions for the start/stop logging buttons
@@ -118,9 +121,17 @@ class WindowTop(Frame):
             # Scroll to Bottom of Blank Box
             self.liveDataText.see(END)
             # Load and Start Logger thread
-            self.logger = logPy.Logger()
-            self.logThread = threading.Thread(target=self.logger.run,args=())
-            self.logThread.start()
+            # Load Config Data and Setup
+            adcToLog, adcHeader = self.logger.init()
+            # Only continue if import was successful
+            if self.logger.logEnbl is True:
+                # Print Settings
+                self.logger.settingsOutput()
+                # Run Logging
+                self.logThread = threading.Thread(target=self.logger.log, args=(adcToLog,adcHeader))
+                self.logThread.start()
+            else:
+                self.logger.logEnbl = False
             self.liveDataThread = threading.Thread(target=self.liveData,args=())
             self.liveDataThread.start()
             # Change Button Text and re-enable
@@ -237,7 +248,8 @@ class WindowTop(Frame):
     # Function is run in separate thread to ensure it doesn't interfere with logging
     # (Objectives 12 and 18)
     def liveData(self):
-        time.sleep(0.5)
+        while self.logger.adcValuesCompl == []:
+            pass
         logComp = self.logger.logComp
         adcHeader = []
         for pin in logComp.config.pinList:
