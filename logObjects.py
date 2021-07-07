@@ -29,14 +29,22 @@ class Pin():
 # Acts as a configfile, holding information about all the pins/channels
 class ConfigFile():
     pinList = []
+    enabled = 0
 
     def __init__(self):
         self.pinList = []
+        self.enabled = 0
+
     # Used to return a Pin object from their name
     def GetPin(self,name):
         for pin in self.pinList:
             if pin.name == name:
                 return pin
+
+    def SetEnabled(self):
+        for pin in self.pinList:
+            if pin.enabled:
+                self.enabled += 1
 
 
 # Holds the logged data for a log

@@ -237,26 +237,28 @@ class WindowTop(Frame):
     # (Objectives 12 and 18)
     def liveData(self):
         time.sleep(0.5)
-        adcHeader = logger.adcHeader
         logComp = logger.logComp
+        adcHeader = []
         for pin in logComp.config.pinList:
             if pin.enabled == True:
                 self.channelSelect['values'] = (*self.channelSelect['values'], pin.fName)
+                adcHeader.append(pin.name)
         # Set up variables for creating a live graph
         timeData = []
         logData = []
-        for i in range(0,len(adcHeader)):
+        for i in range(0,logComp.config.enabled):
             logData.append([])
 
         # Setup data buffer to hold most recent data
         print("Live Data:\n")
         # Print header for all pins being logged
         adcHeaderPrint = ""
-        for pinName in adcHeader:
-            adcHeaderPrint += ("|{:>3}{:>5}".format(pinName, logComp.config.GetPin(pinName).units))
+        for pinName in logComp.config.pinList:
+            if pin.enabled:
+                adcHeaderPrint += ("|{:>3}{:>5}".format(pinName, logComp.config.GetPin(pinName).units))
         print("{}|".format(adcHeaderPrint))
         # Print a nice vertical line so it all looks pretty
-        print("-" * (9 * len(adcHeader) + 1))
+        print("-" * (9 * logComp.config.enabled + 1))
         buffer = 0
         # Don't print live data when adcValuesCompl doesn't exist. Also if logging is stopped, exit loop
         # while len(logComp.logData.timeStamp) == 0 and logEnbl is True:

@@ -160,6 +160,7 @@ def inputImport(adc0,adc1,adc2,adc3):
             print("\nERROR - No Inputs set to Log! Please enable at least one input and try again")
             logEnbl = False
 
+        logComp.config.SetEnabled()
         return adcToLog, adcHeader
 
     # Exception raised when no config returned from database
