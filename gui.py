@@ -311,11 +311,11 @@ class WindowTop(Frame):
 
     def counter(self):
         startTime = time.perf_counter()
+        countTime = 0
         while logger.logEnbl:
-            timeElapsed = time.perf_counter() - startTime
-            print(str(timeElapsed))
-            timeDiff = (time.perf_counter() - startTime)
-            time.sleep(0.1 - (timeDiff % 0.1))
+            if (time.perf_counter() - countTime) > 0.1:
+                countTime = time.perf_counter()
+                print(str(time.perf_counter() - startTime))
 
 
 
