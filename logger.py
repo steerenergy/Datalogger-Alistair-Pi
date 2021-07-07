@@ -304,27 +304,29 @@ def log():
         print("\nStart Logging...\n")
         #dataThread = threading.Thread(target=liveData)
         #dataThread.start()
-
+        timeInterval = timeInterval - (0.003 * csvRows)
         startTime = time.perf_counter()
+        countTime = 0
         while logEnbl is True:
-            # Get time and send to Log
-            currentDateTime = datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")
-            timeElapsed = round(time.perf_counter() - startTime, 2)
+            if (time.perf_counter() - countTime) > timeInterval:
+                # Get time and send to Log
+                currentDateTime = datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")
+                timeElapsed = round(time.perf_counter() - startTime, 2)
 
-            # Export Data to Spreadsheet inc current datetime and time elapsed
-            for idx, pin in enumerate(adcToLog):
-                adcValues[idx] = pin.value
-            writer.writerow([currentDateTime] + [timeElapsed] + adcValues)
-            # Copy list for data output and reset list values (so we can see if code fails)
-            global adcValuesCompl
-            adcValuesCompl = adcValues
-            adcValues = [0] * csvRows
-
-            # Work out time delay needed until next set of values taken based on user given value
-            # (Using some clever maths)
-            # (objective 11.2)
-            timeDiff = (time.perf_counter() - startTime)
-            time.sleep(timeInterval - (timeDiff % timeInterval))
+                # Export Data to Spreadsheet inc current datetime and time elapsed
+                for idx, pin in enumerate(adcToLog):
+                    adcValues[idx] = pin.value
+                writer.writerow([currentDateTime] + [timeElapsed] + adcValues)
+                # Copy list for data output and reset list values (so we can see if code fails)
+                global adcValuesCompl
+                adcValuesCompl = adcValues
+                adcValues = [0] * csvRows
+                countTime = time.perf_counter()
+                # Work out time delay needed until next set of values taken based on user given value
+                # (Using some clever maths)
+                # (objective 11.2)
+                #timeDiff = (time.perf_counter() - startTime)
+                #time.sleep(timeInterval - (timeDiff % timeInterval))
     db.UpdateDataPath(logComp.id,"files/outbox/raw{}.csv".format(timeStamp))
 
 

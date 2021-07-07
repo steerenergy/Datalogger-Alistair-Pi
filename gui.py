@@ -122,8 +122,6 @@ class WindowTop(Frame):
             self.logThread.start()
             self.liveDataThread = threading.Thread(target=self.liveData,args=())
             self.liveDataThread.start()
-            self.counter = threading.Thread(target=self.counter,args=())
-            self.counter.start()
             # Change Button Text and re-enable
             self.logButton.config(text="Finish Logging")
             self.logButton['state'] = 'normal'
@@ -307,17 +305,6 @@ class WindowTop(Frame):
                         self.canvas.draw_idle()
                     drawTime = time.perf_counter()
             time.sleep(0.001)
-
-
-    def counter(self):
-        startTime = time.perf_counter()
-        countTime = 0
-        while logger.logEnbl:
-            if (time.perf_counter() - countTime) > 0.1:
-                countTime = time.perf_counter()
-                print(str(time.perf_counter() - startTime))
-
-
 
 
 
