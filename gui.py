@@ -250,7 +250,6 @@ class WindowTop(Frame):
 
     # Live Data Output
     # Function is run in separate thread to ensure it doesn't interfere with logging
-    # (Objectives 12 and 18)
     def liveData(self):
         while self.logger.adcValuesCompl == []:
             pass
@@ -311,7 +310,7 @@ class WindowTop(Frame):
                 # (Objective 18.2)
                 print("{}|".format(ValuesPrint))
 
-                if self.textBox == False and (time.perf_counter() - drawTime) > max(1,logComp.time):
+                if self.textBox == False and (time.perf_counter() - drawTime) > max(0.1,logComp.time):
                     # Get channel to graph from dropdown menu in GUI
                     # (Objective 17)
                     channel = self.channelSelect.current()
