@@ -304,7 +304,6 @@ def log():
         print("\nStart Logging...\n")
         #dataThread = threading.Thread(target=liveData)
         #dataThread.start()
-        timeInterval = timeInterval - (0.003 * csvRows)
         startTime = time.perf_counter()
         countTime = 0
         while logEnbl is True:
