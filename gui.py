@@ -314,20 +314,18 @@ class WindowTop(Frame):
                 # Print data to textbox
                 # (Objective 18.2)
                 print("{}|".format(ValuesPrint))
+                channel = self.channelSelect.current()
+                if channel != 0:
+                    # Update yData and xData which are plotted on live graph
+                    yData = logData[channel - 1]
+                    xData = timeData
+                    self.ax1.clear()
+                    self.ax1.plot(xData, yData)
 
-                if self.textBox == False and (time.perf_counter() - drawTime) > max(0.1,logComp.time):
-                    # Get channel to graph from dropdown menu in GUI
-                    # (Objective 17)
-                    channel = self.channelSelect.current()
-                    if channel != 0:
-                        # Update yData and xData which are plotted on live graph
-                        yData = logData[channel - 1]
-                        xData = timeData
-                        self.ax1.clear()
-                        self.ax1.plot(xData,yData)
-                        self.canvas.draw_idle()
+                if self.textBox == False and (time.perf_counter() - drawTime) > max(1,logComp.time):
+                    self.canvas.draw_idle()
                     drawTime = time.perf_counter()
-            time.sleep(1)
+            time.sleep(0.01)
 
 
 
