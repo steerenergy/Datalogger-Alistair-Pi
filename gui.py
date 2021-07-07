@@ -86,6 +86,9 @@ class WindowTop(Frame):
         # Will later hold logThread
         self.logThread = None
 
+        # Will later hold liveDataThread
+        self.liveDataThread = None
+
         # Live Data Graph
         self.liveFigure = plt.Figure(figsize=(6, 5), dpi=100)
         self.ax1 = self.liveFigure.add_subplot(111)
@@ -122,18 +125,17 @@ class WindowTop(Frame):
             self.liveDataText.see(END)
             # Load and Start Logger thread
             # Load Config Data and Setup
-            #adcToLog, adcHeader = self.logger.init()
+            adcToLog, adcHeader = self.logger.init()
             # Only continue if import was successful
-            #if self.logger.logEnbl is True:
-            #    # Print Settings
-            #    self.logger.settingsOutput()
-            #    # Run Logging
-            #    self.logThread = threading.Thread(target=self.logger.log, args=(adcToLog,adcHeader))
-            #    self.logThread.start()
-            #else:
-            #    self.logger.logEnbl = False
-            self.logThread = threading.Thread(target=self.logger.run,args=())
-            self.logThread.start()
+            if self.logger.logEnbl is True:
+                self.logger.checkName()
+                # Print Settings
+                self.logger.settingsOutput()
+                # Run Logging
+                self.logThread = threading.Thread(target=self.logger.log, args=(adcToLog,adcHeader))
+                self.logThread.start()
+            else:
+                self.logger.logEnbl = False
             self.liveDataThread = threading.Thread(target=self.liveData,args=())
             self.liveDataThread.start()
             # Change Button Text and re-enable
@@ -363,7 +365,7 @@ def run():
     # Warn Users of error locations
     print("Warning - all stderr output from this point onwards is logged in piError.log")
     # Redirect all stderr to text file. Comment the next line out for errors to be written to the console
-    sys.stderr.write = stderrRedirect
+    #sys.stderr.write = stderrRedirect
     global root
     # Create Tkinter Instance
     root = Tk()
@@ -373,7 +375,7 @@ def run():
     root.tk.call('wm', 'iconphoto', root._w, img)
 
     # Size of the window (Uncomment for Full Screen)
-    root.wm_attributes('-zoomed', 1)
+    #root.wm_attributes('-zoomed', 1)
 
     # Fonts
     global bigFont
