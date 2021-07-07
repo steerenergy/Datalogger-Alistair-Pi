@@ -237,6 +237,7 @@ class Logger():
         # Update date on database
         # (Objective 11.1)
         db.AddDate(timeStamp,self.logComp.id)
+        self.logComp.config_path = db.GetConfigPath(self.logComp.id)
         file_rw.RenameConfig(self.logComp.config_path,timeStamp)
         db.UpdateConfigPath(self.logComp.id,"files/outbox/conf{}.ini".format(timeStamp))
         self.logComp.date = timeStamp
