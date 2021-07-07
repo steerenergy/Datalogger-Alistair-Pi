@@ -253,9 +253,9 @@ class WindowTop(Frame):
         print("Live Data:\n")
         # Print header for all pins being logged
         adcHeaderPrint = ""
-        for pinName in logComp.config.pinList:
+        for pin in logComp.config.pinList:
             if pin.enabled:
-                adcHeaderPrint += ("|{:>3}{:>5}".format(pinName, logComp.config.GetPin(pinName).units))
+                adcHeaderPrint += ("|{:>3}{:>5}".format(pin.name, logComp.config.GetPin(pin).units))
         print("{}|".format(adcHeaderPrint))
         # Print a nice vertical line so it all looks pretty
         print("-" * (9 * logComp.config.enabled + 1))
