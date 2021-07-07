@@ -12,7 +12,7 @@ serverThread.daemon = True
 serverThread.start()
 print("ServerThread starting")
 
-logger = logPi.Logger()
-logger.run()
+#logger = logPi.Logger()
+#logger.run()
 # Start the GUI
 gui.run()

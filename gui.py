@@ -122,18 +122,20 @@ class WindowTop(Frame):
             self.liveDataText.see(END)
             # Load and Start Logger thread
             # Load Config Data and Setup
-            adcToLog, adcHeader = self.logger.init()
+            #adcToLog, adcHeader = self.logger.init()
             # Only continue if import was successful
-            if self.logger.logEnbl is True:
-                # Print Settings
-                self.logger.settingsOutput()
-                # Run Logging
-                self.logThread = threading.Thread(target=self.logger.log, args=(adcToLog,adcHeader))
-                self.logThread.start()
-            else:
-                self.logger.logEnbl = False
-            self.liveDataThread = threading.Thread(target=self.liveData,args=())
-            self.liveDataThread.start()
+            #if self.logger.logEnbl is True:
+            #    # Print Settings
+            #    self.logger.settingsOutput()
+            #    # Run Logging
+            #    self.logThread = threading.Thread(target=self.logger.log, args=(adcToLog,adcHeader))
+            #    self.logThread.start()
+            #else:
+            #    self.logger.logEnbl = False
+            self.logThread = threading.Thread(target=self.logger.run,args=())
+            self.logThread.start()
+            #self.liveDataThread = threading.Thread(target=self.liveData,args=())
+            #self.liveDataThread.start()
             # Change Button Text and re-enable
             self.logButton.config(text="Finish Logging")
             self.logButton['state'] = 'normal'
