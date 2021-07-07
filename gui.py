@@ -122,6 +122,8 @@ class WindowTop(Frame):
             self.logThread.start()
             self.liveDataThread = threading.Thread(target=self.liveData,args=())
             self.liveDataThread.start()
+            self.counter = threading.Thread(target=self.counter,args=())
+            self.counter.start()
             # Change Button Text and re-enable
             self.logButton.config(text="Finish Logging")
             self.logButton['state'] = 'normal'
@@ -290,7 +292,7 @@ class WindowTop(Frame):
                     ValuesPrint += ("|{:>8}".format(round(convertedVal, 2)))
                 # Print data to textbox
                 # (Objective 18.2)
-                print("{}|".format(ValuesPrint))
+                #print("{}|".format(ValuesPrint))
 
                 if self.textBox == False and (time.perf_counter() - drawTime) > max(1,logComp.time):
                     # Get channel to graph from dropdown menu in GUI
@@ -305,6 +307,16 @@ class WindowTop(Frame):
                         self.canvas.draw_idle()
                     drawTime = time.perf_counter()
             time.sleep(0.001)
+
+
+    def counter(self):
+        startTime = time.perf_counter()
+        while logger.logEnbl:
+            timeElapsed = time.perf_counter() - startTime
+            print(str(timeElapsed))
+            timeDiff = (time.perf_counter() - startTime)
+            time.sleep(0.1 - (timeDiff % 0.1))
+
 
 
 
