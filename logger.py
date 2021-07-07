@@ -37,6 +37,7 @@ import os
 from decimal import Decimal
 import numpy as np
 import gui
+from multiprocessing import Value
 
 
 class Logger():
@@ -224,7 +225,7 @@ class Logger():
 
     # Logging Script
     # (Objective 11)
-    def log(self, adcToLog, adcHeader):
+    def log(self, adcToLog, adcHeader, logEnbl):
         # Set Time Interval
         # (Objective 11.2)
         timeInterval = float(self.logComp.time)
@@ -272,7 +273,7 @@ class Logger():
             startTime = time.perf_counter()
             timeElapsed = 0
             #while self.logEnbl and timeElapsed < 20:
-            while self.logEnbl:
+            while logEnbl:
                 # Get time and send to Log
                 currentDateTime = datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")
                 timeElapsed = round(time.perf_counter() - startTime, 2)

@@ -11,7 +11,7 @@ from tkinter import ttk
 from tkinter import font, messagebox
 import logger as logPy
 import matplotlib.pyplot as plt
-import multiprocessing
+from multiprocessing import Process, Value
 import matplotlib.animation as animation
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import sys
@@ -136,7 +136,7 @@ class WindowTop(Frame):
                 # Run Logging
                 #self.logThread = threading.Thread(target=self.logger.log, args=(adcToLog,adcHeader))
                 #self.logThread.start()
-                self.logProcess = multiprocessing.Process(target=self.logger.log,args=(adcToLog,adcHeader))
+                self.logProcess = Process(target=self.logger.log,args=(adcToLog,adcHeader,Value(self.logger.logEnbl)))
                 self.logProcess.start()
             else:
                 self.logger.logEnbl = False
