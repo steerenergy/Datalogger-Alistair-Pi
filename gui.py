@@ -11,7 +11,7 @@ from tkinter import ttk
 from tkinter import font, messagebox
 import logger as logPy
 import matplotlib.pyplot as plt
-from multiprocessing import Process, Value, Manager, Event
+from multiprocessing import Process, Value, Manager, Event, Pipe
 import matplotlib.animation as animation
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import sys
@@ -88,6 +88,7 @@ class WindowTop(Frame):
         #self.logThread = None
         self.logProcess = None
         self.stop = Event()
+        self.receiver, self.sender = Pipe(duplex=False)
 
         # Will later hold liveDataThread
         self.liveDataThread = None
@@ -138,7 +139,7 @@ class WindowTop(Frame):
                 #self.logThread = threading.Thread(target=self.logger.log, args=(adcToLog,adcHeader))
                 #self.logThread.start()
 
-                self.logProcess = Process(target=self.logger.log,args=(adcToLog,adcHeader,self.stop))
+                self.logProcess = Process(target=self.logger.log,args=(adcToLog,adcHeader,self.stop, self.sender))
                 self.logProcess.start()
             else:
                 self.logger.logEnbl = False
@@ -263,8 +264,6 @@ class WindowTop(Frame):
     # Live Data Output
     # Function is run in separate thread to ensure it doesn't interfere with logging
     def liveData(self):
-        while self.logger.adcValuesCompl == []:
-            pass
         logComp = self.logger.logComp
         adcHeader = []
         for pin in logComp.config.pinList:
@@ -303,9 +302,10 @@ class WindowTop(Frame):
             # Get Complete Set of Logged Data
             # If Data is different to that in the buffer
             # (Objective 18.1)
-            if self.logger.adcValuesCompl != buffer:
+            current = self.receiver.recv()
+            if current != buffer:
                 # buffer = logComp.logData.GetLatest()
-                buffer = self.logger.adcValuesCompl
+                buffer = current
                 ValuesPrint = ""
                 # Create a nice string to print with the values in
                 # Only prints data that is being logged

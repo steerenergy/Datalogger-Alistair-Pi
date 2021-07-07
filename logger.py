@@ -37,7 +37,7 @@ import os
 from decimal import Decimal
 import numpy as np
 import gui
-from multiprocessing import Value
+from multiprocessing import Value, Pipe
 
 
 class Logger():
@@ -159,7 +159,7 @@ class Logger():
         # Exception raised when no config returned from database
         except ValueError:
             print("ERROR - Failed to read Input Settings - Have you sent over a log config")
-            logEnbl = False
+            self.logEnbl = False
 
 
     def checkName(self):
@@ -225,7 +225,7 @@ class Logger():
 
     # Logging Script
     # (Objective 11)
-    def log(self, adcToLog, adcHeader, logEnbl):
+    def log(self, adcToLog, adcHeader, logEnbl, sender):
         # Set Time Interval
         # (Objective 11.2)
         timeInterval = float(self.logComp.time)
@@ -283,6 +283,7 @@ class Logger():
                 writer.writerow([currentDateTime] + [timeElapsed] + adcValues)
                 # Copy list for data output and reset list values (so we can see if code fails)
                 self.adcValuesCompl = adcValues
+                sender.send(adcValues)
                 adcValues = [0] * csvRows
 
                 # Work out time delay needed until next set of values taken based on user given value
