@@ -325,9 +325,9 @@ class WindowTop(Frame):
                         xData = timeData
                         self.ax1.clear()
                         self.ax1.plot(xData,yData)
-                        self.canvas.draw()
+                        self.canvas.draw_idle()
                     drawTime = time.perf_counter()
-            time.sleep(0.01)
+            time.sleep(1)
 
 
 
