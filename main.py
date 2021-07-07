@@ -1,5 +1,6 @@
 import tcpServer as tcp
 import gui
+import logger as logPi
 from threading import Thread
 
 
@@ -10,5 +11,8 @@ serverThread = Thread(target=tcp.run, args=())
 serverThread.daemon = True
 serverThread.start()
 print("ServerThread starting")
+
+logger = logPi.Logger()
+logger.run()
 # Start the GUI
 gui.run()
