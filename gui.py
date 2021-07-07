@@ -136,6 +136,11 @@ class WindowTop(Frame):
                 self.logThread.start()
             else:
                 self.logger.logEnbl = False
+                # Change Button Text
+                self.logButton.config(text="Start Logging")
+                # Re-enable Button
+                self.logButton['state'] = 'normal'
+                return
             self.liveDataThread = threading.Thread(target=self.liveData,args=())
             self.liveDataThread.start()
             # Change Button Text and re-enable
