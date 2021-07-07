@@ -300,6 +300,7 @@ class Logger():
         adcToLog, adcHeader = self.init()
         # Only continue if import was successful
         if self.logEnbl is True:
+            self.checkName()
             # Print Settings
             self.settingsOutput()
             # Run Logging
