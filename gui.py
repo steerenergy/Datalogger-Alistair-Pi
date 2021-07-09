@@ -88,7 +88,7 @@ class WindowTop(Frame):
         #self.logThread = None
         self.logProcess = None
         self.stop = Event()
-        self.receiver, self.sender = Pipe(duplex=False)
+        self.receiver, self.sender = Pipe()
 
         # Will later hold liveDataThread
         self.liveDataThread = None
