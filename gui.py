@@ -333,6 +333,8 @@ class WindowTop(Frame):
 
 
     def commandHandler(self, commandQueue):
+        if commandQueue.empty():
+            return
         command = commandQueue.get()
         if command == "Start":
             if self.logger.logEnbl == False:
