@@ -304,6 +304,7 @@ class WindowTop(Frame):
             # (Objective 18.1)
             #current = self.logger.adcValuesCompl
             currentVals = self.receiver.recv()
+            print(currentVals)
             if currentVals != buffer:
                 # buffer = logComp.logData.GetLatest()
                 buffer = currentVals
