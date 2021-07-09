@@ -2,6 +2,7 @@
 # Script connects to logger.py and acts a front end to it
 
 import logging
+import queue
 import time
 from datetime import datetime
 import threading
@@ -20,7 +21,7 @@ import sys
 # Set up GUI controls and functions
 class WindowTop(Frame):
     # Main Window - Init function contains all elements of layout
-    def __init__(self, commandQueue, master=None):
+    def __init__(self, master=None, commandQueue=queue.Queue()):
         # This is class inheritance
         Frame.__init__(self, master)
         # Setting self.master = master window
@@ -405,7 +406,7 @@ def run(commandQueue):
     smallFont = font.Font(family="Courier", size=11)
 
     # Create instance of GUI
-    app = WindowTop(root, commandQueue)
+    app = WindowTop(root, commandQueue=commandQueue)
 
     # Ensure when the program quits, it quits gracefully - e.g. stopping the log first
     root.protocol("WM_DELETE_WINDOW", app.onClose)
