@@ -302,7 +302,8 @@ class WindowTop(Frame):
             # Get Complete Set of Logged Data
             # If Data is different to that in the buffer
             # (Objective 18.1)
-            current = self.receiver.recv()
+            current = self.logger.adcValuesCompl
+            #current = self.receiver.recv()
             if current != buffer:
                 # buffer = logComp.logData.GetLatest()
                 buffer = current

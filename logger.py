@@ -36,7 +36,6 @@ import matplotlib.animation as animation
 import os
 from decimal import Decimal
 import numpy as np
-import gui
 from multiprocessing import Value, Pipe
 
 
@@ -61,7 +60,7 @@ class Logger():
         # Create the I2C bus
         #global i2c
         i2c = busio.I2C(board.SCL, board.SDA, frequency=1000000)
-        #2c = "fake"
+        #i2c = "fake"
         # A/D Setup - Create 4 Global instances of ADS1115 ADC (16-bit) according to Adafruit Libraries
         # (Objective 7)
         adc0 = ADS.ADS1115(i2c, address=0x48, mode=Mode.CONTINUOUS, data_rate=dataRate)

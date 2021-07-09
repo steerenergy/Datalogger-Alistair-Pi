@@ -2,6 +2,7 @@ import tcpServer as tcp
 import gui
 import logger as logPi
 from threading import Thread
+import multiprocessing as mp
 
 
 print("Starting application.")
