@@ -13,14 +13,14 @@ from collections import OrderedDict
 import configparser
 import functools
 # Uncomment below for real adc (if running on Pi)
-#import adafruit_ads1x15.ads1115 as ADS
-#from adafruit_ads1x15.analog_in import AnalogIn
+import adafruit_ads1x15.ads1115 as ADS
+from adafruit_ads1x15.analog_in import AnalogIn
 from adafruit_ads1x15.ads1x15 import Mode
-#import busio
-#import board
+import busio
+import board
 # Uncomment below for fake adc simulation if using a PC
-from AnalogInFake import AnalogIn as AnalogIn
-import ADS1115Fake as ADS
+#from AnalogInFake import AnalogIn as AnalogIn
+#import ADS1115Fake as ADS
 
 import csv
 import threading
@@ -59,8 +59,8 @@ class Logger():
 
         # Create the I2C bus
         #global i2c
-        #i2c = busio.I2C(board.SCL, board.SDA, frequency=1000000)
-        i2c = "fake"
+        i2c = busio.I2C(board.SCL, board.SDA, frequency=1000000)
+        #i2c = "fake"
         # A/D Setup - Create 4 Global instances of ADS1115 ADC (16-bit) according to Adafruit Libraries
         # (Objective 7)
         adc0 = ADS.ADS1115(i2c, address=0x48, mode=Mode.CONTINUOUS, data_rate=dataRate)
