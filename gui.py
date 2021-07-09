@@ -301,10 +301,8 @@ class WindowTop(Frame):
             # Get Complete Set of Logged Data
             # If Data is different to that in the buffer
             # (Objective 18.1)
-            print("SWAG")
             #current = self.logger.adcValuesCompl
             currentVals = self.receiver.recv()
-            print(currentVals)
             if currentVals != buffer:
                 # buffer = logComp.logData.GetLatest()
                 buffer = currentVals
