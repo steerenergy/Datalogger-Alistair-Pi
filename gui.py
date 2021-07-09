@@ -2,14 +2,18 @@
 # Script connects to logger.py and acts a front end to it
 
 import logging
+import queue
+import time
 from datetime import datetime
 import threading
 from threading import Thread
 from tkinter import *
 from tkinter import ttk
 from tkinter import font, messagebox
-import logger
+from logger import Logger
 import matplotlib.pyplot as plt
+from multiprocessing import Process, Value, Manager, Event, Pipe
+import matplotlib.animation as animation
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import sys
 
@@ -17,7 +21,7 @@ import sys
 # Set up GUI controls and functions
 class WindowTop(Frame):
     # Main Window - Init function contains all elements of layout
-    def __init__(self, master=None):
+    def __init__(self, master=None, connGui=Pipe()):
         # This is class inheritance
         Frame.__init__(self, master)
         # Setting self.master = master window
@@ -74,15 +78,22 @@ class WindowTop(Frame):
         self.autoScroll.pack(side=BOTTOM)
 
         # Redirect normal print commands to textbox on GUI
-        sys.stdout.write = self.redirector
+        #sys.stdout.write = self.redirector
 
         # Holds the number of lines in the textbox (updated after each print)
         self.textIndex = None
         # Determines the max number of lines on the tkinter GUI at any given point.
         self.textThreshold = 250
 
-        # Will later hold logThread
-        self.logThread = None
+        # Create variables used for log process
+        # Note, these are initialised when logging starts
+        # Otherwise only one log can be performed
+        self.logProcess = None
+        self.stop = None
+        self.receiver, self.sender = None, None
+
+        # Will later hold liveDataThread
+        self.liveDataThread = None
 
         # Live Data Graph
         self.liveFigure = plt.Figure(figsize=(6, 5), dpi=100)
@@ -94,6 +105,11 @@ class WindowTop(Frame):
         self.channelSelect = ttk.Combobox(self.topFrame,values=["None"])
         self.channelSelect.current(0)
         self.channelSelect.pack(pady=(10,10))
+
+        # Create instance of the logger class
+        self.logger = Logger()
+
+        self.after(1000,self.commandHandler,connGui)
 
 
 
@@ -116,8 +132,28 @@ class WindowTop(Frame):
             # Scroll to Bottom of Blank Box
             self.liveDataText.see(END)
             # Load and Start Logger thread
-            self.logThread = threading.Thread(target=logger.run,args=[self])
-            self.logThread.start()
+            # Load Config Data and Setup
+            adcToLog, adcHeader = self.logger.init(self.textboxOutput)
+            # Only continue if import was successful
+            if self.logger.logEnbl is True:
+                self.logger.checkName()
+                # Print Settings
+                self.logger.settingsOutput(self.textboxOutput)
+                # Run Logging
+                self.stop = Event()
+                self.receiver, self.sender = Pipe(duplex=False)
+                self.logProcess = Process(target=self.logger.log,args=(adcToLog,adcHeader,self.stop, self.sender))
+                self.logProcess.start()
+            else:
+                self.logger.logEnbl = False
+                # Change Button Text
+                self.logButton.config(text="Start Logging")
+                # Re-enable Button
+                self.logButton['state'] = 'normal'
+                return
+            self.liveDataThread = threading.Thread(target=self.liveData,args=())
+            self.liveDataThread.daemon = True
+            self.liveDataThread.start()
             # Change Button Text and re-enable
             self.logButton.config(text="Finish Logging")
             self.logButton['state'] = 'normal'
@@ -126,21 +162,27 @@ class WindowTop(Frame):
             # Disable button
             self.logButton['state'] = 'disabled'
             # Print button status
-            print("\nStopping Logger")
+            self.textboxOutput("\nStopping Logger")
             # Change logEnbl variable to false which stops the loop in logThread and subsequently the live data
-            logger.logEnbl = False
-            # Check to see if logThread has ended
+            self.logger.logEnbl = False
             self.logThreadStopCheck()
+            self.stop.set()
+            # Check to see if logThread has ended
+            self.logProcess.join()
+
+
+
 
     # Is triggered when 'Stop Logging' ic clicked and is called until logThread is dead
     # If logThread has finished the 'start logging' button is changed and enabled
     # Else, the function is triggered again after a certain period of time
     def logThreadStopCheck(self):
-        if self.logThread.isAlive() is False:
+        if self.liveDataThread.is_alive() is False:
+            self.logProcess.close()
             # Change Button Text
             self.logButton.config(text="Start Logging")
             # Tell user logging has stopped
-            print("Logging Stopped - Success!")
+            self.textboxOutput("Logging Stopped - Success!")
             # Re-enable Button
             self.logButton['state'] = 'normal'
         else:
@@ -151,35 +193,18 @@ class WindowTop(Frame):
             self.after(100, self.logThreadStopCheck)
 
 
-    # Deal with commands passed to the GUI from tcp.py
-    # (Objective 15)
-    def command(self, inputStr):
-        if inputStr == "[ToggleLog]":
-            self.logToggle()
-
 
     # This redirects all print statements from console to the textbox in the GUI.
     # Note - errors will be displayed in terminal still
     # It essentially redefines what the print statement does
     # (Objectives 15 and 19)
-    def redirector(self, inputStr):
-        if len(inputStr) > 0:
-            # If string starts and ends with '[' and ']', process as a command
-            # (Objective 15)
-            if inputStr[0] == "[" and inputStr[-1] == "]":
-                self.command(inputStr)
-                return
-            # If strings starts with '@', log in tcpLog.txt
-            # (Objective 19.2)
-            elif inputStr[0] == '@':
-                with open("tcpLog.txt","a") as file:
-                    file.writelines(datetime.now().strftime("%H:%M:%S") + " "
-                                    + inputStr[1:] + '\n')
-                return
+    def textboxOutput(self, inputStr, flush=False):
         # Enable, write data, delete unnecessary data, disable
         # Used to print data to GUI screen
         # (Objective 19.1)
         self.liveDataText['state'] = 'normal'
+        if flush == False:
+            inputStr += "\n"
         self.liveDataText.insert(END, inputStr)
         # If over a certain amount of lines, delete all lines from the top up to a threshold
         self.textIndex = float(self.liveDataText.index('end'))
@@ -196,7 +221,7 @@ class WindowTop(Frame):
     def onClose(self):
         errorLogger = logging.getLogger('error_logger')
         try:
-            if logger.logEnbl is True:
+            if self.logger.logEnbl is True:
                 close = messagebox.askokcancel("Close", "Logging has not be finished. Are you sure you want to quit?")
                 if close:
                     self.logToggle()
@@ -226,6 +251,101 @@ class WindowTop(Frame):
             self.liveDataText.pack()
             self.liveTitle['text'] = "Live Data"
             self.textBox = True
+
+    # Live Data Output
+    # Function is run in separate thread to ensure it doesn't interfere with logging
+    def liveData(self):
+        logComp = self.logger.logComp
+        adcHeader = []
+        for pin in logComp.config.pinList:
+            if pin.enabled == True:
+                self.channelSelect['values'] = (*self.channelSelect['values'], pin.fName)
+                adcHeader.append(pin.name)
+        # Set up variables for creating a live graph
+        timeData = []
+        logData = []
+        for i in range(0,logComp.config.enabled):
+            logData.append([])
+
+        # Setup data buffer to hold most recent data
+        self.textboxOutput("Live Data:\n")
+        # Print header for all pins being logged
+        adcHeaderPrint = ""
+        for pin in logComp.config.pinList:
+            if pin.enabled:
+                adcHeaderPrint += ("|{:>3}{:>5}".format(pin.name, pin.units))
+        self.textboxOutput("{}|".format(adcHeaderPrint))
+        # Print a nice vertical line so it all looks pretty
+        self.textboxOutput("-" * (9 * logComp.config.enabled + 1))
+        buffer = 0
+        # Don't print live data when adcValuesCompl doesn't exist. Also if logging is stopped, exit loop
+        # while len(logComp.logData.timeStamp) == 0 and logEnbl is True:
+        #    pass
+        while not self.logger.logEnbl:
+            pass
+        # Always start logging with the textbox shown as it prints the current settings
+        if self.textBox == False:
+            self.switchDisplay()
+        # Livedata Loop - Loops Forever until LogEnbl is False (controlled by GUI)
+        startTime = datetime.now()
+        drawTime = 0
+        while self.logger.logEnbl == True:
+            # Get Complete Set of Logged Data
+            # If Data is different to that in the buffer
+            # (Objective 18.1)
+            #current = self.logger.adcValuesCompl
+            if self.receiver.poll():
+                currentVals = self.receiver.recv()
+                if currentVals != buffer:
+                    # buffer = logComp.logData.GetLatest()
+                    buffer = currentVals
+                    ValuesPrint = ""
+                    # Create a nice string to print with the values in
+                  # Only prints data that is being logged
+                    timeData.append((datetime.now() - startTime).total_seconds())
+                    for no, val in enumerate(currentVals):
+                        # Get the name of the pin so it can be used to find the adc object
+                        pinName = adcHeader[no]
+                        # Calculate converted value
+                        convertedVal = val * logComp.config.GetPin(pinName).m + logComp.config.GetPin(pinName).c
+                        logData[no].append(convertedVal)
+                        # Add converted value to the string being printed
+                        ValuesPrint += ("|{:>8}".format(round(convertedVal, 2)))
+                    # Print data to textbox
+                    # (Objective 18.2)
+                    self.textboxOutput("{}|".format(ValuesPrint))
+                    channel = self.channelSelect.current()
+                    if channel != 0:
+                        # Update yData and xData which are plotted on live graph
+                        yData = logData[channel - 1]
+                        xData = timeData
+                        self.ax1.clear()
+                        self.ax1.plot(xData, yData)
+
+                    if self.textBox == False and (time.perf_counter() - drawTime) > max(1,logComp.time):
+                        self.canvas.draw_idle()
+                        drawTime = time.perf_counter()
+            time.sleep(0.01)
+
+
+    def commandHandler(self, connGui):
+        if connGui.poll() == False:
+            self.after(100, self.commandHandler, connGui)
+            return
+        command = connGui.recv()
+        if command == "Start":
+            if self.logger.logEnbl == False:
+                self.logToggle()
+                connGui.send("Logger started")
+            else:
+                connGui.send("Logger already running")
+        elif command == "Stop":
+            if self.logger.logEnbl == True:
+                self.logToggle()
+                connGui.send("Logger stopped")
+            else:
+                connGui.send("Logger not running")
+        self.after(100,self.commandHandler,connGui)
 
 
 
@@ -259,7 +379,7 @@ def stderrRedirect(buf):
                                       "\nNote: This message may appear several times for a given error")
 
 
-def run():
+def run(connGui):
     # PROGRAM START #
     # Start Error Logging
     errorLoggingSetup()
@@ -277,7 +397,7 @@ def run():
     root.tk.call('wm', 'iconphoto', root._w, img)
 
     # Size of the window (Uncomment for Full Screen)
-    # root.wm_attributes('-zoomed', 1)
+    root.wm_attributes('-zoomed', 1)
 
     # Fonts
     global bigFont
@@ -286,7 +406,7 @@ def run():
     smallFont = font.Font(family="Courier", size=11)
 
     # Create instance of GUI
-    app = WindowTop(root)
+    app = WindowTop(root, connGui=connGui)
 
     # Ensure when the program quits, it quits gracefully - e.g. stopping the log first
     root.protocol("WM_DELETE_WINDOW", app.onClose)
