@@ -54,7 +54,6 @@ def GetRecentId():
     # Error is caught by code which called GetRecentId()
     if logId == None:
         raise ValueError
-        return
     conn.close()
     return str(logId)
 
@@ -70,7 +69,6 @@ def GetRecentMetaData():
     # If no log exists, throw error which is caught
     if row == []:
         raise ValueError
-        return
     logMeta = lgOb.LogMeta()
     logMeta.id = row[0]
     logMeta.name = row[1]
@@ -225,7 +223,7 @@ def ReadLog(id):
     cur = conn.cursor()
     logMeta = lgOb.LogMeta()
     # Get the metadata for the log from main table
-    row = cur.execute('SELECT * FROM main WHERE id = ?',str(id)).fetchone()
+    row = cur.execute('SELECT * FROM main WHERE id = ?',[str(id)]).fetchone()
     logMeta.id = row[0]
     logMeta.name = row[1]
     logMeta.date = row[2]
