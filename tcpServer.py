@@ -386,7 +386,7 @@ def logWrite(data):
 def run(connTcp):
     # Create new TCP server log
     with open("tcpLog.txt", "a") as file:
-        file.write("\n\n-" * 75)
+        file.write("\n\n" + ("-" * 75))
         file.write("\nNew TCP Log Created at " + str(datetime.now()) + '\n')
 
     # Create database if it doesn't exist
