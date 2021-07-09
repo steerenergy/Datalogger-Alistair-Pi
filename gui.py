@@ -165,8 +165,8 @@ class WindowTop(Frame):
             self.logger.logEnbl = False
             self.stop.set()
             # Check to see if logThread has ended
-            self.liveDataThread.join()
             self.logProcess.join()
+            self.liveDataThread.join()
             # Change Button Text
             self.logButton.config(text="Start Logging")
             # Tell user logging has stopped
