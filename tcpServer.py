@@ -243,30 +243,19 @@ def streamLog(logQueue, clientsocket):
 # Starts a log from a TCP command
 # (Objective 14)
 def StartLog(clientsocket, commandQueue):
-    try:
-        if logger.logEnbl == True:
-            TcpSend(clientsocket, "Logger already enabled.")
-        else:
-            # Sends command to the GUI to start log
-            commandQueue.put("Start")
-            TcpSend(clientsocket, "Log started.")
-    except AttributeError:
-        commandQueue.put("Start")
-        TcpSend(clientsocket, "Log started.")
+    # Sends command to the GUI to start log
+    commandQueue.put("Start")
+    response = commandQueue.get()
+    TcpSend(response)
 
 
 # Stops a log from a TCP command
 # (Objective 14)
 def StopLog(clientsocket, commandQueue):
-    try:
-        if logger.logEnbl == True:
-            # Sends command to the GUI to stop log
-            commandQueue.put("Stop")
-            TcpSend(clientsocket, "Log stopped.")
-        else:
-            TcpSend(clientsocket, "Logger not running.")
-    except AttributeError:
-        TcpSend(clientsocket, "Logger not running.")
+    # Sends command to the GUI to start log
+    commandQueue.put("Start")
+    response = commandQueue.get()
+    TcpSend(response)
 
 
 # Receives name, date and user values from client and searches for a log
