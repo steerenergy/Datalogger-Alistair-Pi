@@ -20,7 +20,7 @@ import sys
 # Set up GUI controls and functions
 class WindowTop(Frame):
     # Main Window - Init function contains all elements of layout
-    def __init__(self, master=None):
+    def __init__(self, commandQueue, master=None):
         # This is class inheritance
         Frame.__init__(self, master)
         # Setting self.master = master window
@@ -106,6 +106,8 @@ class WindowTop(Frame):
 
         # Create instance of the logger class
         self.logger = logPy.Logger()
+
+        self.after(1000,self.commandHandler,commandQueue)
 
 
 
@@ -202,13 +204,6 @@ class WindowTop(Frame):
             # (Objective 15)
             if inputStr[0] == "[" and inputStr[-1] == "]":
                 self.command(inputStr)
-                return
-            # If strings starts with '@', log in tcpLog.txt
-            # (Objective 19.2)
-            elif inputStr[0] == '@':
-                with open("tcpLog.txt","a") as file:
-                    file.writelines(datetime.now().strftime("%H:%M:%S") + " "
-                                    + inputStr[1:] + '\n')
                 return
         # Enable, write data, delete unnecessary data, disable
         # Used to print data to GUI screen
@@ -336,6 +331,22 @@ class WindowTop(Frame):
             time.sleep(0.01)
 
 
+    def commandHandler(self, commandQueue):
+        command = commandQueue.get()
+        if command == "Start":
+            if self.logger.logEnbl == False:
+                self.logToggle()
+                commandQueue.put("Logger started")
+            else:
+                commandQueue.put("Logger already running")
+        elif command == "Stop":
+            if self.logger.logEnbl == True:
+                self.logToggle()
+                commandQueue.put("Logger stopped")
+            else:
+                commandQueue.put("Logger not running")
+
+
 
 # Setup error logging
 # (Objective 19.3)
@@ -367,7 +378,7 @@ def stderrRedirect(buf):
                                       "\nNote: This message may appear several times for a given error")
 
 
-def run():
+def run(commandQueue):
     # PROGRAM START #
     # Start Error Logging
     errorLoggingSetup()
@@ -394,7 +405,7 @@ def run():
     smallFont = font.Font(family="Courier", size=11)
 
     # Create instance of GUI
-    app = WindowTop(root)
+    app = WindowTop(root, commandQueue)
 
     # Ensure when the program quits, it quits gracefully - e.g. stopping the log first
     root.protocol("WM_DELETE_WINDOW", app.onClose)

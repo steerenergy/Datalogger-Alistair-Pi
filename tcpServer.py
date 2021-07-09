@@ -38,7 +38,7 @@ def TcpListen(clientsocket,address,dataQueue):
                 dataQueue.put(data[i].strip("\n"))
     except ConnectionError or ConnectionResetError or ConnectionAbortedError:
         # Log forced disconnect i.e. if the user program is not closed properly
-        print("@" + address[0] + " disconnected.")
+        logWrite(address[0] + " disconnected.")
     return
 
 
@@ -242,26 +242,26 @@ def streamLog(logQueue, clientsocket):
 
 # Starts a log from a TCP command
 # (Objective 14)
-def StartLog(clientsocket):
+def StartLog(clientsocket, commandQueue):
     try:
         if logger.logEnbl == True:
             TcpSend(clientsocket, "Logger already enabled.")
         else:
             # Sends command to the GUI to start log
-            print("[ToggleLog]")
+            commandQueue.put("Start")
             TcpSend(clientsocket, "Log started.")
     except AttributeError:
-        print("[ToggleLog]")
+        commandQueue.put("Start")
         TcpSend(clientsocket, "Log started.")
 
 
 # Stops a log from a TCP command
 # (Objective 14)
-def StopLog(clientsocket):
+def StopLog(clientsocket, commandQueue):
     try:
         if logger.logEnbl == True:
             # Sends command to the GUI to stop log
-            print("[ToggleLog]")
+            commandQueue.put("Stop")
             TcpSend(clientsocket, "Log stopped.")
         else:
             TcpSend(clientsocket, "Logger not running.")
@@ -347,7 +347,7 @@ def PrintHelp(cliensocket):
 # Client interfaces with logger using commands sent using TCP
 # Subroutine receives incoming commands from client
 # (Objective 1.3)
-def new_client(clientsocket, address):
+def new_client(clientsocket, address, commandQueue):
     quit = False
     dataQueue = queue.Queue()
     listener = Thread(target=TcpListen,args=(clientsocket,address,dataQueue))
@@ -357,7 +357,7 @@ def new_client(clientsocket, address):
         while quit == False:
             command = TcpReceive(dataQueue)
             # Log command sent
-            print("@" + address[0] + " " + command)
+            logWrite(address[0] + " " + command)
             # Command compared to known commands and appropriate subroutine executed
             # (Objective 1.3)
             if command == "Recent_Logs_To_Download":
@@ -369,30 +369,36 @@ def new_client(clientsocket, address):
             elif command == "Check_Name":
                 CheckName(clientsocket,dataQueue)
             elif command == "Start_Log":
-                StartLog(clientsocket)
+                StartLog(clientsocket, commandQueue)
             elif command == "Stop_Log":
-                StopLog(clientsocket)
+                StopLog(clientsocket, commandQueue)
             elif command == "Search_Log":
                 SearchLog(clientsocket,dataQueue)
             elif command == "Help":
                 PrintHelp(clientsocket)
             elif command == "Quit":
-                print("@" + address[0] + " quitting.")
+                logWrite(address[0] + " quitting.")
                 quit = True
             else:
                 TcpSend(clientsocket, "Command not recognised\n")
     except ConnectionAbortedError or ConnectionError or ConnectionResetError:
         # Log forced disconnect i.e. if the user program is not closed properly
-        print("@" + address[0] + " disconnected.")
+        logWrite(address[0] + " disconnected.")
     return
+
+
+def logWrite(data):
+    with open("tcpLog.txt", "a") as file:
+        file.write(str(datetime.now()) + ": " + data + '\n')
 
 
 # This function sets up the TCP server and client thread
 # (Objectives 1.1 and 1.2)
-def run():
+def run(commandQueue):
     # Create new TCP server log
-    with open("tcpLog.txt", "w") as file:
-        file.write("New TCP Log Created at " + str(datetime.now()) + '\n')
+    with open("tcpLog.txt", "a") as file:
+        file.write("\n\n-" * 75)
+        file.write("\nNew TCP Log Created at " + str(datetime.now()) + '\n')
 
     # Create database if it doesn't exist
     db.setupDatabase()
@@ -401,7 +407,7 @@ def run():
     # Bind the socket to the logger IP address and port 13000
     # (Objective 1.1)
     serversocket.bind(("0.0.0.0", 13000))
-    print("@" + socket.gethostname())
+    logWrite(socket.gethostname())
     # Start listening on the server socket
     serversocket.listen(5)
     print("@Awaiting Connection...")
@@ -413,11 +419,11 @@ def run():
         # Create new thread to deal with new client
         # This allows multiple clients to connect at once
         # (Objective 1.2)
-        worker = Thread(target=new_client, args=(clientsocket, address))
+        worker = Thread(target=new_client, args=(clientsocket, address, commandQueue))
         worker.start()
 
         # Log Connection
-        print("@" + address[0] + " connected.")
+        logWrite(address[0] + " connected.")
 
 
 # Initiates the tcpServer if it has been run without using main.py
