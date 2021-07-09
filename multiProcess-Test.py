@@ -14,7 +14,7 @@ def f(conn):
     conn.close()
 
 if __name__ == '__main__':
-    parent_conn, child_conn = Pipe()
+    parent_conn, child_conn = Pipe(duplex=False)
     logger = Logger()
     adcToLog, adcHeader = logger.init()
     # Only continue if import was successful

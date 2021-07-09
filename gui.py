@@ -138,7 +138,6 @@ class WindowTop(Frame):
                 # Run Logging
                 #self.logThread = threading.Thread(target=self.logger.log, args=(adcToLog,adcHeader))
                 #self.logThread.start()
-
                 self.logProcess = Process(target=self.logger.log,args=(adcToLog,adcHeader,self.stop, self.sender))
                 self.logProcess.start()
             else:
@@ -290,7 +289,7 @@ class WindowTop(Frame):
         # Don't print live data when adcValuesCompl doesn't exist. Also if logging is stopped, exit loop
         # while len(logComp.logData.timeStamp) == 0 and logEnbl is True:
         #    pass
-        while not self.logger.adcValuesCompl and self.logger.logEnbl is True:
+        while not self.logger.logEnbl:
             pass
         # Always start logging with the textbox shown as it prints the current settings
         if self.textBox == False:
