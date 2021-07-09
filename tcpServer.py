@@ -242,19 +242,19 @@ def streamLog(logQueue, clientsocket):
 
 # Starts a log from a TCP command
 # (Objective 14)
-def StartLog(clientsocket, commandQueue):
+def StartLog(clientsocket, connTcp):
     # Sends command to the GUI to start log
-    commandQueue.put("Start")
-    response = commandQueue.get()
+    connTcp.send("Start")
+    response = connTcp.recv()
     TcpSend(clientsocket, response)
 
 
 # Stops a log from a TCP command
 # (Objective 14)
-def StopLog(clientsocket, commandQueue):
+def StopLog(clientsocket, connTcp):
     # Sends command to the GUI to start log
-    commandQueue.put("Start")
-    response = commandQueue.get()
+    connTcp.send("Start")
+    response = connTcp.recv()
     TcpSend(clientsocket, response)
 
 
@@ -336,7 +336,7 @@ def PrintHelp(cliensocket):
 # Client interfaces with logger using commands sent using TCP
 # Subroutine receives incoming commands from client
 # (Objective 1.3)
-def new_client(clientsocket, address, commandQueue):
+def new_client(clientsocket, address, connTcp):
     quit = False
     dataQueue = queue.Queue()
     listener = Thread(target=TcpListen,args=(clientsocket,address,dataQueue))
@@ -358,9 +358,9 @@ def new_client(clientsocket, address, commandQueue):
             elif command == "Check_Name":
                 CheckName(clientsocket,dataQueue)
             elif command == "Start_Log":
-                StartLog(clientsocket, commandQueue)
+                StartLog(clientsocket, connTcp)
             elif command == "Stop_Log":
-                StopLog(clientsocket, commandQueue)
+                StopLog(clientsocket, connTcp)
             elif command == "Search_Log":
                 SearchLog(clientsocket,dataQueue)
             elif command == "Help":
@@ -383,7 +383,7 @@ def logWrite(data):
 
 # This function sets up the TCP server and client thread
 # (Objectives 1.1 and 1.2)
-def run(commandQueue):
+def run(connTcp):
     # Create new TCP server log
     with open("tcpLog.txt", "a") as file:
         file.write("\n\n-" * 75)
@@ -408,7 +408,7 @@ def run(commandQueue):
         # Create new thread to deal with new client
         # This allows multiple clients to connect at once
         # (Objective 1.2)
-        worker = Thread(target=new_client, args=(clientsocket, address, commandQueue))
+        worker = Thread(target=new_client, args=(clientsocket, address, connTcp))
         worker.start()
 
         # Log Connection

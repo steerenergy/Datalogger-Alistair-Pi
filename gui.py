@@ -21,7 +21,7 @@ import sys
 # Set up GUI controls and functions
 class WindowTop(Frame):
     # Main Window - Init function contains all elements of layout
-    def __init__(self, master=None, commandQueue=queue.Queue()):
+    def __init__(self, master=None, connGui=Pipe()):
         # This is class inheritance
         Frame.__init__(self, master)
         # Setting self.master = master window
@@ -108,7 +108,7 @@ class WindowTop(Frame):
         # Create instance of the logger class
         self.logger = logPy.Logger()
 
-        self.after(1000,self.commandHandler,commandQueue)
+        self.after(1000,self.commandHandler,connGui)
 
 
 
@@ -338,22 +338,22 @@ class WindowTop(Frame):
             time.sleep(0.01)
 
 
-    def commandHandler(self, commandQueue):
-        if commandQueue.empty():
+    def commandHandler(self, connGui):
+        if connGui.poll() == False:
             return
-        command = commandQueue.get()
+        command = connGui.recv()
         if command == "Start":
             if self.logger.logEnbl == False:
                 self.logToggle()
-                commandQueue.put("Logger started")
+                connGui.send("Logger started")
             else:
-                commandQueue.put("Logger already running")
+                connGui.send("Logger already running")
         elif command == "Stop":
             if self.logger.logEnbl == True:
                 self.logToggle()
-                commandQueue.put("Logger stopped")
+                connGui.send("Logger stopped")
             else:
-                commandQueue.put("Logger not running")
+                connGui.send("Logger not running")
 
 
 
@@ -387,7 +387,7 @@ def stderrRedirect(buf):
                                       "\nNote: This message may appear several times for a given error")
 
 
-def run(commandQueue):
+def run(connGui):
     # PROGRAM START #
     # Start Error Logging
     errorLoggingSetup()
@@ -414,7 +414,7 @@ def run(commandQueue):
     smallFont = font.Font(family="Courier", size=11)
 
     # Create instance of GUI
-    app = WindowTop(root, commandQueue=commandQueue)
+    app = WindowTop(root, connGui=connGui)
 
     # Ensure when the program quits, it quits gracefully - e.g. stopping the log first
     root.protocol("WM_DELETE_WINDOW", app.onClose)
