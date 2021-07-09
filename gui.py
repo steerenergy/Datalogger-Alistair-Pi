@@ -302,16 +302,16 @@ class WindowTop(Frame):
             # Get Complete Set of Logged Data
             # If Data is different to that in the buffer
             # (Objective 18.1)
-            current = self.logger.adcValuesCompl
-            #current = self.receiver.recv()
-            if current != buffer:
+            #current = self.logger.adcValuesCompl
+            currentVals = self.receiver.recv()
+            if currentVals != buffer:
                 # buffer = logComp.logData.GetLatest()
-                buffer = current
+                buffer = currentVals
                 ValuesPrint = ""
                 # Create a nice string to print with the values in
                 # Only prints data that is being logged
                 timeData.append((datetime.now() - startTime).total_seconds())
-                for no, val in enumerate(self.logger.adcValuesCompl):
+                for no, val in enumerate(currentVals):
                     # Get the name of the pin so it can be used to find the adc object
                     pinName = adcHeader[no]
                     # Calculate converted value
