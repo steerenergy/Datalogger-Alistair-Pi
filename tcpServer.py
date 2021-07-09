@@ -64,7 +64,7 @@ def ReceiveConfig(clientsocket,dataQueue):
     while len(rows) < 16:
         data = TcpReceive(dataQueue)
         rows.append(data.split(','))
-    print("@Config Received")
+    logWrite("Config Received")
     # Iterate through rows of data
     # One row contains settings for one Pin
     for i in range(0, 16):
@@ -95,7 +95,7 @@ def ReceiveLogMeta(clientsocket,dataQueue):
     newLog.time = metadata[2]
     newLog.loggedBy = metadata[3]
     newLog.downloadedBy = metadata[4]
-    print("@Metadata received")
+    logWrite("Metadata received")
     # Receive all config settings using ReceiveConfig()
     newLog.config = ReceiveConfig(clientsocket,dataQueue)
     newLog.logData = lgOb.LogData()
@@ -253,7 +253,7 @@ def StartLog(clientsocket, connTcp):
 # (Objective 14)
 def StopLog(clientsocket, connTcp):
     # Sends command to the GUI to start log
-    connTcp.send("Start")
+    connTcp.send("Stop")
     response = connTcp.recv()
     TcpSend(clientsocket, response)
 
@@ -399,7 +399,7 @@ def run(connTcp):
     logWrite(socket.gethostname())
     # Start listening on the server socket
     serversocket.listen(5)
-    print("@Awaiting Connection...")
+    logWrite("Awaiting Connection...")
 
     # Accept connections forever until program is terminated
     while True:

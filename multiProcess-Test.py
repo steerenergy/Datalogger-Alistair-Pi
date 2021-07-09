@@ -4,14 +4,7 @@ import time
 from logger import Logger
 
 
-def f(conn):
-    startTime = time.perf_counter()
-    timeElapsed = 0
-    while timeElapsed < 20:
-        conn.send([timeElapsed, None, 'hello'])
-        time.sleep(0.1)
-        timeElapsed = time.perf_counter() - startTime
-    conn.close()
+
 
 if __name__ == '__main__':
     parent_conn, child_conn = Pipe(duplex=False)

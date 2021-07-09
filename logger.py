@@ -13,14 +13,14 @@ from collections import OrderedDict
 import configparser
 import functools
 # Uncomment below for real adc (if running on Pi)
-import adafruit_ads1x15.ads1115 as ADS
-from adafruit_ads1x15.analog_in import AnalogIn
+#import adafruit_ads1x15.ads1115 as ADS
+#from adafruit_ads1x15.analog_in import AnalogIn
 from adafruit_ads1x15.ads1x15 import Mode
-import busio
-import board
+#import busio
+#import board
 # Uncomment below for fake adc simulation if using a PC
-#from AnalogInFake import AnalogIn as AnalogIn
-#import ADS1115Fake as ADS
+from AnalogInFake import AnalogIn as AnalogIn
+import ADS1115Fake as ADS
 
 import csv
 import threading
@@ -51,7 +51,7 @@ class Logger():
         self.logComp = lgOb.LogMeta()
 
     # Initial Import and Setup
-    def init(self):
+    def init(self, printFunc):
         self.logEnbl = True
         # dataRate of the A/D (see the ADS1115 datasheet for more info)
         #global dataRate
@@ -59,8 +59,8 @@ class Logger():
 
         # Create the I2C bus
         #global i2c
-        i2c = busio.I2C(board.SCL, board.SDA, frequency=1000000)
-        #i2c = "fake"
+        #i2c = busio.I2C(board.SCL, board.SDA, frequency=1000000)
+        i2c = "fake"
         # A/D Setup - Create 4 Global instances of ADS1115 ADC (16-bit) according to Adafruit Libraries
         # (Objective 7)
         adc0 = ADS.ADS1115(i2c, address=0x48, mode=Mode.CONTINUOUS, data_rate=dataRate)
@@ -71,32 +71,32 @@ class Logger():
 
         # Run Code to import general information
         # (Objective 7)
-        self.generalImport()
+        self.generalImport(printFunc)
         # Run code to import input settings
         # (Objective 8)
-        adcToLog, adcHeader = self.inputImport(adc0,adc1,adc2,adc3)
+        adcToLog, adcHeader = self.inputImport(adc0,adc1,adc2,adc3, printFunc)
         return adcToLog, adcHeader
 
 
 
     # Import General Settings
     # (Objective 7)
-    def generalImport(self):
-        print("Configuring General Settings... ", end="", flush=True)
+    def generalImport(self, printFunc):
+        printFunc("Configuring General Settings... ", flush=True)
         try:
             # Gets the most recent log metadata from the database
             self.logComp = db.GetRecentMetaData()
-            print("Success!")
+            printFunc("Success!\n")
         # Need to implement check in case retrieval is not possible
         except ValueError:
-            print("ERROR - Have you sent over a log config.")
+            printFunc("ERROR - Have you sent over a log config.")
             self.logEnbl = False
 
 
     # Import Input Settings
     # (Objective 8)
-    def inputImport(self,adc0,adc1,adc2,adc3):
-        print("Configuring Input Settings... ", end="", flush=True)
+    def inputImport(self,adc0,adc1,adc2,adc3,printFunc):
+        printFunc("Configuring Input Settings... ", flush=True)
         # For all sections but general, parse the data from config.C
         # Create a new object for each one. The init method of the class then imports all the data as instance variables
         try:
@@ -144,12 +144,12 @@ class Logger():
                     adcHeader.append(pin.name)
                 else:
                     pass
-            print("Success!")
+            printFunc("Success!")
 
             # Check to see at least 1 input is enabled
             # (Objective 8.1)
             if len(adcToLog) == 0:
-                print("\nERROR - No Inputs set to Log! Please enable at least one input and try again")
+                printFunc("\nERROR - No Inputs set to Log! Please enable at least one input and try again")
                 self.logEnbl = False
 
             self.logComp.config.SetEnabled()
@@ -157,7 +157,7 @@ class Logger():
 
         # Exception raised when no config returned from database
         except ValueError:
-            print("ERROR - Failed to read Input Settings - Have you sent over a log config")
+            printFunc("ERROR - Failed to read Input Settings - Have you sent over a log config")
             self.logEnbl = False
 
 
@@ -182,27 +182,29 @@ class Logger():
 
     # Output Current Settings
     # (Objective 9)
-    def settingsOutput(self):
+    def settingsOutput(self,printFunc):
         # Print General Settings then Input Settings
-        print("\nCurrent General Settings:")
+        printFunc("\nCurrent General Settings:")
         metaData = self.logComp.GetMeta()
         # Iterate through the metadata and print each key and value
         for key in metaData:
-            print("{}: {}".format(key.title(), metaData[key]))
-        print("\nCurrent Input Settings: (Settings Hidden for Disabled Inputs)")
+            printFunc("{}: {}".format(key.title(), metaData[key]))
+        printFunc("\nCurrent Input Settings: (Settings Hidden for Disabled Inputs)")
         x = 0
-        print("-" * 67)
+        printFunc("-" * 67)
         # Top Row Headings
-        print(
+        printFunc(
             "|{:>2}|{:>4}|{:>5}|{:>10}|{:>10}|{:>4}|{:>14}|{:>9}|".format("No", "Name", "Enbl", "F.Name", "Input Type",
                                                                           "Gain", "Scale", "Unit"))
-        print("-" * 67)
+        printFunc("-" * 67)
         # Print input settings for each Pin
+        logNum = 0
         for pin in self.logComp.config.pinList:
             # Only print full settings if that channel is enabled
             x += 1
             if pin.enabled == True:
-                print("|{:>2}|{:>4}|{:>5}|{:>10}|{:>10}|{:>4}|{:>7}{:>7}|{:>9}|".format(x, pin.name,
+                logNum += 1
+                printFunc("|{:>2}|{:>4}|{:>5}|{:>10}|{:>10}|{:>4}|{:>7}{:>7}|{:>9}|".format(x, pin.name,
                                                                                         str(pin.enabled),
                                                                                         pin.fName,
                                                                                         pin.inputType,
@@ -212,7 +214,7 @@ class Logger():
                                                                                         pin.units))
             # If channel not enabled
             else:
-                print("|{:>2}|{:>4}|{:>5}|{:>10}|{:>10}|{:>4}|{:>7}{:>7}|{:>9}|".format(x, pin.name,
+                printFunc("|{:>2}|{:>4}|{:>5}|{:>10}|{:>10}|{:>4}|{:>7}{:>7}|{:>9}|".format(x, pin.name,
                                                                                         str(pin.enabled),
                                                                                         "-",
                                                                                         "-",
@@ -220,6 +222,26 @@ class Logger():
                                                                                         "-",
                                                                                         "-",
                                                                                         "-"))
+        # FILE MANAGEMENT
+        printFunc("\nDisk Usage:")
+        # Get Users Remaining Disk Space - (Convert it from Bytes into MegaBytes)
+        remainingSpace = (shutil.disk_usage(os.path.realpath('/'))[2] / 1e6)
+        # Output space - rounding to a nice number
+        printFunc("Current Free Disk Space: {} MB".format(round(remainingSpace, 2)))
+
+        # Calculate amount of time left for logging
+        # Find out Size (in MB) of Each Row
+        rowMBytes = 7 / 1e6
+        # Find amount of MB written each second
+        MBEachSecond = (rowMBytes * logNum) / self.logComp.time
+        # Calculate time remaining using free space
+        timeRemSeconds = remainingSpace / MBEachSecond
+        # Add time in seconds to current datetime to give data it will run out of space
+        timeRemDate = datetime.now() + timedelta(0, timeRemSeconds)
+        printFunc("With the current config, you will run out of space on approximately: {}"
+              "\nIf you need more space, use the UI to download previous logs and delete them on the Pi."
+            .format(timeRemDate.strftime("%Y-%m-%d %H:%M:%S")))
+        printFunc("\nStart Logging...\n")
 
 
     # Logging Script
@@ -242,31 +264,10 @@ class Logger():
         db.UpdateConfigPath(self.logComp.id,"files/outbox/conf{}.ini".format(timeStamp))
         self.logComp.date = timeStamp
 
-        # FILE MANAGEMENT
-        print("\nDisk Usage:")
-        # Get Users Remaining Disk Space - (Convert it from Bytes into MegaBytes)
-        remainingSpace = (shutil.disk_usage(os.path.realpath('/'))[2] / 1e6)
-        # Output space - rounding to a nice number
-        print("Current Free Disk Space: {} MB".format(round(remainingSpace, 2)))
-
-        # Calculate amount of time left for logging
-        # Find out Size (in MB) of Each Row
-        rowMBytes = 7 / 1e6
-        # Find amount of MB written each second
-        MBEachSecond = (rowMBytes * csvRows) / timeInterval
-        # Calculate time remaining using free space
-        timeRemSeconds = remainingSpace / MBEachSecond
-        # Add time in seconds to current datetime to give data it will run out of space
-        timeRemDate = datetime.now() + timedelta(0, timeRemSeconds)
-        print("With the current config, you will run out of space on approximately: {}"
-              "\nIf you need more space, use the UI to download previous logs and delete them on the Pi."
-            .format(timeRemDate.strftime("%Y-%m-%d %H:%M:%S")))
-
         # CSV - Create/Open CSV file and print headers
         with open('files/outbox/raw{}.csv'.format(timeStamp), 'w', newline='') as csvfile:
             writer = csv.writer(csvfile, dialect="excel", delimiter=',', quotechar='|', quoting=csv.QUOTE_MINIMAL)
             writer.writerow(['Date/Time', 'Time Interval (seconds)'] + adcHeader)
-            print("\nStart Logging...\n")
             #dataThread = threading.Thread(target=liveData)
             #dataThread.start()
             startTime = time.perf_counter()
