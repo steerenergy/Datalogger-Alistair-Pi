@@ -166,20 +166,15 @@ class WindowTop(Frame):
             self.stop.set()
             # Check to see if logThread has ended
             self.logProcess.join()
-            self.liveDataThread.join(0.5)
-            # Change Button Text
-            self.logButton.config(text="Start Logging")
-            # Tell user logging has stopped
-            print("Logging Stopped - Success!")
-            # Re-enable Button
-            self.logButton['state'] = 'normal'
+            self.logThreadStopCheck()
+
 
     # Is triggered when 'Stop Logging' ic clicked and is called until logThread is dead
     # If logThread has finished the 'start logging' button is changed and enabled
     # Else, the function is triggered again after a certain period of time
     def logThreadStopCheck(self):
-        self.logProcess.join(0.1)
-        if self.logProcess.is_alive() is False:
+        self.liveDataThread.join(0.1)
+        if self.liveDataThread.is_alive() is False:
             # Change Button Text
             self.logButton.config(text="Start Logging")
             # Tell user logging has stopped
