@@ -8,7 +8,7 @@ import multiprocessing as mp
 from multiprocessing import Pipe
 
 if __name__ == '__main__':
-    mp.set_start_method('spawn')
+    #mp.set_start_method('spawn')
     print("Starting application.")
     connGui, connTcp = Pipe()
     # Create thread for TCP server to run on
