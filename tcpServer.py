@@ -246,7 +246,7 @@ def StartLog(clientsocket, commandQueue):
     # Sends command to the GUI to start log
     commandQueue.put("Start")
     response = commandQueue.get()
-    TcpSend(response)
+    TcpSend(clientsocket, response)
 
 
 # Stops a log from a TCP command
@@ -255,7 +255,7 @@ def StopLog(clientsocket, commandQueue):
     # Sends command to the GUI to start log
     commandQueue.put("Start")
     response = commandQueue.get()
-    TcpSend(response)
+    TcpSend(clientsocket, response)
 
 
 # Receives name, date and user values from client and searches for a log
