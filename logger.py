@@ -290,6 +290,7 @@ class Logger():
                 # (objective 11.2)
                 timeDiff = (time.perf_counter() - startTime)
                 time.sleep(timeInterval - (timeDiff % timeInterval))
+        sender.close()
         db.UpdateDataPath(self.logComp.id,"files/outbox/raw{}.csv".format(timeStamp))
 
 
