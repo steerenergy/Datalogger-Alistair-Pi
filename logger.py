@@ -286,18 +286,20 @@ class Logger():
             timeElapsed = 0
             #while self.logEnbl and timeElapsed < 20:
             while logEnbl.is_set() == False:
-                # Get time and send to Log
-                currentDateTime = datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")
-                timeElapsed = round(time.perf_counter() - startTime, 2)
-                # Export Data to Spreadsheet inc current datetime and time elapsed
-                for idx, pin in enumerate(adcToLog):
-                    adcValues[idx] = pin.value
-                writer.writerow([currentDateTime] + [timeElapsed] + adcValues)
-                # Copy list for data output and reset list values (so we can see if code fails)
-                self.adcValuesCompl = adcValues
-                sender.send(adcValues)
-                adcValues = [0] * csvRows
-
+                try:
+                    # Get time and send to Log
+                    currentDateTime = datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")
+                    timeElapsed = round(time.perf_counter() - startTime, 2)
+                    # Export Data to Spreadsheet inc current datetime and time elapsed
+                    for idx, pin in enumerate(adcToLog):
+                        adcValues[idx] = pin.value
+                    writer.writerow([currentDateTime] + [timeElapsed] + adcValues)
+                    # Copy list for data output and reset list values (so we can see if code fails)
+                    self.adcValuesCompl = adcValues
+                    sender.send(adcValues)
+                    adcValues = [0] * csvRows
+                except OSError:
+                    pass
                 # Work out time delay needed until next set of values taken based on user given value
                 # (Using some clever maths)
                 # (objective 11.2)
