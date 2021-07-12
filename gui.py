@@ -295,44 +295,43 @@ class WindowTop(Frame):
             # If Data is different to that in the buffer
             # (Objective 18.1)
             #current = self.logger.adcValuesCompl
-            if self.receiver.poll():
+            currentVals = 0
+            while self.receiver.poll():
                 currentVals = self.receiver.recv()
-                if currentVals != buffer:
-                    # buffer = logComp.logData.GetLatest()
-                    buffer = currentVals
-                    ValuesPrint = ""
-                    # Create a nice string to print with the values in
-                  # Only prints data that is being logged
-                    timeData.append(round(time.perf_counter() - startTime,2))
-                    for no, val in enumerate(currentVals):
-                        # Get the name of the pin so it can be used to find the adc object
-                        pinName = adcHeader[no]
-                        # Calculate converted value
-                        convertedVal = val * logComp.config.GetPin(pinName).m + logComp.config.GetPin(pinName).c
-                        logData[no].append(convertedVal)
-                        # Add converted value to the string being printed
-                        ValuesPrint += ("|{:>8}".format(round(convertedVal, 2)))
-                    # Print data to textbox
-                    # (Objective 18.2)
-                    self.textboxOutput("{}|".format(ValuesPrint))
-                    channel = self.channelSelect.current()
-                    if channel != 0:
-                        # Update yData and xData which are plotted on live graph
-                        yData = logData[channel - 1]
-                        xData = timeData
-                        self.ax1.clear()
-                        self.ax1.plot(xData, yData)
+            if currentVals != buffer:
+                # buffer = logComp.logData.GetLatest()
+                buffer = currentVals
+                ValuesPrint = ""
+                # Create a nice string to print with the values in
+                # Only prints data that is being logged
+                timeData.append(round(time.perf_counter() - startTime,2))
+                for no, val in enumerate(currentVals):
+                    # Get the name of the pin so it can be used to find the adc object
+                    pinName = adcHeader[no]
+                    # Calculate converted value
+                    convertedVal = val * logComp.config.GetPin(pinName).m + logComp.config.GetPin(pinName).c
+                    logData[no].append(convertedVal)
+                    # Add converted value to the string being printed
+                    ValuesPrint += ("|{:>8}".format(round(convertedVal, 2)))
+                # Print data to textbox
+                # (Objective 18.2)
+                self.textboxOutput("{}|".format(ValuesPrint))
+                channel = self.channelSelect.current()
+                if channel != 0:
+                    # Update yData and xData which are plotted on live graph
+                    yData = logData[channel - 1]
+                    xData = timeData
+                    self.ax1.clear()
+                    self.ax1.plot(xData, yData)
 
-                    if self.textBox == False and (time.perf_counter() - drawTime) > max(1,logComp.time):
-                        self.canvas.draw_idle()
-                        drawTime = time.perf_counter()
+                if self.textBox == False and (time.perf_counter() - drawTime) > max(1,logComp.time):
+                    self.canvas.draw_idle()
+                    drawTime = time.perf_counter()
 
-                    if len(timeData) > 1000:
-                        timeData = timeData[:1000]
-                        for i in range(0,len(logData)):
-                            logData[i] = logData[i][:1000]
-
-
+                if len(timeData) > 1000:
+                    timeData = timeData[:1000]
+                    for i in range(0,len(logData)):
+                        logData[i] = logData[i][:1000]
             time.sleep(0.01)
 
 

@@ -23,5 +23,5 @@ if __name__ == '__main__':
         logProcess.start()
     time.sleep(1)
     while True:
-        print(parent_conn.recv())   # prints "[42, None, 'hello']"
+        print(parent_conn.recv())
     p.join()
