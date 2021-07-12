@@ -329,9 +329,9 @@ class WindowTop(Frame):
                     drawTime = time.perf_counter()
 
                 if len(timeData) > 1000:
-                    timeData = timeData[:1000]
+                    timeData = timeData[-1000:]
                     for i in range(0,len(logData)):
-                        logData[i] = logData[i][:1000]
+                        logData[i] = logData[i][-1000:]
             time.sleep(0.01)
 
 
