@@ -287,7 +287,7 @@ class WindowTop(Frame):
         if self.textBox == False:
             self.switchDisplay()
         # Livedata Loop - Loops Forever until LogEnbl is False (controlled by GUI)
-        startTime = datetime.now()
+        startTime = time.perf_counter()
         drawTime = 0
         while self.logger.logEnbl == True:
             # Get Complete Set of Logged Data
@@ -302,7 +302,7 @@ class WindowTop(Frame):
                     ValuesPrint = ""
                     # Create a nice string to print with the values in
                   # Only prints data that is being logged
-                    timeData.append((datetime.now() - startTime).total_seconds())
+                    timeData.append(round(time.perf_counter() - startTime,2))
                     for no, val in enumerate(currentVals):
                         # Get the name of the pin so it can be used to find the adc object
                         pinName = adcHeader[no]
@@ -325,6 +325,13 @@ class WindowTop(Frame):
                     if self.textBox == False and (time.perf_counter() - drawTime) > max(1,logComp.time):
                         self.canvas.draw_idle()
                         drawTime = time.perf_counter()
+
+                    if len(timeData) > 10000:
+                        timeData = timeData[:10000]
+                        for i in range(0,len(logData)):
+                            logData[i] = logData[i][:10000]
+
+
             time.sleep(0.01)
 
 
