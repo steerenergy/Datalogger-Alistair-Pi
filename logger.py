@@ -250,7 +250,7 @@ class Logger():
     def log(self, adcToLog, adcHeader, logEnbl, sender):
 
         p = psutil.Process(os.getpid())
-        p.nice(psutil.ABOVE_NORMAL_PRIORITY_CLASS)
+        p.nice(psutil.IOPRIO_CLASS_RT)
         # Set Time Interval
         # (Objective 11.2)
         timeInterval = float(self.logComp.time)
