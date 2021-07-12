@@ -290,12 +290,12 @@ class WindowTop(Frame):
         # Livedata Loop - Loops Forever until LogEnbl is False (controlled by GUI)
         startTime = time.perf_counter()
         drawTime = 0
+        currentVals = []
         while self.logger.logEnbl == True:
             # Get Complete Set of Logged Data
             # If Data is different to that in the buffer
             # (Objective 18.1)
             #current = self.logger.adcValuesCompl
-            currentVals = []
             while self.receiver.poll():
                 currentVals = self.receiver.recv()
             if currentVals != buffer:
@@ -318,9 +318,10 @@ class WindowTop(Frame):
                 self.textboxOutput("{}|".format(ValuesPrint))
                 channel = self.channelSelect.current()
                 if channel != 0:
+                    length = min(len(timeData),len(logData[channel - 1]))
                     # Update yData and xData which are plotted on live graph
-                    yData = logData[channel - 1]
-                    xData = timeData
+                    yData = logData[channel - 1][:length]
+                    xData = timeData[:length]
                     self.ax1.clear()
                     self.ax1.plot(xData, yData)
 
