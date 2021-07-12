@@ -278,7 +278,7 @@ class WindowTop(Frame):
         self.textboxOutput("{}|".format(adcHeaderPrint))
         # Print a nice vertical line so it all looks pretty
         self.textboxOutput("-" * (9 * logComp.config.enabled + 1))
-        buffer = 0
+        buffer = []
         # Don't print live data when adcValuesCompl doesn't exist. Also if logging is stopped, exit loop
         # while len(logComp.logData.timeStamp) == 0 and logEnbl is True:
         #    pass
@@ -295,7 +295,7 @@ class WindowTop(Frame):
             # If Data is different to that in the buffer
             # (Objective 18.1)
             #current = self.logger.adcValuesCompl
-            currentVals = 0
+            currentVals = []
             while self.receiver.poll():
                 currentVals = self.receiver.recv()
             if currentVals != buffer:
