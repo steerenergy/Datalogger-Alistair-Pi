@@ -20,7 +20,8 @@ def setupDatabase():
                                         logged_by text,
                                         downloaded_by text,
                                         config text,
-                                        data text);"""
+                                        data text,
+                                        size integer);"""
     # Connect to database and execute SQL statement
     conn = sqlite3.connect(database)
     conn.cursor().execute(sql_create_main_table)
@@ -277,6 +278,16 @@ def UpdateDataPath(id,path):
     cur = conn.cursor()
     # Updates date of log to the current date when log was started
     cur.execute("UPDATE main SET data = ? WHERE id = ?", [path, str(id)])
+    conn.commit()
+    conn.close()
+    return
+
+def UpdateSize(id,size):
+    global database
+    conn = sqlite3.connect(database)
+    cur = conn.cursor()
+    # Updates date of log to the current date when log was started
+    cur.execute("UPDATE main SET size = ? WHERE id = ?", [size, str(id)])
     conn.commit()
     conn.close()
     return

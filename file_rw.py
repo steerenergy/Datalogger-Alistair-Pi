@@ -93,3 +93,12 @@ def WriteLogConfig(log,name):
 def RenameConfig(path,timestamp):
     newpath = "files/outbox/conf{}.ini".format(timestamp)
     os.rename(src=path,dst=newpath)
+
+
+def GetSize(path):
+    lineNum = 0
+    with open("path", "r") as file:
+        line = file.readline()
+        while line != [""]:
+            lineNum += 1
+            file.readline()

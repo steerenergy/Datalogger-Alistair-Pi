@@ -307,6 +307,7 @@ class Logger():
                 time.sleep(timeInterval - (timeDiff % timeInterval))
         sender.close()
         db.UpdateDataPath(self.logComp.id,"files/outbox/raw{}.csv".format(timeStamp))
+        db.UpdateSize(self.logComp.id,file_rw.GetSize(db.GetDataPath(self.logComp.id)))
 
 
 
