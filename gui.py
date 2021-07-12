@@ -2,6 +2,7 @@
 # Script connects to logger.py and acts a front end to it
 
 import logging
+import os
 import queue
 import time
 from datetime import datetime
@@ -326,10 +327,10 @@ class WindowTop(Frame):
                         self.canvas.draw_idle()
                         drawTime = time.perf_counter()
 
-                    if len(timeData) > 10000:
-                        timeData = timeData[:10000]
+                    if len(timeData) > 1000:
+                        timeData = timeData[:1000]
                         for i in range(0,len(logData)):
-                            logData[i] = logData[i][:10000]
+                            logData[i] = logData[i][:1000]
 
 
             time.sleep(0.01)

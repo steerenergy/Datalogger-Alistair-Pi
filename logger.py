@@ -37,6 +37,7 @@ import os
 from decimal import Decimal
 import numpy as np
 from multiprocessing import Value, Pipe
+import psutil
 
 
 class Logger():
@@ -247,6 +248,9 @@ class Logger():
     # Logging Script
     # (Objective 11)
     def log(self, adcToLog, adcHeader, logEnbl, sender):
+
+        p = psutil.Process(os.getpid())
+        p.nice(psutil.ABOVE_NORMAL_PRIORITY_CLASS)
         # Set Time Interval
         # (Objective 11.2)
         timeInterval = float(self.logComp.time)
