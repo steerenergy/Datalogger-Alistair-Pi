@@ -284,7 +284,7 @@ def SearchLog(clientsocket,dataQueue):
     # Sends id, name and date to the client
     # (Objectives 4.2 and 6.2)
     for log in logs:
-        TcpSend(clientsocket, (str(log[0]) + ',' + log[1] + ',' + log[2]))
+        TcpSend(clientsocket, (str(log[0]) + ',' + log[1] + ',' + log[2] + ',' + str(log[8])))
     TcpSend(clientsocket, "EoT")
     # Determines whether the user is requesting for just a config or all log data
     request = TcpReceive(dataQueue)

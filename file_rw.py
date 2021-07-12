@@ -99,6 +99,7 @@ def GetSize(path):
     lineNum = 0
     with open(path, "r") as file:
         line = file.readline()
-        while line != [""]:
+        while line != "":
             lineNum += 1
-            file.readline()
+            line = file.readline()
+    return lineNum
