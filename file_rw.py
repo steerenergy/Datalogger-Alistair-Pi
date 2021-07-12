@@ -97,7 +97,7 @@ def RenameConfig(path,timestamp):
 
 def GetSize(path):
     lineNum = 0
-    with open("path", "r") as file:
+    with open(path, "r") as file:
         line = file.readline()
         while line != [""]:
             lineNum += 1
