@@ -431,5 +431,5 @@ if __name__ == "__main__":
     print("\nWARNING - running this script directly will not start the server "
           "\nIf you need to use the user program to communicate with the Pi, use 'main.py'\n")
     # Run logger as per normal setup
-    run()
+    run(connGui=None)
 

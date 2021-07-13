@@ -170,9 +170,9 @@ def GetLogsToDownload(clientsocket,dataQueue):
     # For each log not downloaded, send the client the id, name and date of the log
     # (Objective 3.1)
     for log in logs:
-        TcpSend(clientsocket, (str(log[0]) + ',' + log[1] + ',' + log[2]))
+        TcpSend(clientsocket, (str(log[0]) + ',' + log[1] + ',' + log[2] + ',' + str(log[8])))
         # Set the log to downloaded as the user has downloaded/had the chance to download
-        db.SetDownloaded(log[0], user)
+        #db.SetDownloaded(log[0], user)
     TcpSend(clientsocket, "EoT")
     if TcpReceive(dataQueue) != "Logs":
         return

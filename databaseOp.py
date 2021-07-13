@@ -106,7 +106,6 @@ def FindNotDownloaded(user):
     # If there are no logs to be downloaded, throw error which is caught
     if logs == []:
         raise ValueError
-        return
     conn.close()
     return logs
 
@@ -235,6 +234,7 @@ def ReadLog(id):
     logMeta.config = file_rw.ReadLogConfig(GetConfigPath(id))
     # Get logged data for log
     logMeta.logData = file_rw.ReadLogData(GetDataPath(id),logMeta)
+    logMeta.size = row[8]
     conn.close()
     return logMeta
 

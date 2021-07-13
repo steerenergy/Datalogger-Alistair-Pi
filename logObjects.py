@@ -103,6 +103,7 @@ class LogMeta():
     logData = LogData()
     config_path = ""
     data_path = ""
+    size = 0
 
     def GetMeta(self):
         values = {}
