@@ -52,14 +52,15 @@ def ReadLogData(path, log):
             rowData += str(line[1]) + ','
             values = line[2:]
             rawData = ""
-            convData = ""
+            #convData = ""
             for no, value in enumerate(values):
                 rawData += str(f"{Decimal(value):.14f}").rstrip('0').rstrip('.') + ','
-                pinName = adcHeader[no]
+            #    pinName = adcHeader[no]
                 # Convert rawData using config settings
-                convertedVal = float(value) * log.config.GetPin(pinName).m + log.config.GetPin(pinName).c
-                convData += str(f"{Decimal(convertedVal):.14f}").rstrip('0').rstrip('.') + ','
-            rowData += rawData + convData
+            #    convertedVal = float(value) * log.config.GetPin(pinName).m + log.config.GetPin(pinName).c
+            #    convData += str(f"{Decimal(convertedVal):.14f}").rstrip('0').rstrip('.') + ','
+            #rowData += rawData + convData
+            rowData += rawData
             log.logData.tcpQueue.put(rowData[:-1])
             line = data.readline().split(',')
     log.logData.tcpQueue.put("Exit")
