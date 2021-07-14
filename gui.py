@@ -11,6 +11,9 @@ from threading import Thread
 from tkinter import *
 from tkinter import ttk
 from tkinter import font, messagebox
+
+import socket
+
 from logger import Logger
 import matplotlib.pyplot as plt
 from multiprocessing import Process, Value, Manager, Event, Pipe
@@ -395,7 +398,9 @@ def run(connGui):
     # Warn Users of error locations
     print("Warning - all stderr output from this point onwards is logged in piError.log")
     # Redirect all stderr to text file. Comment the next line out for errors to be written to the console
-    sys.stderr.write = stderrRedirect
+    # Replace string with development computer hostname
+    if socket.gethostname() != "Alistair-Laptop":
+        sys.stderr.write = stderrRedirect
     global root
     # Create Tkinter Instance
     root = Tk()
@@ -405,8 +410,10 @@ def run(connGui):
     root.tk.call('wm', 'iconphoto', root._w, img)
 
     # Size of the window (Uncomment for Full Screen)
-    root.wm_attributes('-zoomed', 1)
-
+    try:
+        root.wm_attributes('-zoomed', 1)
+    except:
+        pass
     # Fonts
     global bigFont
     bigFont = font.Font(family="Helvetica", size=16, weight=font.BOLD)
