@@ -1,4 +1,5 @@
 import sqlite3
+import threading
 
 import file_rw
 import logObjects as lgOb
@@ -232,8 +233,11 @@ def ReadLog(id):
     logMeta.downloadedBy = row[5]
     # Get config data for log
     logMeta.config = file_rw.ReadLogConfig(GetConfigPath(id))
+    worker = threading.Thread(target=file_rw.ReadLogData,args=(GetDataPath(id),logMeta))
+    worker.daemon = True
+    worker.start()
     # Get logged data for log
-    logMeta.logData = file_rw.ReadLogData(GetDataPath(id),logMeta)
+    #file_rw.ReadLogData(GetDataPath(id),logMeta)
     logMeta.size = row[8]
     conn.close()
     return logMeta
