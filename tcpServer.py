@@ -191,21 +191,21 @@ def SendLogs(clientsocket,dataQueue):
         TcpSend(clientsocket, "All_Sent")
         return
     # Hold logs to be sent to the client in a queue
-    #logQueue = queue.Queue()
+    logQueue = queue.Queue()
     # Create a new thread for sending logs to the client
-    #streamer = Thread(target=streamLog, args=(logQueue, clientsocket))
-    #streamer.setDaemon(True)
-    #streamer.start()
+    streamer = Thread(target=streamLog, args=(logQueue, clientsocket))
+    streamer.setDaemon(True)
+    streamer.start()
     # Read each requested log and add to the queue of logs to be sent
     # (Objective 3.2)
     for log in requestedLogs:
-        path = db.GetDataPath(log)
-        TcpSend(clientsocket,path)
-        #logMeta = db.ReadLog(log)
-    #    logQueue.put(logMeta)
+        #path = db.GetDataPath(log)
+        #TcpSend(clientsocket,path)
+        logMeta = db.ReadLog(log)
+        logQueue.put(logMeta)
     # Wait until logQueue is empty and all logs have been sent
     # Also will close streamLog thread
-    #logQueue.join()
+    logQueue.join()
     TcpSend(clientsocket, "All_Sent")
 
 
@@ -228,6 +228,7 @@ def streamLog(logQueue, clientsocket):
                        + str(f"{Decimal(pin.m):.14f}").rstrip('0').rstrip('.') + ',' + str(f"{Decimal(pin.c):.14f}").rstrip('0').rstrip('.'))
             TcpSend(clientsocket, pinData)
         TcpSend(clientsocket, "EoConfig")
+        TcpSend(clientsocket, db.GetDataPath(logMeta.id))
         # Write data for each row to a packet and send to client
         #for i in range(0, len(logMeta.logData.timeStamp)):
         #    rowData = logMeta.logData.timeStamp[i] + ','
@@ -238,11 +239,11 @@ def streamLog(logQueue, clientsocket):
         #        rowData += str(f"{Decimal(column[i]):.14f}").rstrip('0').rstrip('.') + ','
         #    TcpSend(clientsocket, rowData[:-1])
         #TcpSend(clientsocket, "EoLog")
-        row = logMeta.logData.tcpQueue.get()
-        while row != "Exit":
-            TcpSend(clientsocket,row)
-            row = logMeta.logData.tcpQueue.get()
-        TcpSend(clientsocket, "EoLog")
+        #row = logMeta.logData.tcpQueue.get()
+        #while row != "Exit":
+        #    TcpSend(clientsocket,row)
+        #    row = logMeta.logData.tcpQueue.get()
+        #TcpSend(clientsocket, "EoLog")
         # Let queue know that log has been sent
         logQueue.task_done()
 
