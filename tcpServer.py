@@ -191,19 +191,21 @@ def SendLogs(clientsocket,dataQueue):
         TcpSend(clientsocket, "All_Sent")
         return
     # Hold logs to be sent to the client in a queue
-    logQueue = queue.Queue()
+    #logQueue = queue.Queue()
     # Create a new thread for sending logs to the client
-    streamer = Thread(target=streamLog, args=(logQueue, clientsocket))
-    streamer.setDaemon(True)
-    streamer.start()
+    #streamer = Thread(target=streamLog, args=(logQueue, clientsocket))
+    #streamer.setDaemon(True)
+    #streamer.start()
     # Read each requested log and add to the queue of logs to be sent
     # (Objective 3.2)
     for log in requestedLogs:
-        logMeta = db.ReadLog(log)
-        logQueue.put(logMeta)
+        path = db.GetDataPath(log)
+        TcpSend(clientsocket,path)
+        #logMeta = db.ReadLog(log)
+    #    logQueue.put(logMeta)
     # Wait until logQueue is empty and all logs have been sent
     # Also will close streamLog thread
-    logQueue.join()
+    #logQueue.join()
     TcpSend(clientsocket, "All_Sent")
 
 
