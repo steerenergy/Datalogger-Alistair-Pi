@@ -2,6 +2,7 @@
 # Script connects to logger.py and acts a front end to it
 
 import logging
+import os
 import queue
 import time
 from datetime import datetime
@@ -10,6 +11,9 @@ from threading import Thread
 from tkinter import *
 from tkinter import ttk
 from tkinter import font, messagebox
+
+import socket
+
 from logger import Logger
 import matplotlib.pyplot as plt
 from multiprocessing import Process, Value, Manager, Event, Pipe
@@ -277,7 +281,7 @@ class WindowTop(Frame):
         self.textboxOutput("{}|".format(adcHeaderPrint))
         # Print a nice vertical line so it all looks pretty
         self.textboxOutput("-" * (9 * logComp.config.enabled + 1))
-        buffer = 0
+        buffer = []
         # Don't print live data when adcValuesCompl doesn't exist. Also if logging is stopped, exit loop
         # while len(logComp.logData.timeStamp) == 0 and logEnbl is True:
         #    pass
@@ -287,44 +291,51 @@ class WindowTop(Frame):
         if self.textBox == False:
             self.switchDisplay()
         # Livedata Loop - Loops Forever until LogEnbl is False (controlled by GUI)
-        startTime = datetime.now()
+        startTime = time.perf_counter()
         drawTime = 0
+        currentVals = []
         while self.logger.logEnbl == True:
             # Get Complete Set of Logged Data
             # If Data is different to that in the buffer
             # (Objective 18.1)
             #current = self.logger.adcValuesCompl
-            if self.receiver.poll():
+            while self.receiver.poll():
                 currentVals = self.receiver.recv()
-                if currentVals != buffer:
-                    # buffer = logComp.logData.GetLatest()
-                    buffer = currentVals
-                    ValuesPrint = ""
-                    # Create a nice string to print with the values in
-                  # Only prints data that is being logged
-                    timeData.append((datetime.now() - startTime).total_seconds())
-                    for no, val in enumerate(currentVals):
-                        # Get the name of the pin so it can be used to find the adc object
-                        pinName = adcHeader[no]
-                        # Calculate converted value
-                        convertedVal = val * logComp.config.GetPin(pinName).m + logComp.config.GetPin(pinName).c
-                        logData[no].append(convertedVal)
-                        # Add converted value to the string being printed
-                        ValuesPrint += ("|{:>8}".format(round(convertedVal, 2)))
-                    # Print data to textbox
-                    # (Objective 18.2)
-                    self.textboxOutput("{}|".format(ValuesPrint))
-                    channel = self.channelSelect.current()
-                    if channel != 0:
-                        # Update yData and xData which are plotted on live graph
-                        yData = logData[channel - 1]
-                        xData = timeData
-                        self.ax1.clear()
-                        self.ax1.plot(xData, yData)
+            if currentVals != buffer:
+                # buffer = logComp.logData.GetLatest()
+                buffer = currentVals
+                ValuesPrint = ""
+                # Create a nice string to print with the values in
+                # Only prints data that is being logged
+                timeData.append(round(time.perf_counter() - startTime,2))
+                for no, val in enumerate(currentVals):
+                    # Get the name of the pin so it can be used to find the adc object
+                    pinName = adcHeader[no]
+                    # Calculate converted value
+                    convertedVal = val * logComp.config.GetPin(pinName).m + logComp.config.GetPin(pinName).c
+                    logData[no].append(convertedVal)
+                    # Add converted value to the string being printed
+                    ValuesPrint += ("|{:>8}".format(round(convertedVal, 2)))
+                # Print data to textbox
+                # (Objective 18.2)
+                self.textboxOutput("{}|".format(ValuesPrint))
+                channel = self.channelSelect.current()
+                if channel != 0:
+                    length = min(len(timeData),len(logData[channel - 1]))
+                    # Update yData and xData which are plotted on live graph
+                    yData = logData[channel - 1][:length]
+                    xData = timeData[:length]
+                    self.ax1.clear()
+                    self.ax1.plot(xData, yData)
 
-                    if self.textBox == False and (time.perf_counter() - drawTime) > max(1,logComp.time):
-                        self.canvas.draw_idle()
-                        drawTime = time.perf_counter()
+                if self.textBox == False and (time.perf_counter() - drawTime) > max(1,logComp.time):
+                    self.canvas.draw_idle()
+                    drawTime = time.perf_counter()
+
+                if len(timeData) > 1000:
+                    timeData = timeData[-1000:]
+                    for i in range(0,len(logData)):
+                        logData[i] = logData[i][-1000:]
             time.sleep(0.01)
 
 
@@ -387,7 +398,9 @@ def run(connGui):
     # Warn Users of error locations
     print("Warning - all stderr output from this point onwards is logged in piError.log")
     # Redirect all stderr to text file. Comment the next line out for errors to be written to the console
-    sys.stderr.write = stderrRedirect
+    # Replace string with development computer hostname
+    if socket.gethostname() != "Alistair-Laptop":
+        sys.stderr.write = stderrRedirect
     global root
     # Create Tkinter Instance
     root = Tk()
@@ -397,8 +410,10 @@ def run(connGui):
     root.tk.call('wm', 'iconphoto', root._w, img)
 
     # Size of the window (Uncomment for Full Screen)
-    root.wm_attributes('-zoomed', 1)
-
+    try:
+        root.wm_attributes('-zoomed', 1)
+    except:
+        pass
     # Fonts
     global bigFont
     bigFont = font.Font(family="Helvetica", size=16, weight=font.BOLD)
@@ -423,5 +438,5 @@ if __name__ == "__main__":
     print("\nWARNING - running this script directly will not start the server "
           "\nIf you need to use the user program to communicate with the Pi, use 'main.py'\n")
     # Run logger as per normal setup
-    run()
+    run(connGui=None)
 

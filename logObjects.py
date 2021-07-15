@@ -1,3 +1,5 @@
+from queue import Queue
+
 # Holds data about a single pin/channel
 class Pin():
     id = 0
@@ -55,12 +57,14 @@ class LogData():
     # Each list inside corresponds to data from a single pin/channel
     rawData = []
     convData = []
+    tcpQueue = Queue()
 
     def __init__(self):
         self.timeStamp = []
         self.time = []
         self.rawData = []
         self.convData = []
+        self.tcpQueue = Queue()
 
     # Initialises the rawData and convData by populating them with empty lists
     def InitRawConv(self,pinNum):
@@ -103,6 +107,7 @@ class LogMeta():
     logData = LogData()
     config_path = ""
     data_path = ""
+    size = 0
 
     def GetMeta(self):
         values = {}

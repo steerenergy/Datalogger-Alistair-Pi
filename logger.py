@@ -13,14 +13,17 @@ from collections import OrderedDict
 import configparser
 import functools
 # Uncomment below for real adc (if running on Pi)
-import adafruit_ads1x15.ads1115 as ADS
-from adafruit_ads1x15.analog_in import AnalogIn
-from adafruit_ads1x15.ads1x15 import Mode
-import busio
-import board
-# Uncomment below for fake adc simulation if using a PC
-#from AnalogInFake import AnalogIn as AnalogIn
-#import ADS1115Fake as ADS
+try:
+    import adafruit_ads1x15.ads1115 as ADS
+    from adafruit_ads1x15.analog_in import AnalogIn
+    from adafruit_ads1x15.ads1x15 import Mode
+    import busio
+    import board
+except:
+    # Uncomment below for fake adc simulation if using a PC
+    from AnalogInFake import AnalogIn as AnalogIn
+    import ADS1115Fake as ADS
+    from adafruit_ads1x15.ads1x15 import Mode
 
 import csv
 import threading
@@ -37,6 +40,7 @@ import os
 from decimal import Decimal
 import numpy as np
 from multiprocessing import Value, Pipe
+import psutil
 
 
 class Logger():
@@ -59,8 +63,10 @@ class Logger():
 
         # Create the I2C bus
         #global i2c
-        i2c = busio.I2C(board.SCL, board.SDA, frequency=1000000)
-        #i2c = "fake"
+        try:
+            i2c = busio.I2C(board.SCL, board.SDA, frequency=1000000)
+        except:
+            i2c = "fake"
         # A/D Setup - Create 4 Global instances of ADS1115 ADC (16-bit) according to Adafruit Libraries
         # (Objective 7)
         adc0 = ADS.ADS1115(i2c, address=0x48, mode=Mode.CONTINUOUS, data_rate=dataRate)
@@ -247,6 +253,12 @@ class Logger():
     # Logging Script
     # (Objective 11)
     def log(self, adcToLog, adcHeader, logEnbl, sender):
+
+        p = psutil.Process(os.getpid())
+        try:
+            p.nice(psutil.IOPRIO_CLASS_RT)
+        except:
+            p.nice(psutil.ABOVE_NORMAL_PRIORITY_CLASS)
         # Set Time Interval
         # (Objective 11.2)
         timeInterval = float(self.logComp.time)
@@ -274,18 +286,20 @@ class Logger():
             timeElapsed = 0
             #while self.logEnbl and timeElapsed < 20:
             while logEnbl.is_set() == False:
-                # Get time and send to Log
-                currentDateTime = datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")
-                timeElapsed = round(time.perf_counter() - startTime, 2)
-                # Export Data to Spreadsheet inc current datetime and time elapsed
-                for idx, pin in enumerate(adcToLog):
-                    adcValues[idx] = pin.value
-                writer.writerow([currentDateTime] + [timeElapsed] + adcValues)
-                # Copy list for data output and reset list values (so we can see if code fails)
-                self.adcValuesCompl = adcValues
-                sender.send(adcValues)
-                adcValues = [0] * csvRows
-
+                try:
+                    # Get time and send to Log
+                    currentDateTime = datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")
+                    timeElapsed = round(time.perf_counter() - startTime, 2)
+                    # Export Data to Spreadsheet inc current datetime and time elapsed
+                    for idx, pin in enumerate(adcToLog):
+                        adcValues[idx] = pin.value
+                    writer.writerow([currentDateTime] + [timeElapsed] + adcValues)
+                    # Copy list for data output and reset list values (so we can see if code fails)
+                    self.adcValuesCompl = adcValues
+                    sender.send(adcValues)
+                    adcValues = [0] * csvRows
+                except OSError:
+                    pass
                 # Work out time delay needed until next set of values taken based on user given value
                 # (Using some clever maths)
                 # (objective 11.2)
@@ -293,6 +307,7 @@ class Logger():
                 time.sleep(timeInterval - (timeDiff % timeInterval))
         sender.close()
         db.UpdateDataPath(self.logComp.id,"files/outbox/raw{}.csv".format(timeStamp))
+        db.UpdateSize(self.logComp.id,file_rw.GetSize(db.GetDataPath(self.logComp.id)))
 
 
 

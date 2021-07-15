@@ -1,4 +1,5 @@
 import sqlite3
+import threading
 
 import file_rw
 import logObjects as lgOb
@@ -20,7 +21,8 @@ def setupDatabase():
                                         logged_by text,
                                         downloaded_by text,
                                         config text,
-                                        data text);"""
+                                        data text,
+                                        size integer);"""
     # Connect to database and execute SQL statement
     conn = sqlite3.connect(database)
     conn.cursor().execute(sql_create_main_table)
@@ -100,12 +102,11 @@ def FindNotDownloaded(user):
     conn = sqlite3.connect(database)
     cur = conn.cursor()
     # Searches for logs where the username is not contained in the downloaded_by field
-    cur.execute("SELECT id, name, date FROM main WHERE downloaded_by NOT LIKE \'%" + user + "%\'")
+    cur.execute("SELECT id, name, date FROM main WHERE downloaded_by NOT LIKE \'%" + user + "%\' AND data IS NOT NULL")
     logs = cur.fetchall()
     # If there are no logs to be downloaded, throw error which is caught
     if logs == []:
         raise ValueError
-        return
     conn.close()
     return logs
 
@@ -189,10 +190,10 @@ def SearchLog(args):
     global database
     conn = sqlite3.connect(database)
     cur = conn.cursor()
-    sql = "SELECT * FROM main WHERE "
+    sql = "SELECT * FROM main"
     # If there are no arguments specified, return all logs
     if args == {}:
-        sql = "SELECT * FROM main"
+        sql = "SELECT * FROM main WHERE data IS NOT NULL"
         logs = cur.execute(sql).fetchall()
     else:
         values = []
@@ -205,6 +206,7 @@ def SearchLog(args):
             values.append(args[key])
         # Remove trailing "AND " from query
         sql = sql[:-4]
+        sql += " AND data IS NOT NULL"
         # Fetch all logs that match query
         logs = cur.execute(sql,values).fetchall()
     # If no logs found, throw error which is caught
@@ -232,8 +234,12 @@ def ReadLog(id):
     logMeta.downloadedBy = row[5]
     # Get config data for log
     logMeta.config = file_rw.ReadLogConfig(GetConfigPath(id))
+    worker = threading.Thread(target=file_rw.ReadLogData,args=(GetDataPath(id),logMeta))
+    worker.daemon = True
+    worker.start()
     # Get logged data for log
-    logMeta.logData = file_rw.ReadLogData(GetDataPath(id),logMeta)
+    #file_rw.ReadLogData(GetDataPath(id),logMeta)
+    logMeta.size = row[8]
     conn.close()
     return logMeta
 
@@ -277,6 +283,16 @@ def UpdateDataPath(id,path):
     cur = conn.cursor()
     # Updates date of log to the current date when log was started
     cur.execute("UPDATE main SET data = ? WHERE id = ?", [path, str(id)])
+    conn.commit()
+    conn.close()
+    return
+
+def UpdateSize(id,size):
+    global database
+    conn = sqlite3.connect(database)
+    cur = conn.cursor()
+    # Updates date of log to the current date when log was started
+    cur.execute("UPDATE main SET size = ? WHERE id = ?", [size, str(id)])
     conn.commit()
     conn.close()
     return

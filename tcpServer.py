@@ -5,6 +5,7 @@ import databaseOp as db
 import logObjects as lgOb
 import queue
 import logger
+from multiprocessing import Event
 from datetime import datetime
 from threading import Thread
 from decimal import Decimal
@@ -23,10 +24,10 @@ def TcpSend(clientsocket, data):
     #time.sleep(0.001)
 
 
-def TcpListen(clientsocket,address,dataQueue):
+def TcpListen(clientsocket,address,dataQueue, quit):
     buffer = ""
     try:
-        while True:
+        while quit.is_set() == False:
             data = []
             if buffer != "":
                 data.append(buffer)
@@ -38,6 +39,7 @@ def TcpListen(clientsocket,address,dataQueue):
                 dataQueue.put(data[i].strip("\n"))
     except ConnectionError or ConnectionResetError or ConnectionAbortedError:
         # Log forced disconnect i.e. if the user program is not closed properly
+        quit.set()
         logWrite(address[0] + " disconnected.")
     return
 
@@ -170,9 +172,9 @@ def GetLogsToDownload(clientsocket,dataQueue):
     # For each log not downloaded, send the client the id, name and date of the log
     # (Objective 3.1)
     for log in logs:
-        TcpSend(clientsocket, (str(log[0]) + ',' + log[1] + ',' + log[2]))
+        TcpSend(clientsocket, (str(log[0]) + ',' + log[1] + ',' + log[2] + ',' + str(log[8])))
         # Set the log to downloaded as the user has downloaded/had the chance to download
-        db.SetDownloaded(log[0], user)
+        #db.SetDownloaded(log[0], user)
     TcpSend(clientsocket, "EoT")
     if TcpReceive(dataQueue) != "Logs":
         return
@@ -199,6 +201,8 @@ def SendLogs(clientsocket,dataQueue):
     # Read each requested log and add to the queue of logs to be sent
     # (Objective 3.2)
     for log in requestedLogs:
+        #path = db.GetDataPath(log)
+        #TcpSend(clientsocket,path)
         logMeta = db.ReadLog(log)
         logQueue.put(logMeta)
     # Wait until logQueue is empty and all logs have been sent
@@ -226,16 +230,22 @@ def streamLog(logQueue, clientsocket):
                        + str(f"{Decimal(pin.m):.14f}").rstrip('0').rstrip('.') + ',' + str(f"{Decimal(pin.c):.14f}").rstrip('0').rstrip('.'))
             TcpSend(clientsocket, pinData)
         TcpSend(clientsocket, "EoConfig")
+        TcpSend(clientsocket, db.GetDataPath(logMeta.id))
         # Write data for each row to a packet and send to client
-        for i in range(0, len(logMeta.logData.timeStamp)):
-            rowData = logMeta.logData.timeStamp[i] + ','
-            rowData += str(logMeta.logData.time[i]) + ','
-            for column in logMeta.logData.rawData:
-                rowData += str(f"{Decimal(column[i]):.14f}").rstrip('0').rstrip('.') + ','
-            for column in logMeta.logData.convData:
-                rowData += str(f"{Decimal(column[i]):.14f}").rstrip('0').rstrip('.') + ','
-            TcpSend(clientsocket, rowData[:-1])
-        TcpSend(clientsocket, "EoLog")
+        #for i in range(0, len(logMeta.logData.timeStamp)):
+        #    rowData = logMeta.logData.timeStamp[i] + ','
+        #    rowData += str(logMeta.logData.time[i]) + ','
+        #    for column in logMeta.logData.rawData:
+        #        rowData += str(f"{Decimal(column[i]):.14f}").rstrip('0').rstrip('.') + ','
+        #    for column in logMeta.logData.convData:
+        #        rowData += str(f"{Decimal(column[i]):.14f}").rstrip('0').rstrip('.') + ','
+        #    TcpSend(clientsocket, rowData[:-1])
+        #TcpSend(clientsocket, "EoLog")
+        #row = logMeta.logData.tcpQueue.get()
+        #while row != "Exit":
+        #    TcpSend(clientsocket,row)
+        #    row = logMeta.logData.tcpQueue.get()
+        #TcpSend(clientsocket, "EoLog")
         # Let queue know that log has been sent
         logQueue.task_done()
 
@@ -284,7 +294,7 @@ def SearchLog(clientsocket,dataQueue):
     # Sends id, name and date to the client
     # (Objectives 4.2 and 6.2)
     for log in logs:
-        TcpSend(clientsocket, (str(log[0]) + ',' + log[1] + ',' + log[2]))
+        TcpSend(clientsocket, (str(log[0]) + ',' + log[1] + ',' + log[2] + ',' + str(log[8])))
     TcpSend(clientsocket, "EoT")
     # Determines whether the user is requesting for just a config or all log data
     request = TcpReceive(dataQueue)
@@ -337,13 +347,13 @@ def PrintHelp(cliensocket):
 # Subroutine receives incoming commands from client
 # (Objective 1.3)
 def new_client(clientsocket, address, connTcp):
-    quit = False
+    quit = Event()
     dataQueue = queue.Queue()
-    listener = Thread(target=TcpListen,args=(clientsocket,address,dataQueue))
+    listener = Thread(target=TcpListen,args=(clientsocket,address,dataQueue, quit))
     listener.daemon = True
     listener.start()
     try:
-        while quit == False:
+        while quit.is_set() == False:
             command = TcpReceive(dataQueue)
             # Log command sent
             logWrite(address[0] + " " + command)
@@ -367,12 +377,16 @@ def new_client(clientsocket, address, connTcp):
                 PrintHelp(clientsocket)
             elif command == "Quit":
                 logWrite(address[0] + " quitting.")
-                quit = True
+                quit.set()
             else:
                 TcpSend(clientsocket, "Command not recognised\n")
     except ConnectionAbortedError or ConnectionError or ConnectionResetError:
+        quit.set()
         # Log forced disconnect i.e. if the user program is not closed properly
         logWrite(address[0] + " disconnected.")
+    listener.join()
+    clientsocket.shutdown(socket.SHUT_RDWR)
+    clientsocket.close()
     return
 
 
@@ -408,6 +422,7 @@ def run(connTcp):
         # Create new thread to deal with new client
         # This allows multiple clients to connect at once
         # (Objective 1.2)
+
         worker = Thread(target=new_client, args=(clientsocket, address, connTcp))
         worker.start()
 
