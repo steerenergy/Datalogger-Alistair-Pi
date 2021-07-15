@@ -5,6 +5,7 @@ import databaseOp as db
 import logObjects as lgOb
 import queue
 import logger
+from multiprocessing import Event
 from datetime import datetime
 from threading import Thread
 from decimal import Decimal
@@ -23,10 +24,10 @@ def TcpSend(clientsocket, data):
     #time.sleep(0.001)
 
 
-def TcpListen(clientsocket,address,dataQueue):
+def TcpListen(clientsocket,address,dataQueue, quit):
     buffer = ""
     try:
-        while True:
+        while quit.is_set() == False:
             data = []
             if buffer != "":
                 data.append(buffer)
@@ -38,6 +39,7 @@ def TcpListen(clientsocket,address,dataQueue):
                 dataQueue.put(data[i].strip("\n"))
     except ConnectionError or ConnectionResetError or ConnectionAbortedError:
         # Log forced disconnect i.e. if the user program is not closed properly
+        quit.set()
         logWrite(address[0] + " disconnected.")
     return
 
@@ -345,13 +347,13 @@ def PrintHelp(cliensocket):
 # Subroutine receives incoming commands from client
 # (Objective 1.3)
 def new_client(clientsocket, address, connTcp):
-    quit = False
+    quit = Event()
     dataQueue = queue.Queue()
-    listener = Thread(target=TcpListen,args=(clientsocket,address,dataQueue))
+    listener = Thread(target=TcpListen,args=(clientsocket,address,dataQueue, quit))
     listener.daemon = True
     listener.start()
     try:
-        while quit == False:
+        while quit.is_set() == False:
             command = TcpReceive(dataQueue)
             # Log command sent
             logWrite(address[0] + " " + command)
@@ -375,12 +377,16 @@ def new_client(clientsocket, address, connTcp):
                 PrintHelp(clientsocket)
             elif command == "Quit":
                 logWrite(address[0] + " quitting.")
-                quit = True
+                quit.set()
             else:
                 TcpSend(clientsocket, "Command not recognised\n")
     except ConnectionAbortedError or ConnectionError or ConnectionResetError:
+        quit.set()
         # Log forced disconnect i.e. if the user program is not closed properly
         logWrite(address[0] + " disconnected.")
+    listener.join()
+    clientsocket.shutdown(socket.SHUT_RDWR)
+    clientsocket.close()
     return
 
 
@@ -416,6 +422,7 @@ def run(connTcp):
         # Create new thread to deal with new client
         # This allows multiple clients to connect at once
         # (Objective 1.2)
+
         worker = Thread(target=new_client, args=(clientsocket, address, connTcp))
         worker.start()
 
