@@ -102,7 +102,7 @@ def FindNotDownloaded(user):
     conn = sqlite3.connect(database)
     cur = conn.cursor()
     # Searches for logs where the username is not contained in the downloaded_by field
-    cur.execute("SELECT id, name, date FROM main WHERE downloaded_by NOT LIKE \'%" + user + "%\'")
+    cur.execute("SELECT id, name, date FROM main WHERE downloaded_by NOT LIKE \'%" + user + "%\' AND data NOT NULL")
     logs = cur.fetchall()
     # If there are no logs to be downloaded, throw error which is caught
     if logs == []:
@@ -206,6 +206,7 @@ def SearchLog(args):
             values.append(args[key])
         # Remove trailing "AND " from query
         sql = sql[:-4]
+        sql += " AND data NOT NULL"
         # Fetch all logs that match query
         logs = cur.execute(sql,values).fetchall()
     # If no logs found, throw error which is caught
