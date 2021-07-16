@@ -204,7 +204,7 @@ def SearchLog(args):
                 values.append(args[key])
             elif key == "name":
                 sql += key + " LIKE ? AND"
-                values.append(args[key] + "%")
+                values.append("%" + args[key] + "%")
             else:
                 sql += key + " = ? AND "
                 values.append(args[key])
