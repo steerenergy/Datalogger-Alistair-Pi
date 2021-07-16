@@ -190,7 +190,7 @@ def SearchLog(args):
     global database
     conn = sqlite3.connect(database)
     cur = conn.cursor()
-    sql = "SELECT * FROM main WHERE"
+    sql = "SELECT * FROM main WHERE "
     # If there are no arguments specified, return all logs
     if args == {}:
         sql = "SELECT * FROM main WHERE data IS NOT NULL"
@@ -201,9 +201,13 @@ def SearchLog(args):
         for key in args.keys():
             if key == "date":
                 sql += key + " LIKE ? AND "
+                values.append(args[key])
+            elif key == "name":
+                sql += key + " LIKE ? AND"
+                values.append(args[key] + "%")
             else:
                 sql += key + " = ? AND "
-            values.append(args[key])
+                values.append(args[key])
         # Remove trailing "AND " from query
         sql = sql[:-4]
         sql += " AND data IS NOT NULL"
