@@ -123,8 +123,10 @@ class ADS1x15:
             :param pin: individual or differential pin.
             :param bool is_differential: single-ended or differential read.
         """
+        self._gain = gain
+        self.gain = gain
         pin = pin if is_differential else pin + 0x04
-        return self._read(pin, gain)
+        return self._read(pin)
 
     def _data_rate_default(self):
         """Retrieve the default data rate for this ADC (in samples per second).
@@ -138,17 +140,15 @@ class ADS1x15:
         """
         raise NotImplementedError("Subclass must implement _conversion_value function!")
 
-    def _read(self, pin, gain):
+    def _read(self, pin):
         """Perform an ADC read. Returns the signed integer result of the read."""
         # Immediately return conversion register result if in CONTINUOUS mode
         # and pin has not changed
-        if self.mode == Mode.CONTINUOUS and self._last_pin_read == pin and self.gain== gain:
+        if self.mode == Mode.CONTINUOUS and self._last_pin_read == pin:
             return self._conversion_value(self.get_last_result(True))
 
         # Assign last pin read if in SINGLE mode or first sample in CONTINUOUS mode on this pin
         self._last_pin_read = pin
-        self.gain = gain
-
         # Configure ADC every time before a conversion in SINGLE mode
         # or changing channels in CONTINUOUS mode
         if self.mode == Mode.SINGLE:
