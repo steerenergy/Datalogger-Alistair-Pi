@@ -116,7 +116,7 @@ class ADS1x15:
             raise ValueError("Unsupported mode.")
         self._mode = mode
 
-    def read(self, pin, is_differential=False):
+    def read(self, pin, is_differential=False, gain=1):
         """I2C Interface for ADS1x15-based ADCs reads.
 
         params:
@@ -124,7 +124,7 @@ class ADS1x15:
             :param bool is_differential: single-ended or differential read.
         """
         pin = pin if is_differential else pin + 0x04
-        return self._read(pin)
+        return self._read(pin, gain)
 
     def _data_rate_default(self):
         """Retrieve the default data rate for this ADC (in samples per second).
@@ -138,15 +138,16 @@ class ADS1x15:
         """
         raise NotImplementedError("Subclass must implement _conversion_value function!")
 
-    def _read(self, pin):
+    def _read(self, pin, gain):
         """Perform an ADC read. Returns the signed integer result of the read."""
         # Immediately return conversion register result if in CONTINUOUS mode
         # and pin has not changed
-        if self.mode == Mode.CONTINUOUS and self._last_pin_read == pin:
+        if self.mode == Mode.CONTINUOUS and self._last_pin_read == pin and self.gain== gain:
             return self._conversion_value(self.get_last_result(True))
 
         # Assign last pin read if in SINGLE mode or first sample in CONTINUOUS mode on this pin
         self._last_pin_read = pin
+        self.gain = gain
 
         # Configure ADC every time before a conversion in SINGLE mode
         # or changing channels in CONTINUOUS mode
