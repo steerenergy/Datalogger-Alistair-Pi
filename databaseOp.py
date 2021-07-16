@@ -190,7 +190,7 @@ def SearchLog(args):
     global database
     conn = sqlite3.connect(database)
     cur = conn.cursor()
-    sql = "SELECT * FROM main"
+    sql = "SELECT * FROM main WHERE"
     # If there are no arguments specified, return all logs
     if args == {}:
         sql = "SELECT * FROM main WHERE data IS NOT NULL"
