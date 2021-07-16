@@ -13,6 +13,7 @@ from multiprocessing import Pipe, Event
 
 def Exit(exit):
     exit.set()
+    print("Exiting!!!")
     time.sleep(1)
 
 
