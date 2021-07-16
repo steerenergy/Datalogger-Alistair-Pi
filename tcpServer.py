@@ -173,7 +173,7 @@ def GetLogsToDownload(clientsocket,dataQueue, exitTcp):
     # For each log not downloaded, send the client the id, name and date of the log
     # (Objective 3.1)
     for log in logs:
-        TcpSend(clientsocket, (str(log[0]) + ',' + log[1] + ',' + log[2] + ',' + str(log[8])))
+        TcpSend(clientsocket, (str(log[0]) + ',' + log[1] + ',' + log[2] + ',' + str(log[3])))
         # Set the log to downloaded as the user has downloaded/had the chance to download
         #db.SetDownloaded(log[0], user)
     TcpSend(clientsocket, "EoT")
@@ -295,7 +295,7 @@ def SearchLog(clientsocket,dataQueue, exitTcp):
     # Sends id, name and date to the client
     # (Objectives 4.2 and 6.2)
     for log in logs:
-        TcpSend(clientsocket, (str(log[0]) + ',' + log[1] + ',' + log[2] + ',' + str(log[8])))
+        TcpSend(clientsocket, (str(log[0]) + ',' + log[1] + ',' + log[2] + ',' + str(log[3])))
     TcpSend(clientsocket, "EoT")
     # Determines whether the user is requesting for just a config or all log data
     request = TcpReceive(dataQueue, exitTcp)
