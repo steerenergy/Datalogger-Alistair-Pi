@@ -346,14 +346,14 @@ def PrintHelp(cliensocket):
 # Client interfaces with logger using commands sent using TCP
 # Subroutine receives incoming commands from client
 # (Objective 1.3)
-def new_client(clientsocket, address, connTcp):
+def new_client(clientsocket, address, connTcp, exit):
     quit = Event()
     dataQueue = queue.Queue()
     listener = Thread(target=TcpListen,args=(clientsocket,address,dataQueue, quit))
     listener.daemon = True
     listener.start()
     try:
-        while quit.is_set() == False:
+        while quit.is_set() == False and exit.is_set() == False:
             command = TcpReceive(dataQueue)
             # Log command sent
             logWrite(address[0] + " " + command)
@@ -397,7 +397,7 @@ def logWrite(data):
 
 # This function sets up the TCP server and client thread
 # (Objectives 1.1 and 1.2)
-def run(connTcp):
+def run(connTcp, exit):
     # Create new TCP server log
     with open("tcpLog.txt", "a") as file:
         file.write("\n\n" + ("-" * 75))
@@ -423,7 +423,7 @@ def run(connTcp):
         # This allows multiple clients to connect at once
         # (Objective 1.2)
 
-        worker = Thread(target=new_client, args=(clientsocket, address, connTcp))
+        worker = Thread(target=new_client, args=(clientsocket, address, connTcp, exit))
         worker.start()
 
         # Log Connection
