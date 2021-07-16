@@ -395,7 +395,7 @@ def stderrRedirect(buf):
                                       "\nNote: This message may appear several times for a given error")
 
 
-def run(connGui, exit):
+def run(connGui, exitTcp):
     # PROGRAM START #
     # Start Error Logging
     errorLoggingSetup()
@@ -426,7 +426,7 @@ def run(connGui, exit):
     smallFont = font.Font(family="Courier", size=11)
 
     # Create instance of GUI
-    app = WindowTop(root, connGui=connGui, exitTcp=exit)
+    app = WindowTop(root, connGui=connGui, exitTcp=exitTcp)
 
     # Ensure when the program quits, it quits gracefully - e.g. stopping the log first
     root.protocol("WM_DELETE_WINDOW", app.onClose)
@@ -443,5 +443,5 @@ if __name__ == "__main__":
     print("\nWARNING - running this script directly will not start the server "
           "\nIf you need to use the user program to communicate with the Pi, use 'main.py'\n")
     # Run logger as per normal setup
-    run(connGui=None)
+    run(connGui=None, exit=None)
 
