@@ -25,7 +25,7 @@ import sys
 # Set up GUI controls and functions
 class WindowTop(Frame):
     # Main Window - Init function contains all elements of layout
-    def __init__(self, master=None, connGui=Pipe()):
+    def __init__(self, master=None, connGui=Pipe(), exitTcp=Event()):
         # This is class inheritance
         Frame.__init__(self, master)
         # Setting self.master = master window
@@ -114,6 +114,8 @@ class WindowTop(Frame):
         self.logger = Logger()
 
         self.after(1000,self.commandHandler,connGui)
+
+        self.tcpExit = exitTcp
 
 
 
@@ -229,13 +231,16 @@ class WindowTop(Frame):
                 close = messagebox.askokcancel("Close", "Logging has not be finished. Are you sure you want to quit?")
                 if close:
                     self.logToggle()
+                    self.tcpExit.set()
                     root.destroy()
                     errorLogger.info("\nGUI Closed Successfully")
             else:
+                self.tcpExit.set()
                 root.destroy()
                 errorLogger.info("\nGUI Closed Successfully")
         # If logger has never been run, logger.logEnbl will not exist
         except AttributeError:
+            self.tcpExit.set()
             root.destroy()
             errorLogger.info("\nGUI Closed Successfully")
 
@@ -390,7 +395,7 @@ def stderrRedirect(buf):
                                       "\nNote: This message may appear several times for a given error")
 
 
-def run(connGui):
+def run(connGui, exit):
     # PROGRAM START #
     # Start Error Logging
     errorLoggingSetup()
@@ -421,7 +426,7 @@ def run(connGui):
     smallFont = font.Font(family="Courier", size=11)
 
     # Create instance of GUI
-    app = WindowTop(root, connGui=connGui)
+    app = WindowTop(root, connGui=connGui, exitTcp=exit)
 
     # Ensure when the program quits, it quits gracefully - e.g. stopping the log first
     root.protocol("WM_DELETE_WINDOW", app.onClose)
