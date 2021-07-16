@@ -266,10 +266,12 @@ class WindowTop(Frame):
     def liveData(self):
         logComp = self.logger.logComp
         adcHeader = []
+        self.channelSelect['values'] = []
         for pin in logComp.config.pinList:
             if pin.enabled == True:
                 self.channelSelect['values'] = (*self.channelSelect['values'], pin.fName)
                 adcHeader.append(pin.name)
+        self.channelSelect.current(0)
         # Set up variables for creating a live graph
         timeData = []
         logData = []
@@ -325,13 +327,12 @@ class WindowTop(Frame):
                 # (Objective 18.2)
                 self.textboxOutput("{}|".format(ValuesPrint))
                 channel = self.channelSelect.current()
-                if channel != 0:
-                    length = min(len(timeData),len(logData[channel - 1]))
-                    # Update yData and xData which are plotted on live graph
-                    yData = logData[channel - 1][:length]
-                    xData = timeData[:length]
-                    self.ax1.clear()
-                    self.ax1.plot(xData, yData)
+                length = min(len(timeData),len(logData[channel]))
+                # Update yData and xData which are plotted on live graph
+                yData = logData[channel][:length]
+                xData = timeData[:length]
+                self.ax1.clear()
+                self.ax1.plot(xData, yData)
 
                 if self.textBox == False and (time.perf_counter() - drawTime) > max(1,logComp.time):
                     self.canvas.draw_idle()
