@@ -116,15 +116,14 @@ class ADS1x15:
             raise ValueError("Unsupported mode.")
         self._mode = mode
 
-    def read(self, pin, is_differential=False, gain=1):
+    def read(self, pin, is_differential=False):
         """I2C Interface for ADS1x15-based ADCs reads.
 
         params:
             :param pin: individual or differential pin.
             :param bool is_differential: single-ended or differential read.
         """
-        self.gain = gain
-        print(self.gain)
+        #self.gain = gain
         pin = pin if is_differential else pin + 0x04
         return self._read(pin)
 
@@ -146,7 +145,7 @@ class ADS1x15:
         # and pin has not changed
         if self.mode == Mode.CONTINUOUS and self._last_pin_read == pin:
             return self._conversion_value(self.get_last_result(True))
-        print("New read")
+
         # Assign last pin read if in SINGLE mode or first sample in CONTINUOUS mode on this pin
         self._last_pin_read = pin
         # Configure ADC every time before a conversion in SINGLE mode
@@ -156,9 +155,7 @@ class ADS1x15:
         else:
             config = 0
         config |= (pin & 0x07) << _ADS1X15_CONFIG_MUX_OFFSET
-        print(self.gain)
         config |= _ADS1X15_CONFIG_GAIN[self.gain]
-        print(_ADS1X15_CONFIG_GAIN[self.gain])
         config |= self.mode
         config |= self.rate_config[self.data_rate]
         config |= _ADS1X15_CONFIG_COMP_QUE_DISABLE
