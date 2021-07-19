@@ -123,8 +123,7 @@ class ADS1x15:
             :param pin: individual or differential pin.
             :param bool is_differential: single-ended or differential read.
         """
-        self._gain = gain
-        self.gain = gain
+        self.gain(gain)
         pin = pin if is_differential else pin + 0x04
         return self._read(pin)
 

@@ -119,7 +119,7 @@ class Logger():
             # This gives the list of possible functions that can be run to grab data from a pin.
             adcPinMap = {
                 "0AX": {
-                    "0A0": AnalogIn(ads=adc0.gain(self.logComp.config.pinList[0].gain), gain=self.logComp.config.pinList[0].gain, positive_pin=ADS.P0),
+                    "0A0": AnalogIn(ads=adc0, gain=self.logComp.config.pinList[0].gain, positive_pin=ADS.P0),
                     "0A1": AnalogIn(ads=adc0, gain=self.logComp.config.pinList[1].gain, positive_pin=ADS.P1),
                     "0A2": AnalogIn(ads=adc0, gain=self.logComp.config.pinList[2].gain, positive_pin=ADS.P2),
                     "0A3": AnalogIn(ads=adc0, gain=self.logComp.config.pinList[3].gain, positive_pin=ADS.P3)
@@ -127,7 +127,7 @@ class Logger():
                 "1AX": {
                     "1A0": AnalogIn(ads=adc1, gain=self.logComp.config.pinList[4].gain, positive_pin=ADS.P0),
                     "1A1": AnalogIn(ads=adc1, gain=self.logComp.config.pinList[5].gain, positive_pin=ADS.P1),
-                    "1A2": AnalogIn(ads=adc1.gain(self.logComp.config.pinList[6].gain), gain=self.logComp.config.pinList[6].gain, positive_pin=ADS.P2),
+                    "1A2": AnalogIn(ads=adc1, gain=self.logComp.config.pinList[6].gain, positive_pin=ADS.P2),
                     "1A3": AnalogIn(ads=adc1, gain=self.logComp.config.pinList[7].gain, positive_pin=ADS.P3)
                 },
                 "2AX": {
