@@ -158,6 +158,7 @@ class ADS1x15:
         config |= (pin & 0x07) << _ADS1X15_CONFIG_MUX_OFFSET
         print(self.gain)
         config |= _ADS1X15_CONFIG_GAIN[self.gain]
+        print(_ADS1X15_CONFIG_GAIN[self.gain])
         config |= self.mode
         config |= self.rate_config[self.data_rate]
         config |= _ADS1X15_CONFIG_COMP_QUE_DISABLE
