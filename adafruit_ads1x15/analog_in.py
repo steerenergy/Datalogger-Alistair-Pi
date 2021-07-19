@@ -18,7 +18,7 @@ _ADS1X15_PGA_RANGE = {2 / 3: 6.144, 1: 4.096, 2: 2.048, 4: 1.024, 8: 0.512, 16: 
 class AnalogIn:
     """AnalogIn Mock Implementation for ADC Reads."""
 
-    def __init__(self, ads, positive_pin, negative_pin=None, gain=1):
+    def __init__(self, ads, positive_pin, negative_pin=None):
         """AnalogIn
 
         :param ads: The ads object.
@@ -28,7 +28,6 @@ class AnalogIn:
         self._ads = ads
         self._pin_setting = positive_pin
         self._negative_pin = negative_pin
-        self._gain = gain
         self.is_differential = False
         if negative_pin is not None:
             pins = (self._pin_setting, self._negative_pin)
@@ -51,5 +50,5 @@ class AnalogIn:
     @property
     def voltage(self):
         """Returns the voltage from the ADC pin as a floating point value."""
-        volts = self.value * _ADS1X15_PGA_RANGE[self._gain] / 32767
+        volts = self.value * _ADS1X15_PGA_RANGE[self._ads.gain] / 32767
         return volts

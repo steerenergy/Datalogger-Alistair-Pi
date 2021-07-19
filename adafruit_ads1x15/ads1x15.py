@@ -123,7 +123,6 @@ class ADS1x15:
             :param pin: individual or differential pin.
             :param bool is_differential: single-ended or differential read.
         """
-        #self.gain = gain
         pin = pin if is_differential else pin + 0x04
         return self._read(pin)
 
@@ -148,6 +147,7 @@ class ADS1x15:
 
         # Assign last pin read if in SINGLE mode or first sample in CONTINUOUS mode on this pin
         self._last_pin_read = pin
+
         # Configure ADC every time before a conversion in SINGLE mode
         # or changing channels in CONTINUOUS mode
         if self.mode == Mode.SINGLE:
