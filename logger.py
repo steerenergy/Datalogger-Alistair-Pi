@@ -70,7 +70,7 @@ class Logger():
         # A/D Setup - Create 4 Global instances of ADS1115 ADC (16-bit) according to Adafruit Libraries
         # (Objective 7)
         adc0 = ADS.ADS1115(i2c, address=0x48, mode=Mode.SINGLE, data_rate=dataRate)
-        adc1 = ADS.ADS1115(i2c, address=0x49, mode=Mode.SINGLE, data_rate=dataRate, gain=2)
+        adc1 = ADS.ADS1115(i2c, address=0x49, mode=Mode.SINGLE, data_rate=dataRate)
         adc2 = ADS.ADS1115(i2c, address=0x4a, mode=Mode.SINGLE, data_rate=dataRate)
         adc3 = ADS.ADS1115(i2c, address=0x4b, mode=Mode.SINGLE, data_rate=dataRate)
 
