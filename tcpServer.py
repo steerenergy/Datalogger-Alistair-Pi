@@ -48,12 +48,12 @@ def TcpListen(clientsocket,address,dataQueue, quit):
 # Used to received TCP data
 # Returns the TCP data decoded usign utf-8 to a string format
 def TcpReceive(dataQueue, exitTcp):
-    #while exitTcp.is_set() == False:
-    while dataQueue.empty() == True:
-        time.sleep(0.001)
-    response = dataQueue.get()
-    return response
-    #raise ConnectionAbortedError
+    while exitTcp.is_set() == False:
+        while dataQueue.empty() == True:
+            time.sleep(0.001)
+        response = dataQueue.get()
+        return response
+    raise ConnectionAbortedError
 
 
 
@@ -354,7 +354,7 @@ def new_client(clientsocket, address, connTcp, exitTcp):
     listener.daemon = True
     listener.start()
     try:
-        while quit.is_set() == False:
+        while quit.is_set() == False and exitTcp.is_set() == False:
             command = TcpReceive(dataQueue, exitTcp)
             # Log command sent
             logWrite(address[0] + " " + command)

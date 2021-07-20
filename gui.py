@@ -115,7 +115,7 @@ class WindowTop(Frame):
 
         self.after(1000,self.commandHandler,connGui)
 
-        #self.tcpExit = exitTcp
+        self.tcpExit = exitTcp
 
 
 
@@ -231,16 +231,16 @@ class WindowTop(Frame):
                 close = messagebox.askokcancel("Close", "Logging has not be finished. Are you sure you want to quit?")
                 if close:
                     self.logToggle()
-                    #self.tcpExit.set()
+                    self.tcpExit.set()
                     root.destroy()
                     errorLogger.info("\nGUI Closed Successfully")
             else:
-                #self.tcpExit.set()
+                self.tcpExit.set()
                 root.destroy()
                 errorLogger.info("\nGUI Closed Successfully")
         # If logger has never been run, logger.logEnbl will not exist
         except AttributeError:
-            #self.tcpExit.set()
+            self.tcpExit.set()
             root.destroy()
             errorLogger.info("\nGUI Closed Successfully")
 
@@ -444,5 +444,5 @@ if __name__ == "__main__":
     print("\nWARNING - running this script directly will not start the server "
           "\nIf you need to use the user program to communicate with the Pi, use 'main.py'\n")
     # Run logger as per normal setup
-    run(connGui=None)
+    run(connGui=None, exit=None)
 
