@@ -18,7 +18,7 @@ _ADS1X15_PGA_RANGE = {2 / 3: 6.144, 1: 4.096, 2: 2.048, 4: 1.024, 8: 0.512, 16: 
 class AnalogIn:
     """AnalogIn Mock Implementation for ADC Reads."""
 
-    def __init__(self, ads, positive_pin, negative_pin=None):
+    def __init__(self, ads, positive_pin, negative_pin=None, gain=1):
         """AnalogIn
 
         :param ads: The ads object.
@@ -29,6 +29,7 @@ class AnalogIn:
         self._pin_setting = positive_pin
         self._negative_pin = negative_pin
         self.is_differential = False
+        self.gain = gain
         if negative_pin is not None:
             pins = (self._pin_setting, self._negative_pin)
             if pins not in _ADS1X15_DIFF_CHANNELS:
@@ -44,7 +45,7 @@ class AnalogIn:
     def value(self):
         """Returns the value of an ADC pin as an integer."""
         return self._ads.read(
-            self._pin_setting, is_differential=self.is_differential
+            self._pin_setting, gain=self.gain, is_differential=self.is_differential
         ) << (16 - self._ads.bits)
 
     @property

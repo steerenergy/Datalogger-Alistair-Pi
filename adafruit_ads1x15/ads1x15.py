@@ -116,13 +116,14 @@ class ADS1x15:
             raise ValueError("Unsupported mode.")
         self._mode = mode
 
-    def read(self, pin, is_differential=False):
+    def read(self, pin, gain=1, is_differential=False):
         """I2C Interface for ADS1x15-based ADCs reads.
 
         params:
             :param pin: individual or differential pin.
             :param bool is_differential: single-ended or differential read.
         """
+        self.gain = gain
         pin = pin if is_differential else pin + 0x04
         return self._read(pin)
 
