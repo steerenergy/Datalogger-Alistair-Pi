@@ -396,7 +396,7 @@ def stderrRedirect(buf):
                                       "\nNote: This message may appear several times for a given error")
 
 
-def run(connGui):
+def run(connGui, exitTcp):
     # PROGRAM START #
     # Start Error Logging
     errorLoggingSetup()
@@ -427,7 +427,7 @@ def run(connGui):
     smallFont = font.Font(family="Courier", size=11)
 
     # Create instance of GUI
-    app = WindowTop(root, connGui=connGui)
+    app = WindowTop(root, connGui=connGui, exitTcp=exitTcp)
 
     # Ensure when the program quits, it quits gracefully - e.g. stopping the log first
     root.protocol("WM_DELETE_WINDOW", app.onClose)
