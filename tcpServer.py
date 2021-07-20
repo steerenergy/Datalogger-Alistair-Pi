@@ -47,12 +47,13 @@ def TcpListen(clientsocket,address,dataQueue, quit):
 
 # Used to received TCP data
 # Returns the TCP data decoded usign utf-8 to a string format
-def TcpReceive(dataQueue, exitTcp):
+def TcpReceive(clientsocket, dataQueue, exitTcp):
     while exitTcp.is_set() == False:
         while dataQueue.empty() == True:
             time.sleep(0.001)
         response = dataQueue.get()
         return response
+    TcpSend(clientsocket,"Close")
     raise ConnectionAbortedError
 
 
@@ -65,7 +66,7 @@ def ReceiveConfig(clientsocket,dataQueue, exitTcp):
     rows = []
     # Receive all 16 rows of config data
     while len(rows) < 16:
-        data = TcpReceive(dataQueue, exitTcp)
+        data = TcpReceive(clientsocket, dataQueue, exitTcp)
         rows.append(data.split(','))
     logWrite("Config Received")
     # Iterate through rows of data
@@ -90,7 +91,7 @@ def ReceiveConfig(clientsocket,dataQueue, exitTcp):
 # Receive Log meta data from client
 # (Objective 5.1)
 def ReceiveLogMeta(clientsocket,dataQueue, exitTcp):
-    metadata = TcpReceive(dataQueue, exitTcp).split(',')
+    metadata = TcpReceive(clientsocket, dataQueue, exitTcp).split(',')
     # Create new LogMeta object to hold data
     newLog = lgOb.LogMeta()
     newLog.name = metadata[0]
@@ -111,7 +112,7 @@ def ReceiveLogMeta(clientsocket,dataQueue, exitTcp):
 # Used to check whether a log name has been used before
 # Makes sure users don't accidentally create logs with the same name
 def CheckName(clientsocket,dataQueue, exitTcp):
-    name = TcpReceive(dataQueue, exitTcp)
+    name = TcpReceive(clientsocket, dataQueue, exitTcp)
     # Check database for name
     if db.CheckName(name) == True:
         TcpSend(clientsocket, "Name exists")
@@ -162,7 +163,7 @@ def GetRecentConfig(clientsocket):
 # (Objective 3)
 def GetLogsToDownload(clientsocket,dataQueue, exitTcp):
     TcpSend(clientsocket, "Send_User")
-    user = TcpReceive(dataQueue, exitTcp)
+    user = TcpReceive(clientsocket, dataQueue, exitTcp)
     try:
         # Searches database for logs not downloaded by <user>
         # (Objective 3.1)
@@ -177,7 +178,7 @@ def GetLogsToDownload(clientsocket,dataQueue, exitTcp):
         # Set the log to downloaded as the user has downloaded/had the chance to download
         #db.SetDownloaded(log[0], user)
     TcpSend(clientsocket, "EoT")
-    if TcpReceive(dataQueue, exitTcp) != "Logs":
+    if TcpReceive(clientsocket, dataQueue, exitTcp) != "Logs":
         return
     # Handles sending the requested logs
     # (Objectives 3.2 and 3.3)
@@ -189,7 +190,7 @@ def GetLogsToDownload(clientsocket,dataQueue, exitTcp):
 # (Objectives 3.2 and 3.3)
 def SendLogs(clientsocket,dataQueue, exitTcp):
     # Receive the id's of the logs the user wants to download
-    requestedLogs = TcpReceive(dataQueue, exitTcp).split(",")
+    requestedLogs = TcpReceive(clientsocket, dataQueue, exitTcp).split(",")
     if requestedLogs == ['No_Logs_Requested']:
         TcpSend(clientsocket, "All_Sent")
         return
@@ -274,7 +275,7 @@ def StopLog(clientsocket, connTcp):
 # (Objectives 4 and 6)
 def SearchLog(clientsocket,dataQueue, exitTcp):
     # Receive values from client
-    values = TcpReceive(dataQueue, exitTcp).split(',')
+    values = TcpReceive(clientsocket, dataQueue, exitTcp).split(',')
     # Hold database query arguments in args dictionary
     args = {}
     if values[0] != "":
@@ -298,7 +299,7 @@ def SearchLog(clientsocket,dataQueue, exitTcp):
         TcpSend(clientsocket, (str(log[0]) + ',' + log[1] + ',' + log[2] + ',' + str(log[3])))
     TcpSend(clientsocket, "EoT")
     # Determines whether the user is requesting for just a config or all log data
-    request = TcpReceive(dataQueue, exitTcp)
+    request = TcpReceive(clientsocket, dataQueue, exitTcp)
     if request == "Config":
         # Sends config to client
         # (Objective 6.3)
@@ -312,7 +313,7 @@ def SearchLog(clientsocket,dataQueue, exitTcp):
 # Used to send config data to the client
 # (Objective 6.3)
 def SendConfig(clientsocket,dataQueue, exitTcp):
-    requestedConfig = TcpReceive(dataQueue, exitTcp)
+    requestedConfig = TcpReceive(clientsocket, dataQueue, exitTcp)
     if requestedConfig == 'No_Logs_Requested':
         TcpSend(clientsocket, "Config_Sent")
         return
@@ -355,7 +356,7 @@ def new_client(clientsocket, address, connTcp, exitTcp):
     listener.start()
     try:
         while quit.is_set() == False and exitTcp.is_set() == False:
-            command = TcpReceive(dataQueue, exitTcp)
+            command = TcpReceive(clientsocket, dataQueue, exitTcp)
             # Log command sent
             logWrite(address[0] + " " + command)
             # Command compared to known commands and appropriate subroutine executed
@@ -408,6 +409,7 @@ def run(connTcp, exitTcp):
     db.setupDatabase()
     # Create an INET, STREAMing socket for the TCP server
     serversocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    serversocket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     # Bind the socket to the logger IP address and port 13000
     # (Objective 1.1)
     serversocket.bind(("0.0.0.0", 13000))
