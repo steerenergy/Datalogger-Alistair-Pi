@@ -47,8 +47,8 @@ def TcpListen(clientsocket,address,dataQueue, quit):
 
 # Used to received TCP data
 # Returns the TCP data decoded usign utf-8 to a string format
-def TcpReceive(dataQueue, exitTcp):
-    #while exitTcp.is_set() == False:
+def TcpReceive(dataQueue):
+    #while .is_set() == False:
     while dataQueue.empty() == True:
         time.sleep(0.001)
     response = dataQueue.get()
@@ -59,13 +59,13 @@ def TcpReceive(dataQueue, exitTcp):
 
 # Receive Config Data from client
 # (Objective 5.1)
-def ReceiveConfig(clientsocket,dataQueue, exitTcp):
+def ReceiveConfig(clientsocket,dataQueue):
     # Create new ConfigFile to store config data in
     newConfig = lgOb.ConfigFile()
     rows = []
     # Receive all 16 rows of config data
     while len(rows) < 16:
-        data = TcpReceive(dataQueue, exitTcp)
+        data = TcpReceive(dataQueue)
         rows.append(data.split(','))
     logWrite("Config Received")
     # Iterate through rows of data
@@ -89,8 +89,8 @@ def ReceiveConfig(clientsocket,dataQueue, exitTcp):
 
 # Receive Log meta data from client
 # (Objective 5.1)
-def ReceiveLogMeta(clientsocket,dataQueue, exitTcp):
-    metadata = TcpReceive(dataQueue, exitTcp).split(',')
+def ReceiveLogMeta(clientsocket,dataQueue):
+    metadata = TcpReceive(dataQueue, ).split(',')
     # Create new LogMeta object to hold data
     newLog = lgOb.LogMeta()
     newLog.name = metadata[0]
@@ -100,7 +100,7 @@ def ReceiveLogMeta(clientsocket,dataQueue, exitTcp):
     newLog.downloadedBy = metadata[4]
     logWrite("Metadata received")
     # Receive all config settings using ReceiveConfig()
-    newLog.config = ReceiveConfig(clientsocket,dataQueue, exitTcp)
+    newLog.config = ReceiveConfig(clientsocket,dataQueue)
     newLog.logData = lgOb.LogData()
     # Write log data and config data to database
     db.WriteLog(newLog)
@@ -110,8 +110,8 @@ def ReceiveLogMeta(clientsocket,dataQueue, exitTcp):
 
 # Used to check whether a log name has been used before
 # Makes sure users don't accidentally create logs with the same name
-def CheckName(clientsocket,dataQueue, exitTcp):
-    name = TcpReceive(dataQueue, exitTcp)
+def CheckName(clientsocket,dataQueue):
+    name = TcpReceive(dataQueue, )
     # Check database for name
     if db.CheckName(name) == True:
         TcpSend(clientsocket, "Name exists")
@@ -160,9 +160,9 @@ def GetRecentConfig(clientsocket):
 
 # Retrieves logs that haven't been downloaded by a user
 # (Objective 3)
-def GetLogsToDownload(clientsocket,dataQueue, exitTcp):
+def GetLogsToDownload(clientsocket,dataQueue):
     TcpSend(clientsocket, "Send_User")
-    user = TcpReceive(dataQueue, exitTcp)
+    user = TcpReceive(dataQueue)
     try:
         # Searches database for logs not downloaded by <user>
         # (Objective 3.1)
@@ -177,19 +177,19 @@ def GetLogsToDownload(clientsocket,dataQueue, exitTcp):
         # Set the log to downloaded as the user has downloaded/had the chance to download
         #db.SetDownloaded(log[0], user)
     TcpSend(clientsocket, "EoT")
-    if TcpReceive(dataQueue, exitTcp) != "Logs":
+    if TcpReceive(dataQueue) != "Logs":
         return
     # Handles sending the requested logs
     # (Objectives 3.2 and 3.3)
-    SendLogs(clientsocket,dataQueue, exitTcp)
+    SendLogs(clientsocket,dataQueue)
 
 
 # Used to receive log requests from the client
 # Reads them from the database and sends them to the client
 # (Objectives 3.2 and 3.3)
-def SendLogs(clientsocket,dataQueue, exitTcp):
+def SendLogs(clientsocket,dataQueue):
     # Receive the id's of the logs the user wants to download
-    requestedLogs = TcpReceive(dataQueue, exitTcp).split(",")
+    requestedLogs = TcpReceive(dataQueue).split(",")
     if requestedLogs == ['No_Logs_Requested']:
         TcpSend(clientsocket, "All_Sent")
         return
@@ -272,9 +272,9 @@ def StopLog(clientsocket, connTcp):
 # Receives name, date and user values from client and searches for a log
 # Allows client to download the logs returned from the search
 # (Objectives 4 and 6)
-def SearchLog(clientsocket,dataQueue, exitTcp):
+def SearchLog(clientsocket,dataQueue):
     # Receive values from client
-    values = TcpReceive(dataQueue, exitTcp).split(',')
+    values = TcpReceive(dataQueue).split(',')
     # Hold database query arguments in args dictionary
     args = {}
     if values[0] != "":
@@ -298,21 +298,21 @@ def SearchLog(clientsocket,dataQueue, exitTcp):
         TcpSend(clientsocket, (str(log[0]) + ',' + log[1] + ',' + log[2] + ',' + str(log[3])))
     TcpSend(clientsocket, "EoT")
     # Determines whether the user is requesting for just a config or all log data
-    request = TcpReceive(dataQueue, exitTcp)
+    request = TcpReceive(dataQueue)
     if request == "Config":
         # Sends config to client
         # (Objective 6.3)
-        SendConfig(clientsocket,dataQueue, exitTcp)
+        SendConfig(clientsocket,dataQueue)
     elif request == "Logs":
         # Sends logs to client
         # (Objective 4.3)
-        SendLogs(clientsocket,dataQueue, exitTcp)
+        SendLogs(clientsocket,dataQueue)
 
 
 # Used to send config data to the client
 # (Objective 6.3)
-def SendConfig(clientsocket,dataQueue, exitTcp):
-    requestedConfig = TcpReceive(dataQueue, exitTcp)
+def SendConfig(clientsocket,dataQueue):
+    requestedConfig = TcpReceive(dataQueue)
     if requestedConfig == 'No_Logs_Requested':
         TcpSend(clientsocket, "Config_Sent")
         return
@@ -347,7 +347,7 @@ def PrintHelp(cliensocket):
 # Client interfaces with logger using commands sent using TCP
 # Subroutine receives incoming commands from client
 # (Objective 1.3)
-def new_client(clientsocket, address, connTcp, exitTcp):
+def new_client(clientsocket, address, connTcp):
     quit = Event()
     dataQueue = queue.Queue()
     listener = Thread(target=TcpListen,args=(clientsocket,address,dataQueue, quit))
@@ -355,25 +355,25 @@ def new_client(clientsocket, address, connTcp, exitTcp):
     listener.start()
     try:
         while quit.is_set() == False:
-            command = TcpReceive(dataQueue, exitTcp)
+            command = TcpReceive(dataQueue, )
             # Log command sent
             logWrite(address[0] + " " + command)
             # Command compared to known commands and appropriate subroutine executed
             # (Objective 1.3)
             if command == "Recent_Logs_To_Download":
-                GetLogsToDownload(clientsocket,dataQueue, exitTcp)
+                GetLogsToDownload(clientsocket,dataQueue)
             elif command == "Request_Recent_Config":
                 GetRecentConfig(clientsocket)
             elif command == "Upload_Config":
-                ReceiveLogMeta(clientsocket,dataQueue, exitTcp)
+                ReceiveLogMeta(clientsocket,dataQueue)
             elif command == "Check_Name":
-                CheckName(clientsocket,dataQueue, exitTcp)
+                CheckName(clientsocket,dataQueue)
             elif command == "Start_Log":
                 StartLog(clientsocket, connTcp)
             elif command == "Stop_Log":
                 StopLog(clientsocket, connTcp)
             elif command == "Search_Log":
-                SearchLog(clientsocket,dataQueue, exitTcp)
+                SearchLog(clientsocket,dataQueue)
             elif command == "Help":
                 PrintHelp(clientsocket)
             elif command == "Quit":
@@ -398,7 +398,7 @@ def logWrite(data):
 
 # This function sets up the TCP server and client thread
 # (Objectives 1.1 and 1.2)
-def run(connTcp, exitTcp):
+def run(connTcp):
     # Create new TCP server log
     with open("tcpLog.txt", "a") as file:
         file.write("\n\n" + ("-" * 75))
@@ -424,7 +424,7 @@ def run(connTcp, exitTcp):
         # This allows multiple clients to connect at once
         # (Objective 1.2)
 
-        worker = Thread(target=new_client, args=(clientsocket, address, connTcp, exitTcp))
+        worker = Thread(target=new_client, args=(clientsocket, address, connTcp))
         worker.start()
 
         # Log Connection
@@ -436,4 +436,4 @@ if __name__ == "__main__":
     print("\nWARNING - running this script directly will not start the gui "
           "\nIf you want to use the Pi's touchscreen program, run 'main.py' instead\n")
     # Run server as per normal setup
-    run(connTcp=None, exitTcp=None)
+    run(connTcp=None)
