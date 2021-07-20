@@ -49,10 +49,10 @@ def TcpListen(clientsocket,address,dataQueue, quit):
 # Returns the TCP data decoded usign utf-8 to a string format
 def TcpReceive(clientsocket, dataQueue, exitTcp):
     while exitTcp.is_set() == False:
-        while dataQueue.empty() == True:
-            time.sleep(0.001)
-        response = dataQueue.get()
-        return response
+        if (dataQueue.empty() == False):
+            response = dataQueue.get()
+            return response
+        time.sleep(0.001)
     TcpSend(clientsocket,"Close")
     raise ConnectionAbortedError
 
@@ -389,6 +389,7 @@ def new_client(clientsocket, address, connTcp, exitTcp):
     listener.join()
     clientsocket.shutdown(socket.SHUT_RDWR)
     clientsocket.close()
+    logWrite(address[0] + " thread closed.")
     return
 
 
