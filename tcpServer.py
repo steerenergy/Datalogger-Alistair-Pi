@@ -90,7 +90,7 @@ def ReceiveConfig(clientsocket,dataQueue, exitTcp):
 
 # Receive Log meta data from client
 # (Objective 5.1)
-def ReceiveLogMeta(clientsocket,dataQueue, exitTcp):
+def ReceiveLogMeta(clientsocket,dataQueue, connTcp, exitTcp):
     metadata = TcpReceive(clientsocket, dataQueue, exitTcp).split(',')
     # Create new LogMeta object to hold data
     newLog = lgOb.LogMeta()
@@ -100,12 +100,20 @@ def ReceiveLogMeta(clientsocket,dataQueue, exitTcp):
     newLog.loggedBy = metadata[3]
     newLog.downloadedBy = metadata[4]
     logWrite("Metadata received")
+
     # Receive all config settings using ReceiveConfig()
     newLog.config = ReceiveConfig(clientsocket,dataQueue, exitTcp)
     newLog.logData = lgOb.LogData()
     # Write log data and config data to database
     db.WriteLog(newLog)
     file_rw.WriteLogConfig(newLog,newLog.name)
+
+    connTcp.send("Print")
+    connTcp.send("\nConfig for " + newLog.name + " received.")
+    for pin in newLog.config.pinList:
+        if pin.enabled == True:
+            connTcp.send("Print")
+            connTcp.send("Pin {} set to log {}. I: {} G: {} SMin: {} SMax: {}".format(pin.id,pin.fName,pin.inputType,pin.gain,pin.scaleMin,pin.scaleMax))
     return
 
 
@@ -366,7 +374,7 @@ def new_client(clientsocket, address, connTcp, exitTcp):
             elif command == "Request_Recent_Config":
                 GetRecentConfig(clientsocket)
             elif command == "Upload_Config":
-                ReceiveLogMeta(clientsocket,dataQueue, exitTcp)
+                ReceiveLogMeta(clientsocket,dataQueue, connTcp, exitTcp)
             elif command == "Check_Name":
                 CheckName(clientsocket,dataQueue, exitTcp)
             elif command == "Start_Log":

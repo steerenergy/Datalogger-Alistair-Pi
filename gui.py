@@ -365,6 +365,8 @@ class WindowTop(Frame):
                 connGui.send("Logger stopped")
             else:
                 connGui.send("Logger not running")
+        elif command == "Print":
+            self.textboxOutput(connGui.recv())
         self.after(100,self.commandHandler,connGui)
 
 
