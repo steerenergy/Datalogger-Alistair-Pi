@@ -28,8 +28,8 @@ class AnalogIn:
         self._ads = ads
         self._pin_setting = positive_pin
         self._negative_pin = negative_pin
-        self._gain = gain
         self.is_differential = False
+        self.gain = gain
         if negative_pin is not None:
             pins = (self._pin_setting, self._negative_pin)
             if pins not in _ADS1X15_DIFF_CHANNELS:
@@ -45,11 +45,11 @@ class AnalogIn:
     def value(self):
         """Returns the value of an ADC pin as an integer."""
         return self._ads.read(
-            self._pin_setting, is_differential=self.is_differential
+            self._pin_setting, gain=self.gain, is_differential=self.is_differential
         ) << (16 - self._ads.bits)
 
     @property
     def voltage(self):
         """Returns the voltage from the ADC pin as a floating point value."""
-        volts = self.value * _ADS1X15_PGA_RANGE[self._gain] / 32767
+        volts = self.value * _ADS1X15_PGA_RANGE[self._ads.gain] / 32767
         return volts

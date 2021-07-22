@@ -25,7 +25,7 @@ import sys
 # Set up GUI controls and functions
 class WindowTop(Frame):
     # Main Window - Init function contains all elements of layout
-    def __init__(self, master=None, connGui=Pipe()):
+    def __init__(self, master=None, connGui=Pipe(), exitTcp=Event()):
         # This is class inheritance
         Frame.__init__(self, master)
         # Setting self.master = master window
@@ -114,6 +114,8 @@ class WindowTop(Frame):
         self.logger = Logger()
 
         self.after(1000,self.commandHandler,connGui)
+
+        self.tcpExit = exitTcp
 
 
 
@@ -229,13 +231,19 @@ class WindowTop(Frame):
                 close = messagebox.askokcancel("Close", "Logging has not be finished. Are you sure you want to quit?")
                 if close:
                     self.logToggle()
+                    self.tcpExit.set()
+                    time.sleep(1)
                     root.destroy()
                     errorLogger.info("\nGUI Closed Successfully")
             else:
+                self.tcpExit.set()
+                time.sleep(1)
                 root.destroy()
                 errorLogger.info("\nGUI Closed Successfully")
         # If logger has never been run, logger.logEnbl will not exist
         except AttributeError:
+            self.tcpExit.set()
+            time.sleep(1)
             root.destroy()
             errorLogger.info("\nGUI Closed Successfully")
 
@@ -261,10 +269,12 @@ class WindowTop(Frame):
     def liveData(self):
         logComp = self.logger.logComp
         adcHeader = []
+        self.channelSelect['values'] = []
         for pin in logComp.config.pinList:
             if pin.enabled == True:
                 self.channelSelect['values'] = (*self.channelSelect['values'], pin.fName)
                 adcHeader.append(pin.name)
+        self.channelSelect.current(0)
         # Set up variables for creating a live graph
         timeData = []
         logData = []
@@ -320,13 +330,13 @@ class WindowTop(Frame):
                 # (Objective 18.2)
                 self.textboxOutput("{}|".format(ValuesPrint))
                 channel = self.channelSelect.current()
-                if channel != 0:
-                    length = min(len(timeData),len(logData[channel - 1]))
-                    # Update yData and xData which are plotted on live graph
-                    yData = logData[channel - 1][:length]
-                    xData = timeData[:length]
-                    self.ax1.clear()
-                    self.ax1.plot(xData, yData)
+                length = min(len(timeData),len(logData[channel]))
+                # Update yData and xData which are plotted on live graph
+                yData = logData[channel][:length]
+                xData = timeData[:length]
+                self.ax1.clear()
+                self.ax1.plot(xData, yData)
+                self.ax1.grid()
 
                 if self.textBox == False and (time.perf_counter() - drawTime) > max(1,logComp.time):
                     self.canvas.draw_idle()
@@ -356,6 +366,8 @@ class WindowTop(Frame):
                 connGui.send("Logger stopped")
             else:
                 connGui.send("Logger not running")
+        elif command == "Print":
+            self.textboxOutput(connGui.recv())
         self.after(100,self.commandHandler,connGui)
 
 
@@ -390,7 +402,7 @@ def stderrRedirect(buf):
                                       "\nNote: This message may appear several times for a given error")
 
 
-def run(connGui):
+def run(connGui, exitTcp):
     # PROGRAM START #
     # Start Error Logging
     errorLoggingSetup()
@@ -421,7 +433,7 @@ def run(connGui):
     smallFont = font.Font(family="Courier", size=11)
 
     # Create instance of GUI
-    app = WindowTop(root, connGui=connGui)
+    app = WindowTop(root, connGui=connGui, exitTcp=exitTcp)
 
     # Ensure when the program quits, it quits gracefully - e.g. stopping the log first
     root.protocol("WM_DELETE_WINDOW", app.onClose)
@@ -438,5 +450,5 @@ if __name__ == "__main__":
     print("\nWARNING - running this script directly will not start the server "
           "\nIf you need to use the user program to communicate with the Pi, use 'main.py'\n")
     # Run logger as per normal setup
-    run(connGui=None)
+    run(connGui=None, exit=None)
 

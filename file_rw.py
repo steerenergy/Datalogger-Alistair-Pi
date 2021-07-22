@@ -105,7 +105,8 @@ def WriteLogConfig(log,name):
         file_data = ""
         file_data += "[General]\n"
         file_data += "timeinterval = " + str(log.time) + "\n"
-        file_data += "name = " + log.name + "\n\n"
+        file_data += "name = " + log.name + "\n"
+        file_data += "description = " + log.description + "\n\n"
 
         # Iterate through each Pin and write the data for that Pin
         for pin in log.config.pinList:
