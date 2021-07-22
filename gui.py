@@ -336,6 +336,7 @@ class WindowTop(Frame):
                 xData = timeData[:length]
                 self.ax1.clear()
                 self.ax1.plot(xData, yData)
+                self.ax1.grid()
 
                 if self.textBox == False and (time.perf_counter() - drawTime) > max(1,logComp.time):
                     self.canvas.draw_idle()

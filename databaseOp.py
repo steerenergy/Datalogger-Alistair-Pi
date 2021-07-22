@@ -22,7 +22,8 @@ def setupDatabase():
                                         downloaded_by text,
                                         config text,
                                         data text,
-                                        size integer);"""
+                                        size integer,
+                                        description text);"""
     # Connect to database and execute SQL statement
     conn = sqlite3.connect(database)
     conn.cursor().execute(sql_create_main_table)
@@ -34,9 +35,9 @@ def setupDatabase():
 # (Objectives 5.2)
 def WriteLog(newLog):
     global database
-    valuesList = [newLog.name, newLog.date, newLog.time, newLog.loggedBy, newLog.downloadedBy]
-    sql_insert_metadata = """INSERT INTO main (name, date, time, logged_by, downloaded_by)
-                                        VALUES(?,?,?,?,?);"""
+    valuesList = [newLog.name, newLog.date, newLog.time, newLog.loggedBy, newLog.downloadedBy, newLog.description]
+    sql_insert_metadata = """INSERT INTO main (name, date, time, logged_by, downloaded_by, description)
+                                        VALUES(?,?,?,?,?,?);"""
     conn = sqlite3.connect(database)
     cur = conn.cursor()
     cur.execute(sql_insert_metadata, valuesList)
@@ -67,7 +68,7 @@ def GetRecentMetaData():
     global database
     conn = sqlite3.connect(database)
     cur = conn.cursor()
-    row = cur.execute("SELECT * FROM main WHERE id = ?;",[id]).fetchone()
+    row = cur.execute("SELECT id, name, date, time, logged_by, downloaded_by, description FROM main WHERE id = ?;",[id]).fetchone()
     # If no log exists, throw error which is caught
     if row == []:
         raise ValueError
@@ -78,6 +79,7 @@ def GetRecentMetaData():
     logMeta.time = row[3]
     logMeta.loggedBy = row[4]
     logMeta.downloadedBy = row[5]
+    logMeta.description = row[6]
     conn.close()
     return logMeta
 
@@ -171,6 +173,21 @@ def ReadInterval(id):
     return interval
 
 
+# Returns the description for a log
+# (Objective 6.3)
+def ReadDescription(id):
+    global database
+    conn = sqlite3.connect(database)
+    cur = conn.cursor()
+    # Retrieves the description for a log
+    interval = cur.execute("SELECT description FROM main WHERE id = ?",[id]).fetchone()[0]
+    # If no description is found, throw error which is caught
+    conn.close()
+    if interval == None:
+        raise ValueError
+    return interval
+
+
 # Updates the date on the log to be true to when the log was started
 # (Objective 10)
 def AddDate(timestamp,id):
@@ -236,14 +253,17 @@ def ReadLog(id):
     logMeta.time = row[3]
     logMeta.loggedBy = row[4]
     logMeta.downloadedBy = row[5]
+    logMeta.config_path = row[6]
+    logMeta.data_path = row[7]
+    logMeta.size = row[8]
+    logMeta.description = row[9]
     # Get config data for log
-    logMeta.config = file_rw.ReadLogConfig(GetConfigPath(id))
-    worker = threading.Thread(target=file_rw.ReadLogData,args=(GetDataPath(id),logMeta))
+    logMeta.config = file_rw.ReadLogConfig(logMeta.config_path)
+    worker = threading.Thread(target=file_rw.ReadLogData,args=(logMeta.data_path,logMeta))
     worker.daemon = True
     worker.start()
     # Get logged data for log
     #file_rw.ReadLogData(GetDataPath(id),logMeta)
-    logMeta.size = row[8]
     conn.close()
     return logMeta
 

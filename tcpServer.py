@@ -99,6 +99,7 @@ def ReceiveLogMeta(clientsocket,dataQueue, connTcp, exitTcp):
     newLog.time = metadata[2]
     newLog.loggedBy = metadata[3]
     newLog.downloadedBy = metadata[4]
+    newLog.description = metadata[5]
     logWrite("Metadata received")
 
     # Receive all config settings using ReceiveConfig()
@@ -229,7 +230,7 @@ def streamLog(logQueue, clientsocket):
         logMeta = logQueue.get()
         # Write the metadata to a packet and send to client
         metaData = (str(logMeta.id) + ',' + logMeta.name + ',' + str(logMeta.date) + ',' + str(logMeta.time) + ','
-                    + logMeta.loggedBy + ',' + logMeta.downloadedBy)
+                    + logMeta.loggedBy + ',' + logMeta.downloadedBy + ',' + logMeta.description)
         TcpSend(clientsocket, metaData)
         TcpSend(clientsocket, "EoMeta")
         # Write data for each pin to a packet and send them to client
@@ -327,8 +328,10 @@ def SendConfig(clientsocket,dataQueue, exitTcp):
         return
     # Read config data from database
     interval = db.ReadInterval(requestedConfig)
+    description = db.ReadDescription(requestedConfig)
     config = file_rw.ReadLogConfig(db.GetConfigPath(requestedConfig))
     TcpSend(clientsocket, str(interval))
+    TcpSend(clientsocket, str(description))
     # Write data for each Pin to packet and send each packet to client
     for pin in config.pinList:
         pinData = (str(pin.id) + ',' + pin.name + ',' + str(pin.enabled) + ',' + pin.fName + ','
