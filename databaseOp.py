@@ -180,12 +180,12 @@ def ReadDescription(id):
     conn = sqlite3.connect(database)
     cur = conn.cursor()
     # Retrieves the description for a log
-    interval = cur.execute("SELECT description FROM main WHERE id = ?",[id]).fetchone()[0]
+    description = cur.execute("SELECT description FROM main WHERE id = ?",[id]).fetchone()[0]
     # If no description is found, throw error which is caught
     conn.close()
-    if interval == None:
-        raise ValueError
-    return interval
+    if description == None:
+        description = ""
+    return description
 
 
 # Updates the date on the log to be true to when the log was started
@@ -257,6 +257,8 @@ def ReadLog(id):
     logMeta.data_path = row[7]
     logMeta.size = row[8]
     logMeta.description = row[9]
+    if logMeta.description == None:
+        logMeta.description = ""
     # Get config data for log
     logMeta.config = file_rw.ReadLogConfig(logMeta.config_path)
     worker = threading.Thread(target=file_rw.ReadLogData,args=(logMeta.data_path,logMeta))
