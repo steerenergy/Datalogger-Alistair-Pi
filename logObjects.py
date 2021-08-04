@@ -51,17 +51,12 @@ class ConfigFile():
 
 # Holds the logged data for a log
 class LogData():
-    timeStamp = []
-    time = []
-    # rawData and convData are lists which contain lists
-    # Each list inside corresponds to data from a single pin/channel
-    rawData = []
-    convData = []
-    tcpQueue = Queue()
 
     def __init__(self):
         self.timeStamp = []
         self.time = []
+        # rawData and convData are lists which contain lists
+        # Each list inside corresponds to data from a single pin/channel
         self.rawData = []
         self.convData = []
         self.tcpQueue = Queue()
@@ -97,25 +92,36 @@ class LogData():
 # Holds all data about a log
 # Contains a ConfigFile and LogData object
 class LogMeta():
-    id = 0
-    name = ""
-    date = ""
-    time = 0
-    loggedBy = ""
-    downloadedBy = ""
-    config = ConfigFile()
-    logData = LogData()
-    config_path = ""
-    data_path = ""
-    size = 0
-    description = ""
+
+    def __init__(self):
+        self.id = 0
+        self.project = 0
+        self.work_pack = 0
+        self.job_sheet = 0
+        self.name = ""
+        self.test_number = 0
+        self.date = ""
+        self.time = 0
+        self.loggedBy = ""
+        self.downloadedBy = ""
+        self.config = ConfigFile()
+        self.logData = LogData()
+        self.config_path = ""
+        self.data_path = ""
+        self.size = 0
+        self.description = ""
 
     def GetMeta(self):
         values = {}
         values['id'] = self.id
+        values['project'] = self.project
+        values['work pack'] = self.work_pack
+        values['job sheet'] = self.job_sheet
         values['name'] = self.name
+        values['test number'] = self.test_number
         values['date'] = self.date
         values['time interval'] = self.time
         values['logged by'] = self.loggedBy
         values['downloaded by'] = self.downloadedBy
+        values['description'] = self.description
         return values

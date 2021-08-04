@@ -106,7 +106,10 @@ def WriteLogConfig(log,name):
         file_data += "[General]\n"
         file_data += "timeinterval = " + str(log.time) + "\n"
         file_data += "name = " + log.name + "\n"
-        file_data += "description = " + log.description + "\n\n"
+        file_data += "description = " + log.description + "\n"
+        file_data += "project = " + str(log.project) + "\n"
+        file_data += "workpack = " + str(log.work_pack) + "\n"
+        file_data += "jobsheet = " + str(log.job_sheet) + "\n\n"
 
         # Iterate through each Pin and write the data for that Pin
         for pin in log.config.pinList:

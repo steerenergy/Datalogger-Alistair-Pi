@@ -173,14 +173,15 @@ class Logger():
         if db.CheckDataTable(str(self.logComp.id)) == True:
             # Give new log entry a new name by adding a number on the end
             # If there is already a number, increment the number by 1
-            try:
-                nameNum = int(self.logComp.name.split(' ')[-1])
-                nameNum += 1
-                self.logComp.name = (' ').join(self.logComp.name.split(' ')[:-1]) + " " + str(nameNum)
-            except ValueError:
-                nameNum = 1
-                self.logComp.name = self.logComp.name + " " + str(nameNum)
+            #try:
+            #    nameNum = int(self.logComp.name.split(' ')[-1])
+            #    nameNum += 1
+            #    self.logComp.name = (' ').join(self.logComp.name.split(' ')[:-1]) + " " + str(nameNum)
+            #except ValueError:
+            #    nameNum = 1
+            #    self.logComp.name = self.logComp.name + " " + str(nameNum)
             self.logComp.id += 1
+            self.logComp.test_number = db.GetNextTestNumber(self.logComp.name)
             # Write new log entry to database
             db.WriteLog(self.logComp)
             file_rw.WriteLogConfig(self.logComp, self.logComp.name)
@@ -253,7 +254,6 @@ class Logger():
     # Logging Script
     # (Objective 11)
     def log(self, adcToLog, adcHeader, logEnbl, sender):
-
         p = psutil.Process(os.getpid())
         try:
             p.nice(psutil.IOPRIO_CLASS_RT)
@@ -325,6 +325,26 @@ class Logger():
             self.log(adcToLog,adcHeader)
         else:
             self.logEnbl = False
+
+
+    # Only pickle pickleable attributes
+    def __getstate__(self):
+        # Copy the object's state from self.__dict__ which contains
+        # all our instance attributes. Always use the dict.copy()
+        # method to avoid modifying the original state.
+        state = self.__dict__.copy()
+        # Remove the unpicklable entries.
+        del state['logComp']
+        return state
+
+    def __setstate__(self, state):
+        # Restore instance attributes (i.e., filename and lineno).
+        self.__dict__.update(state)
+        self.logComp = db.GetRecentMetaData()
+        self.logComp.config_path = db.GetConfigPath(db.GetRecentId())
+        self.logComp.config = file_rw.ReadLogConfig(self.logComp.config_path)
+        self.logComp.config.SetEnabled()
+
 
 
 # This is the code that is run when the program is loaded.

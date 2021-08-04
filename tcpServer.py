@@ -94,12 +94,16 @@ def ReceiveLogMeta(clientsocket,dataQueue, connTcp, exitTcp):
     metadata = TcpReceive(clientsocket, dataQueue, exitTcp).split(',')
     # Create new LogMeta object to hold data
     newLog = lgOb.LogMeta()
-    newLog.name = metadata[0]
-    newLog.date = metadata[1]
-    newLog.time = metadata[2]
-    newLog.loggedBy = metadata[3]
-    newLog.downloadedBy = metadata[4]
-    newLog.description = metadata[5]
+    newLog.project = metadata[0]
+    newLog.work_pack = metadata[1]
+    newLog.job_sheet = metadata[2]
+    newLog.name = metadata[3]
+    newLog.date = metadata[4]
+    newLog.time = metadata[5]
+    newLog.loggedBy = metadata[6]
+    newLog.downloadedBy = metadata[7]
+    newLog.description = metadata[8]
+    newLog.test_number = db.GetNextTestNumber(newLog.name)
     logWrite("Metadata received")
 
     # Receive all config settings using ReceiveConfig()
@@ -136,19 +140,19 @@ def CheckName(clientsocket,dataQueue, exitTcp):
 def GetRecentConfig(clientsocket):
     try:
         # (Objective 2.1)
-        interval = db.GetRecentInterval()
+        db.GetRecentInterval()
     except ValueError:
         # If no logs have been logged, there will be no recent interval or config
         TcpSend(clientsocket, "No Config Found")
         return
     # Retrieves config data from database
     # (Objective 2.1)
+    values = db.ReadConfigMeta(db.GetRecentId())
     path = db.GetConfigPath(db.GetRecentId())
     recentConfig = file_rw.ReadLogConfig(path)
     # Sends the interval to the user computer
-    intervalStr = str(interval)
-    # (Objective 2.2)
-    TcpSend(clientsocket, intervalStr)
+    for value in values:
+        TcpSend(clientsocket, str(value))
     # Writes the Pin data to a data packet string
     for pin in recentConfig.pinList:
         packet = ""
@@ -183,7 +187,8 @@ def GetLogsToDownload(clientsocket,dataQueue, exitTcp):
     # For each log not downloaded, send the client the id, name and date of the log
     # (Objective 3.1)
     for log in logs:
-        TcpSend(clientsocket, (str(log[0]) + ',' + log[1] + ',' + log[2] + ',' + str(log[3])))
+        TcpSend(clientsocket, (str(log[0]) + ',' + log[1] + ',' + str(log[2]) + ',' + log[3] + ','
+                               + str(log[4]) + ',' + str(log[5]) + ',' + str(log[6]) +  ',' + str(log[7])))
         # Set the log to downloaded as the user has downloaded/had the chance to download
         #db.SetDownloaded(log[0], user)
     TcpSend(clientsocket, "EoT")
@@ -191,13 +196,13 @@ def GetLogsToDownload(clientsocket,dataQueue, exitTcp):
         return
     # Handles sending the requested logs
     # (Objectives 3.2 and 3.3)
-    SendLogs(clientsocket,dataQueue, exitTcp)
+    SendLogs(clientsocket,dataQueue, exitTcp, user)
 
 
 # Used to receive log requests from the client
 # Reads them from the database and sends them to the client
 # (Objectives 3.2 and 3.3)
-def SendLogs(clientsocket,dataQueue, exitTcp):
+def SendLogs(clientsocket,dataQueue, exitTcp, user=""):
     # Receive the id's of the logs the user wants to download
     requestedLogs = TcpReceive(clientsocket, dataQueue, exitTcp).split(",")
     if requestedLogs == ['No_Logs_Requested']:
@@ -214,6 +219,7 @@ def SendLogs(clientsocket,dataQueue, exitTcp):
     for log in requestedLogs:
         #path = db.GetDataPath(log)
         #TcpSend(clientsocket,path)
+        db.SetDownloaded(log[0], user)
         logMeta = db.ReadLog(log)
         logQueue.put(logMeta)
     # Wait until logQueue is empty and all logs have been sent
@@ -229,7 +235,8 @@ def streamLog(logQueue, clientsocket):
         # Dequeue one log from the log queue
         logMeta = logQueue.get()
         # Write the metadata to a packet and send to client
-        metaData = (str(logMeta.id) + ',' + logMeta.name + ',' + str(logMeta.date) + ',' + str(logMeta.time) + ','
+        metaData = (str(logMeta.id) + ','  + str(logMeta.project) + ',' + str(logMeta.work_pack) + ',' + str(logMeta.job_sheet) + ','
+                    + logMeta.name + ',' + str(logMeta.test_number) + ',' + str(logMeta.date) + ',' + str(logMeta.time) + ','
                     + logMeta.loggedBy + ',' + logMeta.downloadedBy + ',' + logMeta.description)
         TcpSend(clientsocket, metaData)
         TcpSend(clientsocket, "EoMeta")
@@ -288,11 +295,17 @@ def SearchLog(clientsocket,dataQueue, exitTcp):
     # Hold database query arguments in args dictionary
     args = {}
     if values[0] != "":
-        args["name"] = values[0]
+        args["name"] = '%' + values[0] + '%'
     if values[1] != "":
         args["date"] = '%' + values[1] + '%'
     if values[2] != "":
         args["logged_by"] = values[2]
+    if values[3] != "":
+        args["project"] = values[3]
+    if values[4] != "":
+        args["work_pack"] = values[4]
+    if values[5] != "":
+        args["job_sheet"] = values[5]
 
     try:
         # Searches database using arguments sent from user
@@ -302,10 +315,11 @@ def SearchLog(clientsocket,dataQueue, exitTcp):
     except ValueError:
         TcpSend(clientsocket, "No Logs Match Criteria")
         return
-    # Sends id, name and date to the client
+    # Sends id, name, test number, date, project, workpack, jobsheet and size to the client
     # (Objectives 4.2 and 6.2)
     for log in logs:
-        TcpSend(clientsocket, (str(log[0]) + ',' + log[1] + ',' + log[2] + ',' + str(log[3])))
+        TcpSend(clientsocket, (str(log[0]) + ',' + log[1] + ',' + str(log[2]) + ',' + log[3] + ','
+                               + str(log[4]) + ',' + str(log[5]) + ',' + str(log[6]) +  ',' + str(log[7])))
     TcpSend(clientsocket, "EoT")
     # Determines whether the user is requesting for just a config or all log data
     request = TcpReceive(clientsocket, dataQueue, exitTcp)
@@ -327,11 +341,12 @@ def SendConfig(clientsocket,dataQueue, exitTcp):
         TcpSend(clientsocket, "Config_Sent")
         return
     # Read config data from database
-    interval = db.ReadInterval(requestedConfig)
-    description = db.ReadDescription(requestedConfig)
+    #interval = db.ReadInterval(requestedConfig)
+    #description = db.ReadDescription(requestedConfig)
+    values = db.ReadConfigMeta(requestedConfig)
     config = file_rw.ReadLogConfig(db.GetConfigPath(requestedConfig))
-    TcpSend(clientsocket, str(interval))
-    TcpSend(clientsocket, str(description))
+    for value in values:
+        TcpSend(clientsocket,str(value))
     # Write data for each Pin to packet and send each packet to client
     for pin in config.pinList:
         pinData = (str(pin.id) + ',' + pin.name + ',' + str(pin.enabled) + ',' + pin.fName + ','
@@ -378,8 +393,8 @@ def new_client(clientsocket, address, connTcp, exitTcp):
                 GetRecentConfig(clientsocket)
             elif command == "Upload_Config":
                 ReceiveLogMeta(clientsocket,dataQueue, connTcp, exitTcp)
-            elif command == "Check_Name":
-                CheckName(clientsocket,dataQueue, exitTcp)
+            #elif command == "Check_Name":
+            #    CheckName(clientsocket,dataQueue, exitTcp)
             elif command == "Start_Log":
                 StartLog(clientsocket, connTcp)
             elif command == "Stop_Log":

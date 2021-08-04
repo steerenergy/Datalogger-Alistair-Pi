@@ -15,7 +15,11 @@ def setupDatabase():
     # This table will hold all the log meta data
     sql_create_main_table = """CREATE TABLE IF NOT EXISTS main (
                                         id integer PRIMARY KEY NOT NULL,
+                                        project integer NOT NULL DEFAULT 0,
+                                        work_pack integer NOT NULL DEFAULT 0,
+                                        job_sheet integer NOT NULL DEFAULT 0,
                                         name text NOT NULL,
+                                        test_number integer NOT NULL DEFAULT 0,
                                         date text NOT NULL,
                                         time real NOT NULL,
                                         logged_by text,
@@ -35,9 +39,11 @@ def setupDatabase():
 # (Objectives 5.2)
 def WriteLog(newLog):
     global database
-    valuesList = [newLog.name, newLog.date, newLog.time, newLog.loggedBy, newLog.downloadedBy, newLog.description]
-    sql_insert_metadata = """INSERT INTO main (name, date, time, logged_by, downloaded_by, description)
-                                        VALUES(?,?,?,?,?,?);"""
+    valuesList = [newLog.name, newLog.date, newLog.time, newLog.loggedBy,
+                  newLog.downloadedBy, newLog.description, newLog.project,
+                  newLog.work_pack, newLog.job_sheet, newLog.test_number]
+    sql_insert_metadata = """INSERT INTO main (name, date, time, logged_by, downloaded_by, description, project, work_pack, job_sheet, test_number)
+                                        VALUES(?,?,?,?,?,?,?,?,?,?);"""
     conn = sqlite3.connect(database)
     cur = conn.cursor()
     cur.execute(sql_insert_metadata, valuesList)
@@ -68,18 +74,22 @@ def GetRecentMetaData():
     global database
     conn = sqlite3.connect(database)
     cur = conn.cursor()
-    row = cur.execute("SELECT id, name, date, time, logged_by, downloaded_by, description FROM main WHERE id = ?;",[id]).fetchone()
+    row = cur.execute("SELECT id, project, work_pack, job_sheet, name, test_number, date, time, logged_by, downloaded_by, description FROM main WHERE id = ?;",[id]).fetchone()
     # If no log exists, throw error which is caught
     if row == []:
         raise ValueError
     logMeta = lgOb.LogMeta()
     logMeta.id = row[0]
-    logMeta.name = row[1]
-    logMeta.date = row[2]
-    logMeta.time = row[3]
-    logMeta.loggedBy = row[4]
-    logMeta.downloadedBy = row[5]
-    logMeta.description = row[6]
+    logMeta.project = row[1]
+    logMeta.work_pack = row[2]
+    logMeta.job_sheet = row[3]
+    logMeta.name = row[4]
+    logMeta.test_number = row[5]
+    logMeta.date = row[6]
+    logMeta.time = row[7]
+    logMeta.loggedBy = row[8]
+    logMeta.downloadedBy = row[9]
+    logMeta.description = row[10]
     conn.close()
     return logMeta
 
@@ -99,12 +109,12 @@ def GetRecentInterval():
 
 # Finds logs not downloaded by the user
 # (Objective 3.1)
-def FindNotDownloaded(user):
+def  FindNotDownloaded(user):
     global database
     conn = sqlite3.connect(database)
     cur = conn.cursor()
     # Searches for logs where the username is not contained in the downloaded_by field
-    cur.execute("SELECT id, name, date, size FROM main WHERE downloaded_by NOT LIKE \'%" + user + "%\' AND data IS NOT NULL")
+    cur.execute("SELECT id, name, test_number, date, project, work_pack, job_sheet, size FROM main WHERE downloaded_by NOT LIKE \'%" + user + "%\' AND data IS NOT NULL")
     logs = cur.fetchall()
     # If there are no logs to be downloaded, throw error which is caught
     if logs == []:
@@ -181,12 +191,24 @@ def ReadDescription(id):
     cur = conn.cursor()
     # Retrieves the description for a log
     description = cur.execute("SELECT description FROM main WHERE id = ?",[id]).fetchone()[0]
-    # If no description is found, throw error which is caught
+    # If no description is found, set to ""
     conn.close()
     if description == None:
         description = ""
     return description
 
+
+# Reads metadata for config
+def ReadConfigMeta(id):
+    global database
+    conn = sqlite3.connect(database)
+    cur = conn.cursor()
+    # Retreives interval, description, name, project, work_pack and job_sheet
+    values = cur.execute("SELECT time, description, name, project, work_pack, job_sheet FROM main WHERE id = ?",[id]).fetchone()
+    conn.close()
+    if values[1] == None:
+        values[1] = ""
+    return values
 
 # Updates the date on the log to be true to when the log was started
 # (Objective 10)
@@ -207,21 +229,18 @@ def SearchLog(args):
     global database
     conn = sqlite3.connect(database)
     cur = conn.cursor()
-    sql = "SELECT id, name, date, size FROM main WHERE "
+    sql = "SELECT id, name, test_number, date, project, work_pack, job_sheet, size FROM main WHERE "
     # If there are no arguments specified, return all logs
     if args == {}:
-        sql = "SELECT id, name, date, size FROM main WHERE data IS NOT NULL"
+        sql = "SELECT id, name, test_number, date, project, work_pack, job_sheet, size FROM main WHERE data IS NOT NULL"
         logs = cur.execute(sql).fetchall()
     else:
         values = []
         # Uses args dictionary to dynamically generate SQL query
         for key in args.keys():
-            if key == "date":
+            if key == "date" or key == "name":
                 sql += key + " LIKE ? AND "
                 values.append(args[key])
-            elif key == "name":
-                sql += key + " LIKE ? AND"
-                values.append("%" + args[key] + "%")
             else:
                 sql += key + " = ? AND "
                 values.append(args[key])
@@ -246,17 +265,22 @@ def ReadLog(id):
     cur = conn.cursor()
     logMeta = lgOb.LogMeta()
     # Get the metadata for the log from main table
-    row = cur.execute('SELECT * FROM main WHERE id = ?',[str(id)]).fetchone()
+    row = cur.execute('SELECT id, project, work_pack, job_sheet, name, test_number, date, time, ' +
+                      'logged_by, downloaded_by, config, data, size, description FROM main WHERE id = ?',[str(id)]).fetchone()
     logMeta.id = row[0]
-    logMeta.name = row[1]
-    logMeta.date = row[2]
-    logMeta.time = row[3]
-    logMeta.loggedBy = row[4]
-    logMeta.downloadedBy = row[5]
-    logMeta.config_path = row[6]
-    logMeta.data_path = row[7]
-    logMeta.size = row[8]
-    logMeta.description = row[9]
+    logMeta.project = row[1]
+    logMeta.work_pack = row[2]
+    logMeta.job_sheet = row[3]
+    logMeta.name = row[4]
+    logMeta.test_number = row[5]
+    logMeta.date = row[6]
+    logMeta.time = row[7]
+    logMeta.loggedBy = row[8]
+    logMeta.downloadedBy = row[9]
+    logMeta.config_path = row[10]
+    logMeta.data_path = row[11]
+    logMeta.size = row[12]
+    logMeta.description = row[13]
     if logMeta.description == None:
         logMeta.description = ""
     # Get config data for log
@@ -313,6 +337,7 @@ def UpdateDataPath(id,path):
     conn.close()
     return
 
+
 def UpdateSize(id,size):
     global database
     conn = sqlite3.connect(database)
@@ -322,6 +347,20 @@ def UpdateSize(id,size):
     conn.commit()
     conn.close()
     return
+
+
+def GetNextTestNumber(name):
+    global database
+    conn = sqlite3.connect(database)
+    cur = conn.cursor()
+    # Retrieves all current test numbers for that name
+    numbers = cur.execute("SELECT test_number FROM main WHERE name = ?",[str(name)]).fetchall()
+    max_num = 0
+    for num in numbers:
+        if int(num[0]) > max_num:
+            max_num = int(num[0])
+    return max_num + 1
+
 
 """
 # Write new log data to the database
