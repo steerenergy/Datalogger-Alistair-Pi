@@ -101,7 +101,10 @@ def ReceiveLogMeta(client_socket, dataQueue, connTcp, exitTcp):
     # try:
     #    newLog.id = db.GetIdNameNum(newLog.name,newLog.test_number)
     # except ValueError:
-    newLog.id = db.GetRecentId()
+    try:
+        newLog.id = db.GetRecentId()
+    except:
+        newLog.id = 1
     # Write log data and config data to database
     if db.CheckDataTable(newLog.id) is False:
         if newLog.name != db.GetName(newLog.id):
