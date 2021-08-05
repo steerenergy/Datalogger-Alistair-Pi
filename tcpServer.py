@@ -429,7 +429,7 @@ def run(connTcp, exitTcp):
     server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     # Bind the socket to the logger IP address and port 13000
     # (Objective 1.1)
-    server_socket.bind((socket.gethostname(), 13000))
+    server_socket.bind(("0.0.0.0", 13000))
     logWrite(socket.gethostname())
     # Start listening on the server socket
     server_socket.listen(5)
