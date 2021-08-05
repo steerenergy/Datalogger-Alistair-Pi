@@ -228,7 +228,7 @@ class WindowTop(Frame):
         errorLogger = logging.getLogger('error_logger')
         try:
             if self.logger.logEnbl is True:
-                close = messagebox.askokcancel("Close", "Logging has not be finished. Are you sure you want to quit?")
+                close = messagebox.askokcancel("Close", "Logging has not be finished. Are you sure you want to quitEvent?")
                 if close:
                     self.logToggle()
                     self.tcpExit.set()

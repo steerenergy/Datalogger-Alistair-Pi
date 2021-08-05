@@ -37,6 +37,8 @@ def ReadLogData(path,log):
     return log.logData
 """
 
+
+"""
 def ReadLogData(path, log):
     adcHeader = []
     for pin in log.config.pinList:
@@ -65,7 +67,7 @@ def ReadLogData(path, log):
             line = data.readline().split(',')
     log.logData.tcpQueue.put("Exit")
     return
-
+"""
 
 
 

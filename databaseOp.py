@@ -113,19 +113,6 @@ def GetRecentMetaData():
     return logMeta
 
 
-# Gets the time interval of the most recent log
-# (Objective 2.1)
-def GetRecentInterval():
-    id = GetRecentId()
-    global database
-    conn = sqlite3.connect(database)
-    cur = conn.cursor()
-    # Retrieve time interval from row with most recent id
-    logInterval = cur.execute("SELECT time FROM main WHERE id = ?;", [id]).fetchone()
-    conn.close()
-    return logInterval[0]
-
-
 # Finds logs not downloaded by the user
 # (Objective 3.1)
 def FindNotDownloaded(user):
@@ -148,9 +135,14 @@ def SetDownloaded(id,user):
     global database
     conn = sqlite3.connect(database)
     cur = conn.cursor()
-    # Update row to include the username in the downloaded_by field
-    cur.execute("UPDATE main SET downloaded_by = downloaded_by || \',\' || ? WHERE id = ?",[user,str(id)])
-    conn.commit()
+    downloaded = cur.execute("SELECT downloaded_by FROM main WHERE id = ?",[id]).fetchone()[0]
+    if downloaded is None:
+        downloaded = ""
+
+    if user not in downloaded:
+        # Update row to include the username in the downloaded_by field
+        cur.execute("UPDATE main SET downloaded_by = downloaded_by || \';\' || ? WHERE id = ?", [user, str(id)])
+        conn.commit()
     conn.close()
 
 
@@ -303,9 +295,9 @@ def ReadLog(id):
         logMeta.description = ""
     # Get config data for log
     logMeta.config = file_rw.ReadLogConfig(logMeta.config_path)
-    worker = threading.Thread(target=file_rw.ReadLogData,args=(logMeta.data_path,logMeta))
-    worker.daemon = True
-    worker.start()
+    #worker = threading.Thread(target=file_rw.ReadLogData,args=(logMeta.data_path,logMeta))
+    #worker.daemon = True
+    #worker.start()
     # Get logged data for log
     #file_rw.ReadLogData(GetDataPath(id),logMeta)
     conn.close()
@@ -403,170 +395,15 @@ def GetIdNameNum(name, test_number):
 
 
 """
-# Write new log data to the database
-# (Objective 12.2)
-def WriteLogData(logComp,headerList):
-    global database
-    # Create new data table using log id
-    # Column names are generated dynamically using headerList
-    sqlStatement = 'CREATE TABLE ' + 'data' + str(logComp.id) + '('
-    for header in headerList:
-        sqlStatement += header + ' REAL,'
-    sqlStatement = sqlStatement[:-1] + ');'
-    # Connect to database and execute statement
-    conn = sqlite3.connect(database)
-    cur = conn.cursor()
-    cur.execute(sqlStatement)
-
-    # Write all log data to a list of rows
-    data = []
-    for i in range(0,len(logComp.logData.timeStamp)):
-        dataRow = [logComp.logData.timeStamp[i], logComp.logData.time[i]]
-        for dataList in logComp.logData.rawData:
-            dataRow.append(dataList[i])
-        for dataList in logComp.logData.convData:
-            dataRow.append(dataList[i])
-        data.append(tuple(dataRow))
-
-    tablename = "data" + str(logComp.id)
-    rowNum = ('?,' * len(headerList))[:-1]
-    # SQL statement to insert log data into new data table
-    cur.executemany('INSERT INTO ' + tablename + ' VALUES(' + rowNum + ')',data)
-    conn.commit()
-    conn.close()
-"""
-
-"""
-# Create new config table and write config data to database
-# (Objective 5.2)
-def WriteConfig(config):
-    global database
-    conn = sqlite3.connect(database)
-    cur = conn.cursor()
-    rowList = []
-    # Write data for each Pin to a row
-    for pin in config.pinList:
-        row = []
-        row.append(pin.id)
-        row.append(pin.name)
-        row.append(pin.enabled)
-        row.append(pin.fName)
-        row.append(pin.inputType)
-        row.append(pin.gain)
-        row.append(pin.scaleMin)
-        row.append(pin.scaleMax)
-        row.append(pin.units)
-        row.append(pin.m)
-        row.append(pin.c)
-        rowList.append(tuple(row))
-    # Get recent id and use it to create new config table
-    id = GetRecentId()
-    configName = 'config' + id
-    sql_create_config = \"\"\"CREATE TABLE \"\"\" + configName + \"\"\" (
-                                    id INTEGER NOT NULL PRIMARY KEY,
-                                    name TEXT NOT NULL,
-                                    enabled BOOL NOT NULL,
-                                    fName TEXT,
-                                    inputType TEXT,
-                                    gain INTEGER,
-                                    scaleMin REAL,
-                                    scaleMax REAL,
-                                    units TEXT,
-                                    m REAL,
-                                    c REAL);\"\"\"
-    # Insert values into new table
-    sql_insert_config = \"\"\"INSERT INTO \"\"\" + configName + \"\"\" VALUES(?,?,?,?,?,?,?,?,?,?,?);\"\"\"
-    cur.execute(sql_create_config)
-    cur.executemany(sql_insert_config, rowList)
-    conn.commit()
-    conn.close()
-"""
-
-"""
-# Gets the most recent config settings from database
-# (Objective 2.1)(
-def GetRecentConfig():
+# Gets the time interval of the most recent log
+# (Objective 2.1)
+def GetRecentInterval():
     id = GetRecentId()
     global database
     conn = sqlite3.connect(database)
     cur = conn.cursor()
-    # Set table name using most recent id
-    configName = "config" + id
-    cur.execute("SELECT * FROM " + configName + ";")
-    data = cur.fetchall()
-    config = lgOb.ConfigFile()
-    # Write each row from the table to a Pin object
-    for row in data:
-        newPin = lgOb.Pin()
-        newPin.id = row[0]
-        newPin.name = row[1]
-        newPin.enabled = bool(row[2])
-        newPin.fName = row[3]
-        newPin.inputType = row[4]
-        newPin.gain = row[5]
-        newPin.scaleMin = row[6]
-        newPin.scaleMax = row[7]
-        newPin.units = row[8]
-        newPin.m = row[9]
-        newPin.c = row[10]
-        config.pinList.append(newPin)
+    # Retrieve time interval from row with most recent id
+    logInterval = cur.execute("SELECT time FROM main WHERE id = ?;", [id]).fetchone()
     conn.close()
-    return config
-"""
-
-
-"""
-# Reads all config settings from config table
-# (Objectives 4.3 and 6.3)
-def ReadConfig(id):
-    global database
-    conn = sqlite3.connect(database)
-    cur = conn.cursor()
-    logConfig = lgOb.ConfigFile()
-    configName = "config" + str(id)
-    # Retrieves all rows from config table
-    config = cur.execute("SELECT * FROM " + configName + ";").fetchall()
-    # Converts each row into a Pin object
-    for row in config:
-        newPin = lgOb.Pin()
-        newPin.id = row[0]
-        newPin.name = row[1]
-        newPin.enabled = bool(row[2])
-        newPin.fName = row[3]
-        newPin.inputType = row[4]
-        newPin.gain = row[5]
-        newPin.scaleMin = row[6]
-        newPin.scaleMax = row[7]
-        newPin.units = row[8]
-        newPin.m = row[9]
-        newPin.c = row[10]
-        logConfig.pinList.append(newPin)
-    conn.close()
-    return logConfig
-"""
-
-"""
-# Reads all log data from a log
-# (Objectives 4.3)
-def ReadLogData(id):
-    global database
-    logData = lgOb.LogData()
-    conn = sqlite3.connect(database)
-    cur = conn.cursor()
-    dataName = "data" + str(id)
-    # Retrieves all rows from the database table
-    data = cur.execute("SELECT * FROM " + dataName + ";").fetchall()
-    # Creates the lists inside the rawData and convData objects
-    # The number of lists being created is half of the number of columns - 1
-    logData.InitRawConv(int(len(data[0])/2 - 1))
-    for row in data:
-        logData.timeStamp.append(row[0])
-        logData.time.append(row[1])
-        # Array indexing used to pick out the raw and conv data columns from the row
-        rawData = row[2:int((len(row)/2) + 1)]
-        logData.AddRawData(rawData)
-        convData = row[int((len(row)/2) + 1):len(row)]
-        logData.AddConvData(convData)
-    conn.close()
-    return logData
+    return logInterval[0]
 """
