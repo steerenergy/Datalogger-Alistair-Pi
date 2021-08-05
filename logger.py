@@ -69,18 +69,30 @@ class Logger():
             i2c = "fake"
         # A/D Setup - Create 4 Global instances of ADS1115 ADC (16-bit) according to Adafruit Libraries
         # (Objective 7)
-        adc0 = ADS.ADS1115(i2c, address=0x48, mode=Mode.SINGLE, data_rate=dataRate)
-        adc1 = ADS.ADS1115(i2c, address=0x49, mode=Mode.SINGLE, data_rate=dataRate)
-        adc2 = ADS.ADS1115(i2c, address=0x4a, mode=Mode.SINGLE, data_rate=dataRate)
-        adc3 = ADS.ADS1115(i2c, address=0x4b, mode=Mode.SINGLE, data_rate=dataRate)
+        try:
+            adc0 = ADS.ADS1115(i2c, address=0x48, mode=Mode.SINGLE, data_rate=dataRate)
+        except ValueError:
+            adc0 = ""
+        try:
+            adc1 = ADS.ADS1115(i2c, address=0x49, mode=Mode.SINGLE, data_rate=dataRate)
+        except ValueError:
+            adc1 = ""
+        try:
+            adc2 = ADS.ADS1115(i2c, address=0x4a, mode=Mode.SINGLE, data_rate=dataRate)
+        except ValueError:
+            adc2 = ""
+        try:
+            adc3 = ADS.ADS1115(i2c, address=0x4b, mode=Mode.SINGLE, data_rate=dataRate)
+        except ValueError:
+            adc3 = ""
 
-
+        adcs = [adc0,adc1,adc2,adc3]
         # Run Code to import general information
         # (Objective 7)
         self.generalImport(printFunc)
         # Run code to import input settings
         # (Objective 8)
-        adcToLog, adcHeader = self.inputImport(adc0,adc1,adc2,adc3, printFunc)
+        adcToLog, adcHeader = self.inputImport(adcs, printFunc)
         return adcToLog, adcHeader
 
 
@@ -101,7 +113,7 @@ class Logger():
 
     # Import Input Settings
     # (Objective 8)
-    def inputImport(self,adc0,adc1,adc2,adc3,printFunc):
+    def inputImport(self,adcs,printFunc):
         printFunc("Configuring Input Settings... ", flush=True)
         # For all sections but general, parse the data from config.C
         # Create a new object for each one. The init method of the class then imports all the data as instance variables
@@ -121,32 +133,41 @@ class Logger():
             adcHeader = []
             # ADC Pin Map List - created now the gain information has been grabbed.
             # This gives the list of possible functions that can be run to grab data from a pin.
-            adcPinMap = {
-                "0AX": {
-                    "0A0": AnalogIn(ads=adc0, positive_pin=ADS.P0, gain=self.logComp.config.pinList[0].gain),
-                    "0A1": AnalogIn(ads=adc0, positive_pin=ADS.P1, gain=self.logComp.config.pinList[1].gain),
-                    "0A2": AnalogIn(ads=adc0, positive_pin=ADS.P2, gain=self.logComp.config.pinList[2].gain),
-                    "0A3": AnalogIn(ads=adc0, positive_pin=ADS.P3, gain=self.logComp.config.pinList[3].gain)
-                },
-                "1AX": {
-                    "1A0": AnalogIn(ads=adc1, positive_pin=ADS.P0, gain=self.logComp.config.pinList[4].gain),
-                    "1A1": AnalogIn(ads=adc1, positive_pin=ADS.P1, gain=self.logComp.config.pinList[5].gain),
-                    "1A2": AnalogIn(ads=adc1, positive_pin=ADS.P2, gain=self.logComp.config.pinList[6].gain),
-                    "1A3": AnalogIn(ads=adc1, positive_pin=ADS.P3, gain=self.logComp.config.pinList[7].gain)
-                },
-                "2AX": {
-                    "2A0": AnalogIn(ads=adc2, positive_pin=ADS.P0, gain=self.logComp.config.pinList[8].gain),
-                    "2A1": AnalogIn(ads=adc2, positive_pin=ADS.P1, gain=self.logComp.config.pinList[9].gain),
-                    "2A2": AnalogIn(ads=adc2, positive_pin=ADS.P2, gain=self.logComp.config.pinList[10].gain),
-                    "2A3": AnalogIn(ads=adc2, positive_pin=ADS.P3, gain=self.logComp.config.pinList[11].gain)
-                },
-                "3AX": {
-                    "3A0": AnalogIn(ads=adc3, positive_pin=ADS.P0, gain=self.logComp.config.pinList[12].gain),
-                    "3A1": AnalogIn(ads=adc3, positive_pin=ADS.P1, gain=self.logComp.config.pinList[13].gain),
-                    "3A2": AnalogIn(ads=adc3, positive_pin=ADS.P2, gain=self.logComp.config.pinList[14].gain),
-                    "3A3": AnalogIn(ads=adc3, positive_pin=ADS.P3, gain=self.logComp.config.pinList[15].gain)
-                }
-            }
+            pinDict = {0: ADS.P0, 1: ADS.P1, 2: ADS.P2, 3: ADS.P3}
+            adcPinMap = {}
+            for idx, adc in enumerate(adcs):
+                tempDict = {}
+                if adc != "":
+                    for i in range(0,4):
+                        tempDict["{}A{}".format(idx,i)] = AnalogIn(ads=adc, positive_pin=pinDict[i], gain=self.logComp.config.pinList[4 * idx + i])
+                    adcPinMap["{}AX".format(idx)] = tempDict
+
+            #adcPinMap = {
+            #    "0AX": {
+            #        "0A0": AnalogIn(ads=adc0, positive_pin=ADS.P0, gain=self.logComp.config.pinList[0].gain),
+            #        "0A1": AnalogIn(ads=adc0, positive_pin=ADS.P1, gain=self.logComp.config.pinList[1].gain),
+            #        "0A2": AnalogIn(ads=adc0, positive_pin=ADS.P2, gain=self.logComp.config.pinList[2].gain),
+            #        "0A3": AnalogIn(ads=adc0, positive_pin=ADS.P3, gain=self.logComp.config.pinList[3].gain)
+            #    },
+            #    "1AX": {
+            #        "1A0": AnalogIn(ads=adc1, positive_pin=ADS.P0, gain=self.logComp.config.pinList[4].gain),
+            #        "1A1": AnalogIn(ads=adc1, positive_pin=ADS.P1, gain=self.logComp.config.pinList[5].gain),
+            #        "1A2": AnalogIn(ads=adc1, positive_pin=ADS.P2, gain=self.logComp.config.pinList[6].gain),
+            #        "1A3": AnalogIn(ads=adc1, positive_pin=ADS.P3, gain=self.logComp.config.pinList[7].gain)
+            #    },
+            #    "2AX": {
+            #        "2A0": AnalogIn(ads=adc2, positive_pin=ADS.P0, gain=self.logComp.config.pinList[8].gain),
+            #        "2A1": AnalogIn(ads=adc2, positive_pin=ADS.P1, gain=self.logComp.config.pinList[9].gain),
+            #        "2A2": AnalogIn(ads=adc2, positive_pin=ADS.P2, gain=self.logComp.config.pinList[10].gain),
+            #       "2A3": AnalogIn(ads=adc2, positive_pin=ADS.P3, gain=self.logComp.config.pinList[11].gain)
+            #   },
+            #   "3AX": {
+            #       "3A0": AnalogIn(ads=adc3, positive_pin=ADS.P0, gain=self.logComp.config.pinList[12].gain),
+            #        "3A1": AnalogIn(ads=adc3, positive_pin=ADS.P1, gain=self.logComp.config.pinList[13].gain),
+            #        "3A2": AnalogIn(ads=adc3, positive_pin=ADS.P2, gain=self.logComp.config.pinList[14].gain),
+            #        "3A3": AnalogIn(ads=adc3, positive_pin=ADS.P3, gain=self.logComp.config.pinList[15].gain)
+            #    }
+            #}
             # Run code to choose which pins to be logged.
             for pin in self.logComp.config.pinList:
                 if pin.enabled == True:
