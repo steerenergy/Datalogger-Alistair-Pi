@@ -103,14 +103,24 @@ def ReceiveLogMeta(clientsocket,dataQueue, connTcp, exitTcp):
     newLog.loggedBy = metadata[6]
     newLog.downloadedBy = metadata[7]
     newLog.description = metadata[8]
-    newLog.test_number = db.GetNextTestNumber(newLog.name)
+    newLog.test_number = db.GetTestNumber(newLog.name)
     logWrite("Metadata received")
 
     # Receive all config settings using ReceiveConfig()
     newLog.config = ReceiveConfig(clientsocket,dataQueue, exitTcp)
-    newLog.logData = lgOb.LogData()
+    #try:
+    #    newLog.id = db.GetIdNameNum(newLog.name,newLog.test_number)
+    #except ValueError:
+    newLog.id = db.GetRecentId()
     # Write log data and config data to database
-    db.WriteLog(newLog)
+    if db.CheckDataTable(newLog.id) == False:
+        if newLog.name != db.GetName(newLog.id):
+            newLog.test_number += 1
+        db.UpdateLog(newLog)
+    else:
+        newLog.id += 1
+        newLog.test_number += 1
+        db.WriteLog(newLog)
     file_rw.WriteLogConfig(newLog,newLog.name)
 
     connTcp.send("Print")
@@ -336,7 +346,7 @@ def SearchLog(clientsocket,dataQueue, exitTcp):
 # Used to send config data to the client
 # (Objective 6.3)
 def SendConfig(clientsocket,dataQueue, exitTcp):
-    requestedConfig = TcpReceive(clientsocket, dataQueue, exitTcp)
+    requestedConfig = TcpReceive(clientsocket, dataQueue, exitTcp).split(",")[0]
     if requestedConfig == 'No_Logs_Requested':
         TcpSend(clientsocket, "Config_Sent")
         return

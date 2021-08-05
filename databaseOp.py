@@ -51,6 +51,25 @@ def WriteLog(newLog):
     conn.close()
 
 
+# Updates log, used when config uploaded and no data has yet been logged for that name and test number
+# Stops multiple uploads clogging database
+def UpdateLog(newLog):
+    global database
+    # This can probably be optimised, do if have time
+    valuesList = [newLog.name, newLog.date, newLog.time, newLog.loggedBy,
+                  newLog.downloadedBy, newLog.description, newLog.project,
+                  newLog.work_pack, newLog.job_sheet, newLog.test_number, newLog.id]
+    sql_insert_metadata = """UPDATE main 
+                             SET name = ?, date = ?, time = ?, logged_by = ?, downloaded_by = ?, description = ?, project = ?, work_pack = ?, job_sheet = ?, test_number = ?
+                             WHERE id = ?"""
+    conn = sqlite3.connect(database)
+    cur = conn.cursor()
+    cur.execute(sql_insert_metadata, valuesList)
+    conn.commit()
+    conn.close()
+
+
+
 # Gets the Id for the most recent log from the database
 def GetRecentId():
     global database
@@ -64,7 +83,7 @@ def GetRecentId():
     if logId == None:
         raise ValueError
     conn.close()
-    return str(logId)
+    return logId
 
 
 # Gets the most recent log meta data
@@ -109,7 +128,7 @@ def GetRecentInterval():
 
 # Finds logs not downloaded by the user
 # (Objective 3.1)
-def  FindNotDownloaded(user):
+def FindNotDownloaded(user):
     global database
     conn = sqlite3.connect(database)
     cur = conn.cursor()
@@ -139,7 +158,6 @@ def SetDownloaded(id,user):
 # Used if log has been started without uploading a new config file
 # (Objective 7)
 def CheckDataTable(id):
-    table_name = "data" + id
     global database
     conn = sqlite3.connect(database)
     cur = conn.cursor()
@@ -349,7 +367,7 @@ def UpdateSize(id,size):
     return
 
 
-def GetNextTestNumber(name):
+def GetTestNumber(name):
     global database
     conn = sqlite3.connect(database)
     cur = conn.cursor()
@@ -359,7 +377,29 @@ def GetNextTestNumber(name):
     for num in numbers:
         if int(num[0]) > max_num:
             max_num = int(num[0])
-    return max_num + 1
+    conn.close()
+    return max_num
+
+
+def GetName(id):
+    global database
+    conn = sqlite3.connect(database)
+    cur = conn.cursor()
+    name = cur.execute("SELECT name FROM main WHERE id = ?",[id]).fetchone()
+    conn.close()
+    return name[0]
+
+
+def GetIdNameNum(name, test_number):
+    global database
+    conn = sqlite3.connect(database)
+    cur = conn.cursor()
+    # Retrieves Id for log with specific name and test_number
+    id = cur.execute("SELECT id FROM main WHERE name = ? AND test_number = ?", [str(name), test_number]).fetchone()
+    conn.close()
+    if id == None:
+        raise ValueError
+    return id[0]
 
 
 """

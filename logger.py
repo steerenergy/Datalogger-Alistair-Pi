@@ -108,7 +108,11 @@ class Logger():
         try:
             # Gets the most recent config data from the database
             self.logComp.config_path = db.GetConfigPath(db.GetRecentId())
-            self.logComp.config = file_rw.ReadLogConfig(self.logComp.config_path)
+            try:
+                self.logComp.config = file_rw.ReadLogConfig(self.logComp.config_path)
+            except TypeError:
+                printFunc("ERROR - Failed to read Input Settings - Have you sent over a log config")
+                self.logEnbl = False
 
             # List of pins to be logged and the list containing the logging functions
             # global adcToLog
@@ -181,7 +185,7 @@ class Logger():
             #    nameNum = 1
             #    self.logComp.name = self.logComp.name + " " + str(nameNum)
             self.logComp.id += 1
-            self.logComp.test_number = db.GetNextTestNumber(self.logComp.name)
+            self.logComp.test_number = db.GetTestNumber(self.logComp.name) + 1
             # Write new log entry to database
             db.WriteLog(self.logComp)
             file_rw.WriteLogConfig(self.logComp, self.logComp.name)

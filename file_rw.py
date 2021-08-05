@@ -124,7 +124,7 @@ def WriteLogConfig(log,name):
             file_data += "m = " + str(pin.m) + "\n"
             file_data += "c = " + str(pin.c) + "\n\n"
         configfile.write(file_data)
-    db.UpdateConfigPath(db.GetRecentId(), "files/outbox/conf{}.ini".format(name))
+    db.UpdateConfigPath(log.id, "files/outbox/conf{}.ini".format(name))
 
 
 def RenameConfig(path,timestamp):
