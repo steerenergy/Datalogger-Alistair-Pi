@@ -139,7 +139,7 @@ class Logger():
                 tempDict = {}
                 if adc != "":
                     for i in range(0,4):
-                        tempDict["{}A{}".format(idx,i)] = AnalogIn(ads=adc, positive_pin=pinDict[i], gain=self.logComp.config.pinList[4 * idx + i])
+                        tempDict["{}A{}".format(idx,i)] = AnalogIn(ads=adc, positive_pin=pinDict[i], gain=self.logComp.config.pinList[4 * idx + i].gain)
                     adcPinMap["{}AX".format(idx)] = tempDict
 
             #adcPinMap = {
