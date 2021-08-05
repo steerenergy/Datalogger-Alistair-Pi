@@ -156,7 +156,7 @@ def CheckDataTable(id):
     # Returns the number of tables in the database with the name <table_name>
     data_exists = cur.execute("SELECT data FROM main WHERE id = ?;",[id]).fetchone()
     conn.close()
-    if data_exists == None or data_exists[0] == None:
+    if data_exists[0] == None:
         return False
     else:
         return True

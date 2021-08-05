@@ -103,18 +103,22 @@ def ReceiveLogMeta(client_socket, dataQueue, connTcp, exitTcp):
     # except ValueError:
     try:
         newLog.id = db.GetRecentId()
+        # Write log data and config data to database
+        if db.CheckDataTable(newLog.id) is False:
+            if newLog.name != db.GetName(newLog.id):
+                newLog.test_number += 1
+            db.UpdateLog(newLog)
+        else:
+            newLog.id += 1
+            newLog.test_number += 1
+            db.WriteLog(newLog)
+        file_rw.WriteLogConfig(newLog, newLog.name)
     except:
         newLog.id = 1
-    # Write log data and config data to database
-    if db.CheckDataTable(newLog.id) is False:
-        if newLog.name != db.GetName(newLog.id):
-            newLog.test_number += 1
-        db.UpdateLog(newLog)
-    else:
-        newLog.id += 1
-        newLog.test_number += 1
+        newLog.test_number = 1
         db.WriteLog(newLog)
     file_rw.WriteLogConfig(newLog, newLog.name)
+
 
     connTcp.send("Print")
     connTcp.send("\nConfig for " + newLog.name + " received.")
