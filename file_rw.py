@@ -37,6 +37,8 @@ def ReadLogData(path,log):
     return log.logData
 """
 
+
+"""
 def ReadLogData(path, log):
     adcHeader = []
     for pin in log.config.pinList:
@@ -65,7 +67,7 @@ def ReadLogData(path, log):
             line = data.readline().split(',')
     log.logData.tcpQueue.put("Exit")
     return
-
+"""
 
 
 
@@ -106,7 +108,10 @@ def WriteLogConfig(log,name):
         file_data += "[General]\n"
         file_data += "timeinterval = " + str(log.time) + "\n"
         file_data += "name = " + log.name + "\n"
-        file_data += "description = " + log.description + "\n\n"
+        file_data += "description = " + log.description + "\n"
+        file_data += "project = " + str(log.project) + "\n"
+        file_data += "workpack = " + str(log.work_pack) + "\n"
+        file_data += "jobsheet = " + str(log.job_sheet) + "\n\n"
 
         # Iterate through each Pin and write the data for that Pin
         for pin in log.config.pinList:
@@ -121,7 +126,7 @@ def WriteLogConfig(log,name):
             file_data += "m = " + str(pin.m) + "\n"
             file_data += "c = " + str(pin.c) + "\n\n"
         configfile.write(file_data)
-    db.UpdateConfigPath(db.GetRecentId(), "files/outbox/conf{}.ini".format(name))
+    db.UpdateConfigPath(log.id, "files/outbox/conf{}.ini".format(name))
 
 
 def RenameConfig(path,timestamp):
