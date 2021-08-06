@@ -92,7 +92,13 @@ class Logger():
         self.generalImport(printFunc)
         # Run code to import input settings
         # (Objective 8)
-        adcToLog, adcHeader = self.inputImport(adcs, printFunc)
+        try:
+            adcToLog, adcHeader = self.inputImport(adcs, printFunc)
+        # Input failed so stop log
+        except TypeError:
+            self.logEnbl = False
+            adcToLog = None
+            adcHeader = None
         return adcToLog, adcHeader
 
 
