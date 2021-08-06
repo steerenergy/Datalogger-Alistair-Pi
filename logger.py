@@ -190,6 +190,10 @@ class Logger():
         except ValueError:
             printFunc("ERROR - Failed to read Input Settings - Have you sent over a log config")
             self.logEnbl = False
+        # Exception raised when there is a pin set to log on a board that isn't connected
+        except KeyError:
+            printFunc("ERROR - Couldn't find ADC board - Check boards are connected correctly and pins are set for the connected boards.")
+            self.logEnbl = False
 
 
     def checkName(self):
