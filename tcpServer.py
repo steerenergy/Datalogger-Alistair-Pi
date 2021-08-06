@@ -405,7 +405,7 @@ def new_client(client_socket, address, connTcp, exitTcp):
                 quitEvent.set()
             else:
                 TcpSend(client_socket, "Command not recognised\n")
-    except ConnectionAbortedError or ConnectionError or ConnectionResetError:
+    except ConnectionAbortedError or ConnectionError or ConnectionResetError or BrokenPipeError:
         quitEvent.set()
         # Log forced disconnect i.e. if the user program is not closed properly
         logWrite(address[0] + " disconnected.")
