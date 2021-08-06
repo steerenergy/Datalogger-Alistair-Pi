@@ -440,7 +440,7 @@ def run(connTcp, exitTcp):
         server_socket.bind(("0.0.0.0", 13000))
         logWrite(socket.gethostname())
     except OSError:
-        connTcp.put("BindFailed")
+        connTcp.send("BindFailed")
         return
 
     # Start listening on the server socket
@@ -467,4 +467,4 @@ if __name__ == "__main__":
     print("\nWARNING - running this script directly will not start the gui "
           "\nIf you want to use the Pi's touchscreen program, run 'main.py' instead\n")
     # Run server as per normal setup
-    run(connTcp=queue.Queue(), exitTcp=None)
+    run(connTcp=None, exitTcp=None)
