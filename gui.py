@@ -368,6 +368,13 @@ class WindowTop(Frame):
                 connGui.send("Logger not running")
         elif command == "Print":
             self.textboxOutput(connGui.recv())
+        elif command == "BindFailed":
+            errorLogger = logging.getLogger('error_logger')
+            messagebox.showerror("Error", "Server connection already in use.\n"
+                                          "Please make sure only one instance of the logger is running at one time.")
+            self.tcpExit.set()
+            root.destroy()
+            errorLogger.info("\nGUI Closed Successfully")
         self.after(100,self.commandHandler,connGui)
 
 

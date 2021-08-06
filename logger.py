@@ -198,7 +198,8 @@ class Logger():
             self.logEnbl = False
         # Exception raised when there is a pin set to log on a board that isn't connected
         except KeyError:
-            printFunc("ERROR - Couldn't find ADC board - Check boards are connected correctly and pins are set for the connected boards.")
+            printFunc("ERROR - Couldn't find ADC board")
+            printFunc("Check boards are connected correctly and pins are set for the connected boards.")
             self.logEnbl = False
 
 

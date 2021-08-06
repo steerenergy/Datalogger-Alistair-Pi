@@ -436,8 +436,13 @@ def run(connTcp, exitTcp):
     server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     # Bind the socket to the logger IP address and port 13000
     # (Objective 1.1)
-    server_socket.bind(("0.0.0.0", 13000))
-    logWrite(socket.gethostname())
+    try:
+        server_socket.bind(("0.0.0.0", 13000))
+        logWrite(socket.gethostname())
+    except OSError:
+        connTcp.put("BindFailed")
+        return
+
     # Start listening on the server socket
     server_socket.listen(5)
     logWrite("Awaiting Connection...")
@@ -462,4 +467,4 @@ if __name__ == "__main__":
     print("\nWARNING - running this script directly will not start the gui "
           "\nIf you want to use the Pi's touchscreen program, run 'main.py' instead\n")
     # Run server as per normal setup
-    run(connTcp=None, exitTcp=None)
+    run(connTcp=queue.Queue(), exitTcp=None)
