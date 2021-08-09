@@ -239,8 +239,9 @@ class TcpClient():
             return
         # Hold logs to be sent to the client in a queue
         logQueue = Queue()
+        allRead = Event()
         # Create a new thread for sending logs to the client
-        streamer = Thread(target=self.streamLog, args=(logQueue,))
+        streamer = Thread(target=self.streamLog, args=(logQueue, allRead))
         streamer.setDaemon(True)
         streamer.start()
         # Read each requested log and add to the queue of logs to be sent
@@ -251,6 +252,7 @@ class TcpClient():
             db.SetDownloaded(log, self.user)
             logMeta = db.ReadLog(log)
             logQueue.put(logMeta)
+        allRead.set()
         # Wait until logQueue is empty and all logs have been sent
         # Also will close streamLog thread
         logQueue.join()
@@ -259,8 +261,8 @@ class TcpClient():
 
     # This is used to send logs in the logQueue to the client
     # (Objectives 3.3 and 4.3)
-    def streamLog(self,logQueue):
-        while not logQueue.all_tasks_done:
+    def streamLog(self, logQueue, allRead):
+        while allRead.is_set() is False or logQueue.unfinished_tasks > 0:
             # Dequeue one log from the log queue
             logMeta = logQueue.get()
             # Write the metadata to a packet and send to client
