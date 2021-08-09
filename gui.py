@@ -232,18 +232,15 @@ class WindowTop(Frame):
                 if close:
                     self.logToggle()
                     self.tcpExit.set()
-                    time.sleep(1)
                     root.destroy()
                     errorLogger.info("\nGUI Closed Successfully")
             else:
                 self.tcpExit.set()
-                time.sleep(1)
                 root.destroy()
                 errorLogger.info("\nGUI Closed Successfully")
         # If logger has never been run, logger.logEnbl will not exist
         except AttributeError:
             self.tcpExit.set()
-            time.sleep(1)
             root.destroy()
             errorLogger.info("\nGUI Closed Successfully")
 

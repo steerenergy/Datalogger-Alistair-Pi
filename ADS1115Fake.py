@@ -23,3 +23,13 @@ class ADS1115:
         self.data_rate = data_rate
         self.mode = mode
         self.i2c_device = (i2c, address)
+
+
+class Mode:
+    """An enum-like class representing possible ADC operating modes."""
+
+    # See datasheet "Operating Modes" section
+    # values here are masks for setting MODE bit in Config Register
+    # pylint: disable=too-few-public-methods
+    CONTINUOUS = 0x0000
+    SINGLE = 0x0100
