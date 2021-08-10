@@ -398,6 +398,9 @@ class TcpClient():
     def CommandHandler(self):
         try:
             self.user = self.TcpReceive()
+            if self.user == "Quit":
+                logWrite(self.address[0] + " quitting.")
+                self.quitEvent.set()
             while self.quitEvent.is_set() is False and self.exitTcp.is_set() is False:
                 command = self.TcpReceive()
                 # Log command sent
