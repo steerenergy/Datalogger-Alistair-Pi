@@ -352,7 +352,7 @@ class WindowTop(Frame):
                         timeData = timeData[-1000:]
                         for i in range(0, len(logData)):
                             logData[i] = logData[i][-1000:]
-            time.sleep(0.001)
+            time.sleep(0.01)
 
 
     def commandHandler(self, connGui):
