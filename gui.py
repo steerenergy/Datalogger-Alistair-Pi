@@ -303,6 +303,9 @@ class WindowTop(Frame):
         startTime = time.perf_counter()
         drawTime = 0
         buffer = [0] * self.logger.logComp.config.enabled
+        while 0 in self.values[:]:
+            pass
+
         while self.logger.logEnbl == True:
             # Get Complete Set of Logged Data
             # If Data is different to that in the buffer
