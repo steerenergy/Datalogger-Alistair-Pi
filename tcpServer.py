@@ -67,7 +67,7 @@ class TcpClient():
                 response = self.dataQueue.get()
                 return response
             time.sleep(0.001)
-        self.TcpSend("Close")
+        #self.TcpSend("Close")
         raise ConnectionAbortedError
 
 
@@ -434,8 +434,8 @@ class TcpClient():
             logWrite(self.address[0] + " disconnected.")
         self.quitEvent.set()
         self.client_socket.shutdown(socket.SHUT_RDWR)
-        self.client_socket.close()
         self.listener.join()
+        self.client_socket.close()
         logWrite(self.address[0] + " thread closed.")
         return
 
