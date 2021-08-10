@@ -110,6 +110,7 @@ class WindowTop(Frame):
         # Combo box for selecting which channel to graph
         self.channelSelect = ttk.Combobox(self.topFrame, values=["None"])
         self.channelSelect.current(0)
+        self.channelSelect['state'] = 'disabled'
         self.channelSelect.pack(pady=(10, 10))
 
         # Create instance of the logger class
@@ -284,6 +285,7 @@ class WindowTop(Frame):
                 logData.append([])
                 adcHeaderPrint += ("|{:>3}{:>5}".format(pin.name, pin.units))
         self.channelSelect.current(0)
+        self.channelSelect['state'] = 'enabled'
         #for i in range(0, self.logger.logComp.config.enabled):
         #    logData.append([])
         #for pin in self.logger.logComp.config.pinList:
@@ -353,6 +355,8 @@ class WindowTop(Frame):
                         for i in range(0, len(logData)):
                             logData[i] = logData[i][-1000:]
             time.sleep(0.01)
+        self.channelSelect['values'] = [self.channelSelect['values'][self.channelSelect.current()]]
+        self.channelSelect['state'] = 'disabled'
 
 
     def commandHandler(self, connGui):
