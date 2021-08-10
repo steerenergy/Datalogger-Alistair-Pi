@@ -16,7 +16,7 @@ import socket
 
 from logger import Logger
 import matplotlib.pyplot as plt
-from multiprocessing import Process, Value, Manager, Event, Pipe
+from multiprocessing import Process, Array, Event, Pipe
 import matplotlib.animation as animation
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import sys
@@ -96,6 +96,7 @@ class WindowTop(Frame):
         self.logProcess = None
         self.stop = None
         self.receiver, self.sender = None, None
+        self.values = None
 
         # Will later hold liveDataThread
         self.liveDataThread = None
@@ -147,7 +148,8 @@ class WindowTop(Frame):
                 # Run Logging
                 self.stop = Event()
                 self.receiver, self.sender = Pipe(duplex=False)
-                self.logProcess = Process(target=self.logger.log, args=(adcToLog, adcHeader, self.stop, self.sender))
+                self.values = Array('f',self.logger.logComp.config.enabled, lock=True)
+                self.logProcess = Process(target=self.logger.log, args=(adcToLog, adcHeader, self.stop, self.values))
                 self.logProcess.start()
             else:
                 self.logger.logEnbl = False
@@ -258,27 +260,35 @@ class WindowTop(Frame):
     # Live Data Output
     # Function is run in separate thread to ensure it doesn't interfere with logging
     def liveData(self):
-        #logComp = self.logger.logComp
         adcHeader = []
         self.channelSelect['values'] = []
-        for pin in self.logger.logComp.config.pinList:
-            if pin.enabled == True:
-                self.channelSelect['values'] = (*self.channelSelect['values'], pin.fName)
-                adcHeader.append(pin.name)
-        self.channelSelect.current(0)
+        pinDict = {}
+
         # Set up variables for creating a live graph
         timeData = []
         logData = []
-        for i in range(0, self.logger.logComp.config.enabled):
-            logData.append([])
 
+        # Always start logging with the textbox shown as it prints the current settings
+        if self.textBox == False:
+            self.switchDisplay()
         # Setup data buffer to hold most recent data
         self.textboxOutput("Live Data:\n")
         # Print header for all pins being logged
         adcHeaderPrint = ""
+
         for pin in self.logger.logComp.config.pinList:
-            if pin.enabled:
+            if pin.enabled == True:
+                self.channelSelect['values'] = (*self.channelSelect['values'], pin.fName)
+                adcHeader.append(pin.name)
+                pinDict[pin.name] = [pin.m, pin.c]
+                logData.append([])
                 adcHeaderPrint += ("|{:>3}{:>5}".format(pin.name, pin.units))
+        self.channelSelect.current(0)
+        #for i in range(0, self.logger.logComp.config.enabled):
+        #    logData.append([])
+        #for pin in self.logger.logComp.config.pinList:
+        #    if pin.enabled:
+
         self.textboxOutput("{}|".format(adcHeaderPrint))
         # Print a nice vertical line so it all looks pretty
         self.textboxOutput("-" * (9 * self.logger.logComp.config.enabled + 1))
@@ -288,56 +298,58 @@ class WindowTop(Frame):
         #    pass
         while not self.logger.logEnbl:
             pass
-        # Always start logging with the textbox shown as it prints the current settings
-        if self.textBox == False:
-            self.switchDisplay()
+
         # Livedata Loop - Loops Forever until LogEnbl is False (controlled by GUI)
         startTime = time.perf_counter()
         drawTime = 0
-        currentVals = []
+        buffer = [0] * self.logger.logComp.config.enabled
         while self.logger.logEnbl == True:
             # Get Complete Set of Logged Data
             # If Data is different to that in the buffer
             # (Objective 18.1)
             # current = self.logger.adcValuesCompl
-            while self.receiver.poll():
-                currentVals = self.receiver.recv()
-            # if currentVals != buffer:
-            # buffer = logComp.logData.GetLatest()
-            #buffer = currentVals
-            ValuesPrint = ""
-            # Create a nice string to print with the values in
-            # Only prints data that is being logged
-            timeData.append(round(time.perf_counter() - startTime, 2))
-            for no, val in enumerate(currentVals):
-                # Get the name of the pin so it can be used to find the adc object
-                pinName = adcHeader[no]
-                # Calculate converted value
-                convertedVal = val * self.logger.logComp.config.GetPin(pinName).m + self.logger.logComp.config.GetPin(pinName).c
-                logData[no].append(convertedVal)
-                # Add converted value to the string being printed
-                ValuesPrint += ("|{:>8}".format(round(convertedVal, 2)))
-            # Print data to textbox
-            # (Objective 18.2)
-            self.textboxOutput("{}|".format(ValuesPrint))
-            channel = self.channelSelect.current()
-            length = min(len(timeData), len(logData[channel]))
-            # Update yData and xData which are plotted on live graph
-            yData = logData[channel][:length]
-            xData = timeData[:length]
-            self.ax1.clear()
-            self.ax1.plot(xData, yData)
-            self.ax1.grid()
+            #while self.receiver.poll():
+            currentVals = self.values[:]
+            if currentVals != buffer:
+                # buffer = logComp.logData.GetLatest()
+                buffer = currentVals
+                ValuesPrint = ""
+                # Create a nice string to print with the values in
+                # Only prints data that is being logged
+                timeData.append(round(time.perf_counter() - startTime, 2))
+                for no, val in enumerate(currentVals):
+                    # Get the name of the pin so it can be used to find the adc object
+                    pinName = adcHeader[no]
+                    # Calculate converted value
+                    convertedVal = val * pinDict[pinName][0] + pinDict[pinName][1]
+                    logData[no].append(convertedVal)
+                    # Add converted value to the string being printed
+                    ValuesPrint += ("|{:>8}".format(round(convertedVal, 2)))
+                # Print data to textbox
+                # (Objective 18.2)
+                self.textboxOutput("{}|".format(ValuesPrint))
+                if self.textBox is False:
+                    channel = self.channelSelect.current()
+                    length = min(len(timeData), len(logData[channel]))
+                    # Update yData and xData which are plotted on live graph
+                    yData = logData[channel][:length]
+                    xData = timeData[:length]
+                    self.ax1.clear()
+                    self.ax1.plot(xData, yData)
+                    self.ax1.grid()
 
-            if self.textBox == False and (time.perf_counter() - drawTime) > max(1, self.logger.logComp.time):
-                self.canvas.draw_idle()
-                drawTime = time.perf_counter()
+                    if (time.perf_counter() - drawTime) > max(1, self.logger.logComp.time):
+                        try:
+                            self.canvas.draw_idle()
+                            drawTime = time.perf_counter()
+                        except IndexError:
+                            """Drawing failed, this doesn't matter as graph will be drawn next time"""
 
-            if len(timeData) > 1000:
-                timeData = timeData[-1000:]
-                for i in range(0, len(logData)):
-                    logData[i] = logData[i][-1000:]
-        #time.sleep(0.01)
+                    if len(timeData) > 1000:
+                        timeData = timeData[-1000:]
+                        for i in range(0, len(logData)):
+                            logData[i] = logData[i][-1000:]
+            time.sleep(0.01)
 
 
     def commandHandler(self, connGui):

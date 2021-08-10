@@ -289,7 +289,7 @@ class Logger():
 
     # Logging Script
     # (Objective 11)
-    def log(self, adcToLog, adcHeader, logEnbl, sender):
+    def log(self, adcToLog, adcHeader, logEnbl, values):
         p = psutil.Process(os.getpid())
         try:
             p.nice(psutil.IOPRIO_CLASS_RT)
@@ -329,10 +329,11 @@ class Logger():
                     # Export Data to Spreadsheet inc current datetime and time elapsed
                     for idx, pin in enumerate(adcToLog):
                         adcValues[idx] = pin.value
+                        values[idx] = pin.value
                     writer.writerow([currentDateTime] + [timeElapsed] + adcValues)
                     # Copy list for data output and reset list values (so we can see if code fails)
-                    self.adcValuesCompl = adcValues
-                    sender.send(adcValues)
+                    #self.adcValuesCompl = adcValues
+                    #sender.send(adcValues)
                     adcValues = [0] * csvRows
                 except OSError:
                     pass
@@ -341,7 +342,7 @@ class Logger():
                 # (objective 11.2)
                 timeDiff = (time.perf_counter() - startTime)
                 time.sleep(timeInterval - (timeDiff % timeInterval))
-        sender.close()
+        #sender.close()
         db.UpdateDataPath(self.logComp.id,"files/outbox/raw{}.csv".format(timeStamp))
         db.UpdateSize(self.logComp.id,file_rw.GetSize(db.GetDataPath(self.logComp.id)))
 
