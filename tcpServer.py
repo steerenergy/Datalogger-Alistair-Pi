@@ -209,15 +209,17 @@ class TcpClient():
         try:
             # Searches database for logs not downloaded by <user>
             # (Objective 3.1)
-            logs = db.FindNotDownloaded(self.user)
+            #logs = db.FindNotDownloaded(self.user)
+            logs = db.SearchLog({"downloaded_by" : '%' + self.user + '%'})
         except ValueError:
             self.TcpSend("No Logs To Download")
             return
         # For each log not downloaded, send the client the id, name and date of the log
         # (Objective 3.1)
         for log in logs:
-            self.TcpSend((str(log[0]) + '\u001f' + log[1] + '\u001f' + str(log[2]) + '\u001f' + log[3] + '\u001f'
-                    + str(log[4]) + '\u001f' + str(log[5]) + '\u001f' + str(log[6]) + '\u001f' + str(log[7])))
+            self.TcpSend(str(log[0]) + '\u001f' + log[1] + '\u001f' + str(log[2]) + '\u001f' + log[3] + '\u001f'
+                        + str(log[4]) + '\u001f' + str(log[5]) + '\u001f' + str(log[6])
+                        + '\u001f' + log[7] + '\u001f' + str(log[8]))
             # Set the log to downloaded as the user has downloaded/had the chance to download
             # db.SetDownloaded(log[0], user)
         self.TcpSend("EoT")
@@ -327,6 +329,10 @@ class TcpClient():
             args["work_pack"] = values[4]
         if values[5] != "":
             args["job_sheet"] = values[5]
+        if values[6] != "":
+            args["description"] = '%' + values[6] + '%'
+        if values[7] != "":
+            args["downloaded_by"] = '%' + self.user + '%'
 
         try:
             # Searches database using arguments sent from user
@@ -340,7 +346,8 @@ class TcpClient():
         # (Objectives 4.2 and 6.2)
         for log in logs:
             self.TcpSend((str(log[0]) + '\u001f' + log[1] + '\u001f' + str(log[2]) + '\u001f' + log[3] + '\u001f'
-                                + str(log[4]) + '\u001f' + str(log[5]) + '\u001f' + str(log[6]) + '\u001f' + str(log[7])))
+                                + str(log[4]) + '\u001f' + str(log[5]) + '\u001f' + str(log[6])
+                                + '\u001f' + log[7] + '\u001f' + str(log[8])))
         self.TcpSend("EoT")
         # Determines whether the user is requesting for just a config or all log data
         request = self.TcpReceive()
@@ -378,6 +385,22 @@ class TcpClient():
         self.TcpSend("Config_Sent")
 
 
+    def ExportDatabase(self):
+        info, data = db.GetDatabase()
+
+        columns = ""
+        for line in info:
+            columns += str(line[1]) + "\u001f"
+        self.TcpSend(columns.rstrip("\u001f"))
+
+        self.TcpSend(str(len(data)))
+        for row in data:
+            line = ""
+            for value in row:
+                line += str(value) + "\u001f"
+            self.TcpSend(line.rstrip("\u001f"))
+
+
     # Sends commands to client (more used for interfacing with powershell
     def PrintHelp(self):
         self.TcpSend("Available Commands:")
@@ -388,8 +411,14 @@ class TcpClient():
         self.TcpSend("Start_Log - Starts a log")
         self.TcpSend("Stop_Log - Stops a log")
         self.TcpSend("Search_Log - Search for and download a log")
+        self.TcpSend("Change_User - Change which user is using the session")
+        self.TcpSend("Export_Database - Returns all the data in the database")
         self.TcpSend("Help - Display this message")
         self.TcpSend("Quit - Disconnect from Logger")
+
+
+    def ChangeUser(self):
+        self.user = self.TcpReceive()
 
 
     # Client interfaces with logger using commands sent using TCP
@@ -421,6 +450,10 @@ class TcpClient():
                     self.StopLog()
                 elif command == "Search_Log":
                     self.SearchLog()
+                elif command == "Change_User":
+                    self.ChangeUser()
+                elif command == "Export_Database":
+                    self.ExportDatabase()
                 elif command == "Help":
                     self.PrintHelp()
                 elif command == "Quit":

@@ -4,6 +4,8 @@ import configparser
 from queue import Queue
 from decimal import Decimal
 import os
+import os.path
+from os import path
 
 """
 def ReadLogData(path,log):
@@ -133,6 +135,13 @@ def RenameConfig(path,timestamp):
     newpath = "files/outbox/conf{}.ini".format(timestamp)
     os.rename(src=path,dst=newpath)
 
+
+def CheckData(date):
+    rawpath = "files/outbox/raw{}.csv".format(date)
+    if path.exists(rawpath):
+        return rawpath
+    else:
+        return ""
 
 def GetSize(path):
     lineNum = 0

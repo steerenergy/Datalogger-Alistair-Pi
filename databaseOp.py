@@ -1,6 +1,4 @@
 import sqlite3
-import threading
-
 import file_rw
 import logObjects as lgOb
 
@@ -30,9 +28,27 @@ def setupDatabase():
                                         description text);"""
     # Connect to database and execute SQL statement
     conn = sqlite3.connect(database)
-    conn.cursor().execute(sql_create_main_table)
+    cur = conn.cursor()
+    cur.execute(sql_create_main_table)
     conn.commit()
+
+    # Scan through database and find any entries missing logData
+    # Try to find data file and update
+    rows = cur.execute("SELECT id, date FROM main WHERE data is NULL").fetchall()
+    if rows != None:
+        for row in rows:
+            path = file_rw.CheckData(row[1])
+            if path != "":
+                UpdateDataPath(row[0],path)
+
+    # Find entries with data and no size and update size
+    rows = cur.execute("SELECT id FROM main WHERE data is NOT NULL AND size is NULL").fetchall()
+    if rows != None:
+        for row in rows:
+            UpdateSize(row[0],file_rw.GetSize(GetDataPath(row[0])))
+
     conn.close()
+
 
 
 # Write new log metadata to the main database table
@@ -239,26 +255,28 @@ def SearchLog(args):
     global database
     conn = sqlite3.connect(database)
     cur = conn.cursor()
-    sql = "SELECT id, name, test_number, date, project, work_pack, job_sheet, size FROM main WHERE "
+    sql = "SELECT id, name, test_number, date, project, work_pack, job_sheet, description, size FROM main WHERE "
     # If there are no arguments specified, return all logs
-    if args == {}:
-        sql = "SELECT id, name, test_number, date, project, work_pack, job_sheet, size FROM main WHERE data IS NOT NULL"
-        logs = cur.execute(sql).fetchall()
-    else:
-        values = []
-        # Uses args dictionary to dynamically generate SQL query
-        for key in args.keys():
-            if key == "date" or key == "name":
-                sql += key + " LIKE ? AND "
-                values.append(args[key])
-            else:
-                sql += key + " = ? AND "
-                values.append(args[key])
-        # Remove trailing "AND " from query
-        sql = sql[:-4]
-        sql += " AND data IS NOT NULL"
-        # Fetch all logs that match query
-        logs = cur.execute(sql,values).fetchall()
+    #if args == {}:
+    #    sql = "SELECT id, name, test_number, date, project, work_pack, job_sheet, description, size FROM main WHERE data IS NOT NULL"
+    #    logs = cur.execute(sql).fetchall()
+    #else:
+    values = []
+    # Uses args dictionary to dynamically generate SQL query
+    for key in args.keys():
+        if key == "date" or key == "name" or key == "description":
+            sql += key + " LIKE ? AND "
+            values.append(args[key])
+        elif key == "downloaded_by":
+            sql += key + " NOT LIKE ? AND "
+            values.append(args[key])
+        else:
+            sql += key + " = ? AND "
+            values.append(args[key])
+    # Add data is NOT NULL to make sure only logs with datafiles can be downloaded
+    sql += "data IS NOT NULL"
+    # Fetch all logs that match query
+    logs = cur.execute(sql,values).fetchall()
     # If no logs found, throw error which is caught
     conn.close()
     if logs == []:
@@ -394,16 +412,11 @@ def GetIdNameNum(name, test_number):
     return id[0]
 
 
-"""
-# Gets the time interval of the most recent log
-# (Objective 2.1)
-def GetRecentInterval():
-    id = GetRecentId()
+def GetDatabase():
     global database
     conn = sqlite3.connect(database)
     cur = conn.cursor()
-    # Retrieve time interval from row with most recent id
-    logInterval = cur.execute("SELECT time FROM main WHERE id = ?;", [id]).fetchone()
+    info = cur.execute("PRAGMA TABLE_INFO(main)").fetchall()
+    data = cur.execute("SELECT * FROM main").fetchall()
     conn.close()
-    return logInterval[0]
-"""
+    return info, data
