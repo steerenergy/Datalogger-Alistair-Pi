@@ -237,7 +237,7 @@ class TcpClient():
         # Receive the id's of the logs the user wants to download
         requestedLogs = self.TcpReceive().split('\u001f')
         if requestedLogs == ['No_Logs_Requested']:
-            self.TcpSend("All_Sent")
+            self.TcpSend(str(0))
             return
         # Hold logs to be sent to the client in a queue
         logQueue = Queue()
@@ -246,6 +246,8 @@ class TcpClient():
         streamer = Thread(target=self.streamLog, args=(logQueue, allRead))
         streamer.setDaemon(True)
         streamer.start()
+        # Send number of logs being sent
+        self.TcpSend(str(len(requestedLogs)))
         # Read each requested log and add to the queue of logs to be sent
         # (Objective 3.2)
         for log in requestedLogs:
@@ -258,7 +260,6 @@ class TcpClient():
         # Wait until logQueue is empty and all logs have been sent
         # Also will close streamLog thread
         logQueue.join()
-        self.TcpSend("All_Sent")
 
 
     # This is used to send logs in the logQueue to the client
@@ -275,7 +276,6 @@ class TcpClient():
                        +'\u001f'+ logMeta.loggedBy + '\u001f' + logMeta.downloadedBy
                         + '\u001f' + logMeta.description)
             self.TcpSend(metaData)
-            self.TcpSend("EoMeta")
             # Write data for each pin to a packet and send them to client
             for pin in logMeta.config.pinList:
                 pinData = (str(pin.id) + '\u001f' + pin.name + '\u001f'
@@ -286,7 +286,6 @@ class TcpClient():
                             + str(f"{Decimal(pin.m):.14f}").rstrip('0').rstrip('.') + '\u001f'
                             + str(f"{Decimal(pin.c):.14f}").rstrip('0').rstrip('.'))
                 self.TcpSend(pinData)
-            self.TcpSend("EoConfig")
             self.TcpSend(db.GetDataPath(logMeta.id))
             logQueue.task_done()
 
@@ -342,13 +341,13 @@ class TcpClient():
         except ValueError:
             self.TcpSend("No Logs Match Criteria")
             return
+
+        self.TcpSend(str(len(logs)))
         # Sends id, name, test number, date, project, work_pack, job_sheet and size to the client
-        # (Objectives 4.2 and 6.2)
         for log in logs:
             self.TcpSend((str(log[0]) + '\u001f' + log[1] + '\u001f' + str(log[2]) + '\u001f' + log[3] + '\u001f'
                                 + str(log[4]) + '\u001f' + str(log[5]) + '\u001f' + str(log[6])
                                 + '\u001f' + log[7] + '\u001f' + str(log[8])))
-        self.TcpSend("EoT")
         # Determines whether the user is requesting for just a config or all log data
         request = self.TcpReceive()
         if request == "Config":
@@ -381,8 +380,6 @@ class TcpClient():
                        + pin.inputType + '\u001f' + str(pin.gain) + '\u001f' + str(pin.scaleMin) + '\u001f'
                        + str(pin.scaleMax) + '\u001f' + pin.units + '\u001f' + str(Decimal(pin.m)) + '\u001f' + str(Decimal(pin.c)))
             self.TcpSend(pinData)
-        # Confirm to client that all data is sent
-        self.TcpSend("Config_Sent")
 
 
     def ExportDatabase(self):
