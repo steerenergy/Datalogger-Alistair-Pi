@@ -2,8 +2,9 @@
 # Script connects to logger.py and acts a front end to it
 
 import logging
-import os
-import queue
+import databaseOp as db
+import pandas as pd
+from pathlib import Path
 import time
 from datetime import datetime
 import threading
@@ -188,6 +189,8 @@ class WindowTop(Frame):
             self.logButton.config(text="Start Logging")
             # Tell user logging has stopped
             self.textboxOutput("Logging Stopped - Success!")
+            # Check that logged data is of good quality
+            self.DataCheck()
             # Re-enable Button
             self.logButton['state'] = 'normal'
         else:
@@ -387,6 +390,30 @@ class WindowTop(Frame):
             errorLogger.info("\nGUI Closed Successfully")
         self.after(100, self.commandHandler, connGui)
 
+
+    def DataCheck(self):
+        self.textboxOutput("\nLog Quality Info:")
+        path = Path(db.GetDataPath(self.logger.logComp.id))
+        data = pd.read_csv(path)
+
+        numLines = data['Time Interval (seconds)'].count()
+        self.textboxOutput("Logged {} lines of data".format(numLines))
+
+        differences = 0
+        times = data['Time Interval (seconds)']
+        prev = 0
+        incorrect = 0
+        for time in times:
+            difference = round(float(time) - prev, 1)
+            if difference != self.logger.logComp.time:
+                incorrect += 1
+            differences += (difference)
+            prev = float(time)
+
+        self.textboxOutput("{} lines had a time interval not equal to {}".format(incorrect,self.logger.logComp.time))
+
+        average = differences / numLines
+        self.textboxOutput("Average time interval: {}".format(average))
 
 # Setup error logging
 # (Objective 19.3)

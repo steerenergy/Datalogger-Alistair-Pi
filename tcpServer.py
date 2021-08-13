@@ -465,9 +465,13 @@ class TcpClient():
             # Log forced disconnect i.e. if the user program is not closed properly
             logWrite(self.address[0] + " disconnected.")
         self.quitEvent.set()
-        self.client_socket.shutdown(socket.SHUT_RDWR)
-        self.listener.join()
-        self.client_socket.close()
+        try:
+            self.client_socket.shutdown(socket.SHUT_RDWR)
+            self.listener.join()
+            self.client_socket.close()
+        except OSError:
+            self.client_socket.close()
+            self.listener.join()
         logWrite(self.address[0] + " thread closed.")
         return
 
