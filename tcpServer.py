@@ -418,7 +418,9 @@ class TcpClient():
 
 
     def ChangeUser(self):
-        self.user = self.TcpReceive()
+        user = self.TcpReceive()
+        if user != "Closed":
+            self.user = self.TcpReceive()
 
 
     # Client interfaces with logger using commands sent using TCP
