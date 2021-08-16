@@ -347,7 +347,7 @@ class TcpClient():
         for log in logs:
             self.TcpSend((str(log[0]) + '\u001f' + log[1] + '\u001f' + str(log[2]) + '\u001f' + log[3] + '\u001f'
                                 + str(log[4]) + '\u001f' + str(log[5]) + '\u001f' + str(log[6])
-                                + '\u001f' + log[7] + '\u001f' + str(log[8])))
+                                + '\u001f' + str(log[7]) + '\u001f' + str(log[8])))
         # Determines whether the user is requesting for just a config or all log data
         request = self.TcpReceive()
         if request == "Config":
