@@ -92,7 +92,13 @@ class Logger():
         self.generalImport(printFunc)
         # Run code to import input settings
         # (Objective 8)
-        adcToLog, adcHeader = self.inputImport(adcs, printFunc)
+        try:
+            adcToLog, adcHeader = self.inputImport(adcs, printFunc)
+        # Input failed so stop log
+        except TypeError:
+            self.logEnbl = False
+            adcToLog = None
+            adcHeader = None
         return adcToLog, adcHeader
 
 
@@ -190,6 +196,11 @@ class Logger():
         except ValueError:
             printFunc("ERROR - Failed to read Input Settings - Have you sent over a log config")
             self.logEnbl = False
+        # Exception raised when there is a pin set to log on a board that isn't connected
+        except KeyError:
+            printFunc("ERROR - Couldn't find ADC board")
+            printFunc("Check boards are connected correctly and pins are set for the connected boards.")
+            self.logEnbl = False
 
 
     def checkName(self):
@@ -278,7 +289,7 @@ class Logger():
 
     # Logging Script
     # (Objective 11)
-    def log(self, adcToLog, adcHeader, logEnbl, sender):
+    def log(self, adcToLog, adcHeader, logEnbl, values):
         p = psutil.Process(os.getpid())
         try:
             p.nice(psutil.IOPRIO_CLASS_RT)
@@ -318,10 +329,11 @@ class Logger():
                     # Export Data to Spreadsheet inc current datetime and time elapsed
                     for idx, pin in enumerate(adcToLog):
                         adcValues[idx] = pin.value
+                        values[idx] = pin.value
                     writer.writerow([currentDateTime] + [timeElapsed] + adcValues)
                     # Copy list for data output and reset list values (so we can see if code fails)
-                    self.adcValuesCompl = adcValues
-                    sender.send(adcValues)
+                    #self.adcValuesCompl = adcValues
+                    #sender.send(adcValues)
                     adcValues = [0] * csvRows
                 except OSError:
                     pass
@@ -330,7 +342,7 @@ class Logger():
                 # (objective 11.2)
                 timeDiff = (time.perf_counter() - startTime)
                 time.sleep(timeInterval - (timeDiff % timeInterval))
-        sender.close()
+        #sender.close()
         db.UpdateDataPath(self.logComp.id,"files/outbox/raw{}.csv".format(timeStamp))
         db.UpdateSize(self.logComp.id,file_rw.GetSize(db.GetDataPath(self.logComp.id)))
 

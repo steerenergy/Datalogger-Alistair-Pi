@@ -11,7 +11,7 @@ if __name__ == '__main__':
     # Create thread for TCP server to run on
     # This is so TCP connections can be processed separate from the GUI
     serverThread = Thread(target=tcpServer.run, args=(connTcp, exitTcp))
-    serverThread.daemon = True
+    #serverThread.daemon = True
     serverThread.start()
     print("ServerThread starting")
 
