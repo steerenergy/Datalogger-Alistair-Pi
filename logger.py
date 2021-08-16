@@ -145,37 +145,11 @@ class Logger():
                 tempDict = {}
                 if adc != "":
                     for i in range(0,4):
-                        tempDict["{}A{}".format(idx,i)] = AnalogIn(ads=adc, positive_pin=pinDict[i], gain=self.logComp.config.pinList[4 * idx + i].gain)
+                        tempDict["{}A{}".format(idx,i)] = AnalogIn(ads=adc, positive_pin=pinDict[i], gain=self.logComp.config[4 * idx + i].gain)
                     adcPinMap["{}AX".format(idx)] = tempDict
 
-            #adcPinMap = {
-            #    "0AX": {
-            #        "0A0": AnalogIn(ads=adc0, positive_pin=ADS.P0, gain=self.logComp.config.pinList[0].gain),
-            #        "0A1": AnalogIn(ads=adc0, positive_pin=ADS.P1, gain=self.logComp.config.pinList[1].gain),
-            #        "0A2": AnalogIn(ads=adc0, positive_pin=ADS.P2, gain=self.logComp.config.pinList[2].gain),
-            #        "0A3": AnalogIn(ads=adc0, positive_pin=ADS.P3, gain=self.logComp.config.pinList[3].gain)
-            #    },
-            #    "1AX": {
-            #        "1A0": AnalogIn(ads=adc1, positive_pin=ADS.P0, gain=self.logComp.config.pinList[4].gain),
-            #        "1A1": AnalogIn(ads=adc1, positive_pin=ADS.P1, gain=self.logComp.config.pinList[5].gain),
-            #        "1A2": AnalogIn(ads=adc1, positive_pin=ADS.P2, gain=self.logComp.config.pinList[6].gain),
-            #        "1A3": AnalogIn(ads=adc1, positive_pin=ADS.P3, gain=self.logComp.config.pinList[7].gain)
-            #    },
-            #    "2AX": {
-            #        "2A0": AnalogIn(ads=adc2, positive_pin=ADS.P0, gain=self.logComp.config.pinList[8].gain),
-            #        "2A1": AnalogIn(ads=adc2, positive_pin=ADS.P1, gain=self.logComp.config.pinList[9].gain),
-            #        "2A2": AnalogIn(ads=adc2, positive_pin=ADS.P2, gain=self.logComp.config.pinList[10].gain),
-            #       "2A3": AnalogIn(ads=adc2, positive_pin=ADS.P3, gain=self.logComp.config.pinList[11].gain)
-            #   },
-            #   "3AX": {
-            #       "3A0": AnalogIn(ads=adc3, positive_pin=ADS.P0, gain=self.logComp.config.pinList[12].gain),
-            #        "3A1": AnalogIn(ads=adc3, positive_pin=ADS.P1, gain=self.logComp.config.pinList[13].gain),
-            #        "3A2": AnalogIn(ads=adc3, positive_pin=ADS.P2, gain=self.logComp.config.pinList[14].gain),
-            #        "3A3": AnalogIn(ads=adc3, positive_pin=ADS.P3, gain=self.logComp.config.pinList[15].gain)
-            #    }
-            #}
             # Run code to choose which pins to be logged.
-            for pin in self.logComp.config.pinList:
+            for pin in self.logComp.config:
                 if pin.enabled == True:
                     adcToLog.append(adcPinMap[pin.name[0] + "AX"][pin.name])
                     adcHeader.append(pin.name)
@@ -189,7 +163,7 @@ class Logger():
                 printFunc("\nERROR - No Inputs set to Log! Please enable at least one input and try again")
                 self.logEnbl = False
 
-            self.logComp.config.SetEnabled()
+            self.logComp.SetEnabled()
             return adcToLog, adcHeader
 
         # Exception raised when no config returned from database
@@ -242,7 +216,7 @@ class Logger():
         printFunc("-" * 67)
         # Print input settings for each Pin
         logNum = 0
-        for pin in self.logComp.config.pinList:
+        for pin in self.logComp.config:
             # Only print full settings if that channel is enabled
             x += 1
             if pin.enabled == True:
@@ -380,7 +354,7 @@ class Logger():
         self.logComp = db.GetRecentMetaData()
         self.logComp.config_path = db.GetConfigPath(db.GetRecentId())
         self.logComp.config = file_rw.ReadLogConfig(self.logComp.config_path)
-        self.logComp.config.SetEnabled()
+        self.logComp.SetEnabled()
 
 
 

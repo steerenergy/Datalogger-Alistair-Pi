@@ -77,7 +77,6 @@ def ReadLogConfig(path):
     config = configparser.ConfigParser()
     config.read(path)
     log = lgOb.LogMeta()
-    log.config = lgOb.ConfigFile()
     log.name = config['General']['name']
     log.time = Decimal(config['General']['timeinterval'])
 
@@ -96,7 +95,7 @@ def ReadLogConfig(path):
             if "m" in config[section] and "c" in config[section]:
                 pin.m = config[section].getfloat('m')
                 pin.c = config[section].getfloat('c')
-            log.config.pinList.append(pin)
+            log.config.append(pin)
 
     return log.config
 
@@ -116,7 +115,7 @@ def WriteLogConfig(log,name):
         file_data += "jobsheet = " + str(log.job_sheet) + "\n\n"
 
         # Iterate through each Pin and write the data for that Pin
-        for pin in log.config.pinList:
+        for pin in log.config:
             file_data += "[" + pin.name + "]\n"
             file_data += "enabled = " + str(pin.enabled) + "\n"
             file_data += "friendlyname = " + pin.fName + "\n"

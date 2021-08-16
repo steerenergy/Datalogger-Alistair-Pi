@@ -75,7 +75,7 @@ class TcpClient():
     # (Objective 5.1)
     def ReceiveConfig(self):
         # Create new ConfigFile to store config data in
-        newConfig = lgOb.ConfigFile()
+        newConfig = []
         rows = []
         # Receive all 16 rows of config data
         while len(rows) < 16:
@@ -97,7 +97,7 @@ class TcpClient():
             newPin.units = rows[i][8]
             newPin.m = rows[i][9]
             newPin.c = rows[i][10]
-            newConfig.pinList.append(newPin)
+            newConfig.append(newPin)
         return newConfig
 
 
@@ -145,7 +145,7 @@ class TcpClient():
 
         self.connTcp.send("Print")
         self.connTcp.send("\nConfig for " + newLog.name + " received.")
-        for pin in newLog.config.pinList:
+        for pin in newLog.config:
             if pin.enabled is True:
                 self.connTcp.send("Print")
                 self.connTcp.send(
@@ -185,7 +185,7 @@ class TcpClient():
         for value in values:
             self.TcpSend(str(value))
         # Writes the Pin data to a data packet string
-        for pin in recentConfig.pinList:
+        for pin in recentConfig:
             packet = ""
             packet += str(pin.id) + '\u001f'
             packet += pin.name + '\u001f'
@@ -277,7 +277,7 @@ class TcpClient():
                         + '\u001f' + logMeta.description)
             self.TcpSend(metaData)
             # Write data for each pin to a packet and send them to client
-            for pin in logMeta.config.pinList:
+            for pin in logMeta.config:
                 pinData = (str(pin.id) + '\u001f' + pin.name + '\u001f'
                             + str(pin.enabled) + '\u001f' + pin.fName + '\u001f'
                             + pin.inputType + '\u001f' + str(pin.gain) + '\u001f'
@@ -375,7 +375,7 @@ class TcpClient():
         for value in values:
             self.TcpSend(str(value))
         # Write data for each Pin to packet and send each packet to client
-        for pin in config.pinList:
+        for pin in config:
             pinData = (str(pin.id) + '\u001f' + pin.name + '\u001f' + str(pin.enabled) + '\u001f' + pin.fName + '\u001f'
                        + pin.inputType + '\u001f' + str(pin.gain) + '\u001f' + str(pin.scaleMin) + '\u001f'
                        + str(pin.scaleMax) + '\u001f' + pin.units + '\u001f' + str(Decimal(pin.m)) + '\u001f' + str(Decimal(pin.c)))

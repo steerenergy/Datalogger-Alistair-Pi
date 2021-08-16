@@ -150,7 +150,7 @@ class WindowTop(Frame):
                 # Run Logging
                 self.stop = Event()
                 self.receiver, self.sender = Pipe(duplex=False)
-                self.values = Array('f',self.logger.logComp.config.enabled, lock=True)
+                self.values = Array('f',self.logger.logComp.enabled, lock=True)
                 self.logProcess = Process(target=self.logger.log, args=(adcToLog, adcHeader, self.stop, self.values))
                 self.logProcess.start()
             else:
@@ -280,7 +280,7 @@ class WindowTop(Frame):
         # Print header for all pins being logged
         adcHeaderPrint = ""
 
-        for pin in self.logger.logComp.config.pinList:
+        for pin in self.logger.logComp.config:
             if pin.enabled == True:
                 self.channelSelect['values'] = (*self.channelSelect['values'], pin.fName)
                 adcHeader.append(pin.name)
@@ -296,7 +296,7 @@ class WindowTop(Frame):
 
         self.textboxOutput("{}|".format(adcHeaderPrint))
         # Print a nice vertical line so it all looks pretty
-        self.textboxOutput("-" * (9 * self.logger.logComp.config.enabled + 1))
+        self.textboxOutput("-" * (9 * self.logger.logComp.enabled + 1))
         buffer = []
         # Don't print live data when adcValuesCompl doesn't exist. Also if logging is stopped, exit loop
         # while len(logComp.logData.timeStamp) == 0 and logEnbl is True:
@@ -307,7 +307,7 @@ class WindowTop(Frame):
         # Livedata Loop - Loops Forever until LogEnbl is False (controlled by GUI)
         startTime = time.perf_counter()
         drawTime = 0
-        buffer = [0] * self.logger.logComp.config.enabled
+        buffer = [0] * self.logger.logComp.enabled
         while 0 in self.values[:]:
             pass
 
