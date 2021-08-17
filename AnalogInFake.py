@@ -10,7 +10,7 @@ _ADS1X15_PGA_RANGE = {2 / 3: 6.144, 1: 4.096, 2: 2.048, 4: 1.024, 8: 0.512, 16: 
 
 class AnalogIn:
 
-    def __init__(self, ads, positive_pin,gain):
+    def __init__(self, ads, positive_pin, gain):
         self._ads = ads
         self._pin_setting = positive_pin
         self._gain = gain

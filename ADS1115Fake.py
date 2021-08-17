@@ -7,6 +7,7 @@ P1 = 1
 P2 = 2
 P3 = 3
 
+
 class ADS1115:
     """Base functionality for ADS1x15 analog to digital converters."""
 
@@ -16,7 +17,7 @@ class ADS1115:
         gain=1,
         data_rate=None,
         mode=0x0000,
-        address= 0x48,
+        address=0x48,
     ):
         # pylint: disable=too-many-arguments
         self._last_pin_read = None

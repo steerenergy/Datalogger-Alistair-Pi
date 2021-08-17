@@ -115,7 +115,6 @@ class WindowTop(Frame):
         # Pass exitTcp event to GUI so server can be closed from GUI
         self.exitTcp = exitTcp
 
-
     # Contains functions for the start/stop logging buttons
     def logToggle(self):
         # Starting Logging
@@ -150,7 +149,7 @@ class WindowTop(Frame):
                 self.stop = Event()
                 # values array stores a copy of the most recent values logged
                 # Used by the live data output to retrieve the data
-                self.values = Array('f',self.logger.logComp.enabled, lock=True)
+                self.values = Array('f', self.logger.logComp.enabled, lock=True)
                 # Setup and start log process
                 self.logProcess = Process(target=self.logger.log, args=(self.stop, self.values))
                 self.logProcess.start()
@@ -200,7 +199,7 @@ class WindowTop(Frame):
         else:
             # Repeat the process after a certain period of time.
             # Note that time.sleep isn't used here. This is Crucial to why this has been done
-            # The timer works independently to the main thread, allowing the print statments to be processed
+            # The timer works independently to the main thread, allowing the print statements to be processed
             # This stops the program freezing if logThread is trying to print but the GUI is occupied so it can't
             self.after(100, self.logThreadStopCheck)
 
@@ -211,7 +210,7 @@ class WindowTop(Frame):
         # Used to print data to Live Data Textbox
         self.liveDataText['state'] = 'normal'
         # If flush is True, don't add newline after inputString
-        if flush == False:
+        if not flush:
             inputStr += "\n"
         # Insert inputStr at the end of the current text data
         self.liveDataText.insert(END, inputStr)
@@ -226,10 +225,9 @@ class WindowTop(Frame):
         if self.autoScrollEnable.get() == 1:
             self.liveDataText.see(END)
 
-
     # Handles program close
     # Make sure logging finishes before program closes
-    # Also signals TCP server to close any exisiting connections
+    # Also signals TCP server to close any existing connections
     def onClose(self):
         errorLogger = logging.getLogger('error_logger')
         try:
@@ -257,10 +255,9 @@ class WindowTop(Frame):
             root.destroy()
             errorLogger.info("\nGUI Closed Successfully")
 
-
     # Toggles between the textbox and live graph being displayed
     def switchDisplay(self):
-        if self.textBox == True:
+        if self.textBox:
             # Unpack textbox and scrollbar
             self.liveDataText.pack_forget()
             self.liveDataScrollBar.pack_forget()
@@ -294,7 +291,7 @@ class WindowTop(Frame):
         self.channelSelect['values'] = []
 
         # Always start logging with the textbox shown as it prints the current settings
-        if self.textBox == False:
+        if not self.textBox:
             self.switchDisplay()
 
         # Print start of live data to user
@@ -302,7 +299,7 @@ class WindowTop(Frame):
         # Get values of pins being logged from self.logger.logComp
         adcHeaderPrint = ""
         for pin in self.logger.logComp.config:
-            if pin.enabled == True:
+            if pin.enabled:
                 # Add pin to graph drop down menu
                 self.channelSelect['values'] = (*self.channelSelect['values'], pin.fName)
                 # Add pin to adcHeader
@@ -334,7 +331,7 @@ class WindowTop(Frame):
         drawTime = 0
 
         # Live data loop, outputs live data to graph or textbox for as long as the log runs
-        while self.logger.logEnbl == True:
+        while self.logger.logEnbl:
             # Get most recent logged data
             currentVals = self.values[:]
             # If data is new, output data
@@ -394,12 +391,11 @@ class WindowTop(Frame):
         self.channelSelect['values'] = [self.channelSelect['values'][self.channelSelect.current()]]
         self.channelSelect['state'] = 'disabled'
 
-
-    # This function handles commmands from the TCP server
+    # This function handles commands from the TCP server
     # It is run periodically every 0.1 seconds
     def commandHandler(self, connGui):
         # If there are no commands to process, return
-        if connGui.poll() == False:
+        if not connGui.poll():
             self.after(100, self.commandHandler, connGui)
             return
         # Receive command from Pipe
@@ -407,7 +403,7 @@ class WindowTop(Frame):
 
         if command == "Start":
             # If the logger is not running, start logger and tell TCP server
-            if self.logger.logEnbl == False:
+            if not self.logger.logEnbl:
                 self.logToggle()
                 connGui.send("Logger started")
             # If logger is already running, tell TCP server
@@ -415,7 +411,7 @@ class WindowTop(Frame):
                 connGui.send("Logger already running")
         elif command == "Stop":
             # If the logger is running, stop logger and tell TCP server
-            if self.logger.logEnbl == True:
+            if self.logger.logEnbl:
                 self.logToggle()
                 connGui.send("Logger stopped")
             # If the logger is not running, tell TCP server
@@ -437,7 +433,6 @@ class WindowTop(Frame):
             errorLogger.info("\nGUI Closed Successfully")
         self.after(100, self.commandHandler, connGui)
 
-
     # Used at the end of a log to check quality of logged data
     def DataCheck(self):
         self.textboxOutput("\nLog Quality Info:")
@@ -454,16 +449,16 @@ class WindowTop(Frame):
         times = data['Time Interval (seconds)']
         prev = 0
         incorrect = 0
-        for time in times:
+        for timeElapsed in times:
             # Calculate time interval between two consecutive points
-            difference = round(float(time) - prev, 1)
+            difference = round(float(timeElapsed) - prev, 1)
             # If time interval is incorrect, increment incorrect by 1
             if difference != self.logger.logComp.time:
                 incorrect += 1
-            differences += (difference)
-            prev = float(time)
+            differences += difference
+            prev = float(timeElapsed)
         # Output number of incorrect time intervals
-        self.textboxOutput("{} lines had a time interval not equal to {}".format(incorrect,self.logger.logComp.time))
+        self.textboxOutput("{} lines had a time interval not equal to {}".format(incorrect, self.logger.logComp.time))
         average = differences / numLines
         # Output average time interval
         self.textboxOutput("Average time interval: {}".format(average))
@@ -551,4 +546,4 @@ if __name__ == "__main__":
           "\nIf you need to use the user program to communicate with the Pi, use 'main.py'\n")
     # Run logger as per normal setup
     # connGui and exitTcp don't exist as they are created by main.py
-    run(connGui=None,exitTcp=None)
+    run(connGui=None, exitTcp=None)
