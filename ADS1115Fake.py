@@ -1,3 +1,6 @@
+# NOTE - TESTING PURPOSES ONlY
+# This script is for testing code when the pi isn't available
+
 # Pins
 P0 = 0
 P1 = 1
