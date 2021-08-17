@@ -1,4 +1,4 @@
-# Holds data about a single pin/channel
+# Holds data about a single ads1115 pin/channel
 class Pin():
 
     def __init__(self):
@@ -15,7 +15,7 @@ class Pin():
         self.c = 0
 
 
-# Holds all data about a log
+# Holds metadata and config about a log
 class LogMeta():
 
     def __init__(self):
@@ -36,42 +36,21 @@ class LogMeta():
         self.size = 0
         self.description = ""
 
+    # Returns the metadata printed at the start of a log
     def GetMeta(self):
         values = {'id': self.id, 'project': self.project, 'work pack': self.work_pack, 'job sheet': self.job_sheet,
-                  'name': self.name, 'test number': self.test_number, 'date': self.date, 'time interval': self.time,
-                  'logged by': self.loggedBy, 'downloaded by': self.downloadedBy, 'description': self.description}
+                  'name': self.name, 'test number': self.test_number, 'time interval': self.time,
+                  'logged by': self.loggedBy, 'description': self.description}
         return values
 
-    # Used to return a Pin object from their name
+    # Used to return the Pin object corresponding to a name
     def GetPin(self,name):
         for pin in self.config:
             if pin.name == name:
                 return pin
 
+    # Set enabled to the number of pins enabled
     def SetEnabled(self):
         for pin in self.config:
             if pin.enabled:
                 self.enabled += 1
-
-
-"""
-# Acts as a configfile, holding information about all the pins/channels
-class ConfigFile():
-    pinList = []
-    enabled = 0
-
-    def __init__(self):
-        self.pinList = []
-        self.enabled = 0
-
-    # Used to return a Pin object from their name
-    def GetPin(self,name):
-        for pin in self.pinList:
-            if pin.name == name:
-                return pin
-
-    def SetEnabled(self):
-        for pin in self.pinList:
-            if pin.enabled:
-                self.enabled += 1
-"""

@@ -6,69 +6,58 @@
 # 3. Setup logging (time interval etc.) then iterate through devices, grab data and save to CSV until stopped.
 
 # Import Packages/Modules
-import queue
 import time
 from datetime import datetime, timedelta
-from collections import OrderedDict
-import configparser
-import functools
-# Uncomment below for real adc (if running on Pi)
+# Tries to import modules for Pi
 try:
     import adafruit_ads1x15.ads1115 as ADS
     from adafruit_ads1x15.analog_in import AnalogIn
     from adafruit_ads1x15.ads1x15 import Mode
     import busio
     import board
+# If on a laptop/dev computer, above will fail
+# Import fake dev modules instead
 except:
-    # Uncomment below for fake adc simulation if using a PC
     from AnalogInFake import AnalogIn as AnalogIn
     import ADS1115Fake as ADS
     from adafruit_ads1x15.ads1x15 import Mode
-
 import csv
-import threading
 import shutil
-import os
-
 import file_rw
 import logObjects as lgOb
 import databaseOp as db
-import pandas as pd
-import matplotlib.pyplot as plt
-import matplotlib.animation as animation
 import os
-from decimal import Decimal
-import numpy as np
-from multiprocessing import Value, Pipe
+from multiprocessing import Value, Event
 import psutil
 
 
 class Logger():
 
-    # Replace global variables to OOP
     def __init__(self):
-        # Flag for multithreaded (GUI) use to be triggered to stop logging loop
+        # Flag for multithreaded (GUI) to see if error has occurred during import
         self.logEnbl = False
-        # Buffer for reading live data
-        self.adcValuesCompl = []
-        # Log object used to hold general settings, config file and log data
+        # Log object used to hold metadata and config data for log
         self.logComp = lgOb.LogMeta()
+        # Stores names of pins set to log
+        self.adcHeaders = []
+        # Stores AnalogIn objects of pins set to log
+        self.adcToLog = []
+
 
     # Initial Import and Setup
     def init(self, printFunc):
         self.logEnbl = True
         # dataRate of the A/D (see the ADS1115 datasheet for more info)
-        #global dataRate
         dataRate = 860
 
         # Create the I2C bus
-        #global i2c
         try:
             i2c = busio.I2C(board.SCL, board.SDA, frequency=1000000)
         except:
             i2c = "fake"
         # A/D Setup - Create 4 Global instances of ADS1115 ADC (16-bit) according to Adafruit Libraries
-        # (Objective 7)
+        # ValueError thrown if board not connected
+        # Not fatal as you could only be logging on one board
         try:
             adc0 = ADS.ADS1115(i2c, address=0x48, mode=Mode.SINGLE, data_rate=dataRate)
         except ValueError:
@@ -86,61 +75,48 @@ class Logger():
         except ValueError:
             adc3 = ""
 
+        # Store list of boards
         adcs = [adc0,adc1,adc2,adc3]
-        # Run Code to import general information
-        # (Objective 7)
+        # Run Code to import general metadata
         self.generalImport(printFunc)
         # Run code to import input settings
-        # (Objective 8)
-        try:
-            adcToLog, adcHeader = self.inputImport(adcs, printFunc)
-        # Input failed so stop log
-        except TypeError:
-            self.logEnbl = False
-            adcToLog = None
-            adcHeader = None
-        return adcToLog, adcHeader
-
+        self.inputImport(adcs, printFunc)
 
 
     # Import General Settings
-    # (Objective 7)
     def generalImport(self, printFunc):
         printFunc("Configuring General Settings... ", flush=True)
         try:
             # Gets the most recent log metadata from the database
             self.logComp = db.GetRecentMetaData()
             printFunc("Success!\n")
-        # Need to implement check in case retrieval is not possible
+        # If there is no data in database, alert user and stop log
         except ValueError:
             printFunc("ERROR - Have you sent over a log config.")
             self.logEnbl = False
 
 
-    # Import Input Settings
-    # (Objective 8)
+    # Import Input Settings for pins
     def inputImport(self,adcs,printFunc):
         printFunc("Configuring Input Settings... ", flush=True)
-        # For all sections but general, parse the data from config.C
-        # Create a new object for each one. The init method of the class then imports all the data as instance variables
         try:
-            # Gets the most recent config data from the database
+            # Gets the most recent config filepath from the database
             self.logComp.config_path = db.GetConfigPath(db.GetRecentId())
             try:
                 self.logComp.config = file_rw.ReadLogConfig(self.logComp.config_path)
+            # If file doesn't exist, alert user and stop log
             except TypeError:
                 printFunc("ERROR - Failed to read Input Settings - Have you sent over a log config")
                 self.logEnbl = False
 
             # List of pins to be logged and the list containing the logging functions
-            # global adcToLog
-            adcToLog = []
-            # global adcHeader
-            adcHeader = []
+            self.adcHeader = []
+            self.adcToLog = []
             # ADC Pin Map List - created now the gain information has been grabbed.
-            # This gives the list of possible functions that can be run to grab data from a pin.
+            # This gives the list of AnalogIn objects used to retrieve data from a pin
             pinDict = {0: ADS.P0, 1: ADS.P1, 2: ADS.P2, 3: ADS.P3}
             adcPinMap = {}
+            # Dynamically create adcPinMap depending on the boards connected
             for idx, adc in enumerate(adcs):
                 tempDict = {}
                 if adc != "":
@@ -148,23 +124,21 @@ class Logger():
                         tempDict["{}A{}".format(idx,i)] = AnalogIn(ads=adc, positive_pin=pinDict[i], gain=self.logComp.config[4 * idx + i].gain)
                     adcPinMap["{}AX".format(idx)] = tempDict
 
-            # Run code to choose which pins to be logged.
+            # Run code to find pins set to logged.
             for pin in self.logComp.config:
                 if pin.enabled == True:
-                    adcToLog.append(adcPinMap[pin.name[0] + "AX"][pin.name])
-                    adcHeader.append(pin.name)
+                    self.adcToLog.append(adcPinMap[pin.name[0] + "AX"][pin.name])
+                    self.adcHeader.append(pin.name)
                 else:
                     pass
-            printFunc("Success!")
 
-            # Check to see at least 1 input is enabled
-            # (Objective 8.1)
-            if len(adcToLog) == 0:
+            # Check to see at least 1 input is enable
+            if len(self.adcToLog) == 0:
                 printFunc("\nERROR - No Inputs set to Log! Please enable at least one input and try again")
                 self.logEnbl = False
-
+            else:
+                printFunc("Success!")
             self.logComp.SetEnabled()
-            return adcToLog, adcHeader
 
         # Exception raised when no config returned from database
         except ValueError:
@@ -177,37 +151,29 @@ class Logger():
             self.logEnbl = False
 
 
-    def checkName(self):
-        # Check that the most recent log has no data table
-        # If it does, create a new log in the database from the loaded in settings
+    # Checks that log test number hasn't already been used
+    # This is to stop database collisions if logger is rerun without uploading a new config
+    def checkTestNumber(self):
+        # Check that the most recent log has no data file
+        # If it does, increment the id and test number by one, and create a new database entry
         if db.CheckDataTable(str(self.logComp.id)) == True:
-            # Give new log entry a new name by adding a number on the end
-            # If there is already a number, increment the number by 1
-            #try:
-            #    nameNum = int(self.logComp.name.split(' ')[-1])
-            #    nameNum += 1
-            #    self.logComp.name = (' ').join(self.logComp.name.split(' ')[:-1]) + " " + str(nameNum)
-            #except ValueError:
-            #    nameNum = 1
-            #    self.logComp.name = self.logComp.name + " " + str(nameNum)
             self.logComp.id += 1
             self.logComp.test_number = db.GetTestNumber(self.logComp.name) + 1
             # Write new log entry to database
             db.WriteLog(self.logComp)
+            # Write copy of config settings under new log name
             file_rw.WriteLogConfig(self.logComp, self.logComp.name)
 
 
     # Output Current Settings
-    # (Objective 9)
     def settingsOutput(self,printFunc):
         # Print General Settings then Input Settings
         printFunc("\nCurrent General Settings:")
         metaData = self.logComp.GetMeta()
-        # Iterate through the metadata and print each key and value
+        # Iterate through the relevant metadata and print each key and value
         for key in metaData:
             printFunc("{}: {}".format(key.title(), metaData[key]))
         printFunc("\nCurrent Input Settings: (Settings Hidden for Disabled Inputs)")
-        x = 0
         printFunc("-" * 67)
         # Top Row Headings
         printFunc(
@@ -215,13 +181,10 @@ class Logger():
                                                                           "Gain", "Scale", "Unit"))
         printFunc("-" * 67)
         # Print input settings for each Pin
-        logNum = 0
         for pin in self.logComp.config:
             # Only print full settings if that channel is enabled
-            x += 1
             if pin.enabled == True:
-                logNum += 1
-                printFunc("|{:>2}|{:>4}|{:>5}|{:>10}|{:>10}|{:>4}|{:>7}{:>7}|{:>9}|".format(x, pin.name,
+                printFunc("|{:>2}|{:>4}|{:>5}|{:>10}|{:>10}|{:>4}|{:>7}{:>7}|{:>9}|".format(pin.id, pin.name,
                                                                                         str(pin.enabled),
                                                                                         pin.fName,
                                                                                         pin.inputType,
@@ -231,7 +194,7 @@ class Logger():
                                                                                         pin.units))
             # If channel not enabled
             else:
-                printFunc("|{:>2}|{:>4}|{:>5}|{:>10}|{:>10}|{:>4}|{:>7}{:>7}|{:>9}|".format(x, pin.name,
+                printFunc("|{:>2}|{:>4}|{:>5}|{:>10}|{:>10}|{:>4}|{:>7}{:>7}|{:>9}|".format(pin.id, pin.name,
                                                                                         str(pin.enabled),
                                                                                         "-",
                                                                                         "-",
@@ -250,7 +213,7 @@ class Logger():
         # Find out Size (in MB) of Each Row
         rowMBytes = 7 / 1e6
         # Find amount of MB written each second
-        MBEachSecond = (rowMBytes * logNum) / self.logComp.time
+        MBEachSecond = (rowMBytes * self.logComp.enabled) / self.logComp.time
         # Calculate time remaining using free space
         timeRemSeconds = remainingSpace / MBEachSecond
         # Add time in seconds to current datetime to give data it will run out of space
@@ -262,109 +225,90 @@ class Logger():
 
 
     # Logging Script
-    # (Objective 11)
-    def log(self, adcToLog, adcHeader, logEnbl, values):
+    # Normally this function is run in a separate process to everything else
+    # This is to make sure that logging is consistent, accurate and unaffected by GUI slowdowns.
+    def log(self, logEnbl, values):
+        # Sets the priority of the process higher
         p = psutil.Process(os.getpid())
         try:
             p.nice(psutil.IOPRIO_CLASS_RT)
+        # If run on a non-linux computer, this is needed instead
         except:
             p.nice(psutil.ABOVE_NORMAL_PRIORITY_CLASS)
-        # Set Time Interval
-        # (Objective 11.2)
+        # Get Time Interval
         timeInterval = float(self.logComp.time)
-        # Find the length of what each row will be in the CSV (from which A/D are being logged)
-        csvRows = len(adcToLog)
+        # Find the length of what each row will be in the CSV (from which pins are being logged)
+        csvRows = len(self.adcToLog)
         # Set up list to be printed to CSV
         adcValues = [0] * csvRows
         # Get timestamp for filename
         timeStamp = datetime.now().strftime("%Y%m%d-%H%M%S")
-        # Update date on database
-        # (Objective 11.1)
-        db.AddDate(timeStamp,self.logComp.id)
-        self.logComp.config_path = db.GetConfigPath(self.logComp.id)
-        file_rw.RenameConfig(self.logComp.config_path,timeStamp)
-        db.UpdateConfigPath(self.logComp.id,"files/outbox/conf{}.ini".format(timeStamp))
-        self.logComp.date = timeStamp
 
         # CSV - Create/Open CSV file and print headers
         with open('files/outbox/raw{}.csv'.format(timeStamp), 'w', newline='') as csvfile:
+            # Create csv writer
             writer = csv.writer(csvfile, dialect="excel", delimiter=',', quotechar='|', quoting=csv.QUOTE_MINIMAL)
-            writer.writerow(['Date/Time', 'Time Interval (seconds)'] + adcHeader)
-            #dataThread = threading.Thread(target=liveData)
-            #dataThread.start()
+            writer.writerow(['Date/Time', 'Time Interval (seconds)'] + self.adcHeader)
+            # Set start time use for calculating time interval and sleeping script for correct time
             startTime = time.perf_counter()
-            timeElapsed = 0
-            #while self.logEnbl and timeElapsed < 20:
+            # While set to log, log data
+            # Event is set by GUI when log is toggled
             while logEnbl.is_set() == False:
                 try:
-                    # Get time and send to Log
+                    # Get current datetime and time elapsed from start
                     currentDateTime = datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")
                     timeElapsed = round(time.perf_counter() - startTime, 2)
                     # Export Data to Spreadsheet inc current datetime and time elapsed
-                    for idx, pin in enumerate(adcToLog):
+                    # Set values array for live data output
+                    for idx, pin in enumerate(self.adcToLog):
                         adcValues[idx] = pin.value
                         values[idx] = pin.value
                     writer.writerow([currentDateTime] + [timeElapsed] + adcValues)
-                    # Copy list for data output and reset list values (so we can see if code fails)
-                    #self.adcValuesCompl = adcValues
-                    #sender.send(adcValues)
+                    # Reset list values (so we can see if code fails)
                     adcValues = [0] * csvRows
                 except OSError:
                     pass
                 # Work out time delay needed until next set of values taken based on user given value
                 # (Using some clever maths)
-                # (objective 11.2)
                 timeDiff = (time.perf_counter() - startTime)
                 time.sleep(timeInterval - (timeDiff % timeInterval))
-        #sender.close()
-        db.UpdateDataPath(self.logComp.id,"files/outbox/raw{}.csv".format(timeStamp))
+
+        self.logComp.date = timeStamp
+        # Update date on database
+        db.AddDate(self.logComp.date,self.logComp.id)
+        # Update config file
+        self.logComp.config_path = db.GetConfigPath(self.logComp.id)
+        file_rw.RenameConfig(self.logComp.config_path,self.logComp.date)
+        db.UpdateConfigPath(self.logComp.id,"files/outbox/conf{}.ini".format(self.logComp.date))
+        # Add path of raw data to database entry
+        db.UpdateDataPath(self.logComp.id,"files/outbox/raw{}.csv".format(self.logComp.date))
+        # Add size of log to database entry
         db.UpdateSize(self.logComp.id,file_rw.GetSize(db.GetDataPath(self.logComp.id)))
 
 
 
-    # Contains functions for normal run of logger
+    # Contains functions for running of logger
     # Starts the initialisation process
-    def run(self):
+    # This is done by GUI normally
+    def run(self, printFunc):
         # Load Config Data and Setup
-        adcToLog, adcHeader = self.init()
+        self.init(printFunc)
         # Only continue if import was successful
         if self.logEnbl is True:
-            self.checkName()
+            self.checkTestNumber()
             # Print Settings
-            self.settingsOutput()
+            self.settingsOutput(printFunc)
             # Run Logging
-            self.log(adcToLog,adcHeader)
+            self.log()
         else:
             self.logEnbl = False
 
 
-    # Only pickle pickleable attributes
-    def __getstate__(self):
-        # Copy the object's state from self.__dict__ which contains
-        # all our instance attributes. Always use the dict.copy()
-        # method to avoid modifying the original state.
-        state = self.__dict__.copy()
-        # Remove the unpicklable entries.
-        del state['logComp']
-        return state
-
-    def __setstate__(self, state):
-        # Restore instance attributes (i.e., filename and lineno).
-        self.__dict__.update(state)
-        self.logComp = db.GetRecentMetaData()
-        self.logComp.config_path = db.GetConfigPath(db.GetRecentId())
-        self.logComp.config = file_rw.ReadLogConfig(self.logComp.config_path)
-        self.logComp.SetEnabled()
-
-
-
-# This is the code that is run when the program is loaded.
-# If the module were to be imported, the code inside the if statement would not run.
-# Calls the init() function and then the log() function
+# If script run from CLI, alert user that it may not work
 if __name__ == "__main__":
     # Warning about lack of CSV
     print("\nWARNING - running this script directly may produce a blank CSV. "
           "\nIf you need data to be recorded, use 'gui.py'\n")
     # Run logger as per normal setup
     logger = Logger()
-    logger.run()
+    logger.run(print)
