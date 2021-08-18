@@ -304,11 +304,10 @@ class Logger():
             self.logEnbl = False
 
 
-# If script run from CLI, alert user that it may not work
+# This is the code that is run when the program is loaded.
+# If the module were to be imported, the code inside the if statement would not run.
 if __name__ == "__main__":
-    # Warning about lack of CSV
-    print("\nWARNING - running this script directly may produce a blank CSV. "
-          "\nIf you need data to be recorded, use 'gui.py'\n")
-    # Run logger as per normal setup
-    logger = Logger()
-    logger.run(print)
+    # Warning that logger will not work
+    print("\nWARNING - This script cannot be run directly."
+          "\nPlease run 'main.py' to start the logger, or use the desktop icon.\n")
+    # Script will exit

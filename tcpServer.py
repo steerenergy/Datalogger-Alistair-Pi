@@ -515,9 +515,10 @@ def run(connTcp, exitTcp):
     logWrite("Server closed")
 
 
-# Initiates the tcpServer if it has been run without using main.py
+# This is the code that is run when the program is loaded.
+# If the module were to be imported, the code inside the if statement would not run.
 if __name__ == "__main__":
-    print("\nWARNING - running this script directly will not start the gui "
-          "\nIf you want to use the Pi's touchscreen program, run 'main.py' instead\n")
-    # Run server as per normal setup
-    run(connTcp=None, exitTcp=None)
+    # Warning that logger will not work
+    print("\nWARNING - This script cannot be run directly."
+          "\nPlease run 'main.py' to start the logger, or use the desktop icon.\n")
+    # Script will exit
