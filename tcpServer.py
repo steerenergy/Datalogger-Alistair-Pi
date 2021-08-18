@@ -125,11 +125,9 @@ class TcpClient():
         newLog.work_pack = metadata[1]
         newLog.job_sheet = metadata[2]
         newLog.name = metadata[3]
-        newLog.date = metadata[4]
-        newLog.time = metadata[5]
-        newLog.loggedBy = metadata[6]
-        newLog.downloadedBy = metadata[7]
-        newLog.description = metadata[8]
+        newLog.time = metadata[4]
+        newLog.loggedBy = metadata[5]
+        newLog.description = metadata[6]
         # Get the current test number for the name
         # If there are no logs with the name, returns 0
         newLog.test_number = db.GetTestNumber(newLog.name)
@@ -245,7 +243,7 @@ class TcpClient():
                         + str(logMeta.work_pack) + '\u001f' + str(logMeta.job_sheet)
                         + '\u001f' + logMeta.name + '\u001f' + str(logMeta.test_number)
                         + '\u001f' + str(logMeta.date) + '\u001f' + str(logMeta.time)
-                       +'\u001f'+ logMeta.loggedBy + '\u001f' + logMeta.downloadedBy
+                       +'\u001f'+ logMeta.loggedBy + '\u001f' + str(logMeta.data_path)
                         + '\u001f' + logMeta.description)
             self.TcpSend(metaData)
             # Write data for each pin to a packet and send them to client
@@ -258,8 +256,6 @@ class TcpClient():
                             + str(f"{Decimal(pin.m):.14f}").rstrip('0').rstrip('.') + '\u001f'
                             + str(f"{Decimal(pin.c):.14f}").rstrip('0').rstrip('.'))
                 self.TcpSend(pinData)
-            # Send the path of the log to the client so client can use SFTP to download
-            self.TcpSend(db.GetDataPath(logMeta.id))
             logQueue.task_done()
 
 

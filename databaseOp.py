@@ -22,7 +22,7 @@ def setupDatabase():
                                         job_sheet integer NOT NULL DEFAULT 0,
                                         name text NOT NULL,
                                         test_number integer NOT NULL DEFAULT 0,
-                                        date text NOT NULL,
+                                        date text,
                                         time real NOT NULL,
                                         logged_by text,
                                         downloaded_by text,
@@ -58,11 +58,11 @@ def setupDatabase():
 def WriteLog(newLog):
     global database
     # Get list of values to write
-    valuesList = [newLog.name, newLog.date, newLog.time, newLog.loggedBy,
-                  newLog.downloadedBy, newLog.description, newLog.project,
+    valuesList = [newLog.name, newLog.time, newLog.loggedBy,
+                  newLog.description, newLog.project,
                   newLog.work_pack, newLog.job_sheet, newLog.test_number]
-    sql_insert_metadata = """INSERT INTO main (name, date, time, logged_by, downloaded_by, description, project, work_pack, job_sheet, test_number)
-                                        VALUES(?,?,?,?,?,?,?,?,?,?);"""
+    sql_insert_metadata = """INSERT INTO main (name, time, logged_by, description, project, work_pack, job_sheet, test_number)
+                                        VALUES(?,?,?,?,?,?,?,?);"""
     conn = sqlite3.connect(database)
     cur = conn.cursor()
     # Execute sql statement and commit
@@ -77,11 +77,11 @@ def WriteLog(newLog):
 def UpdateLog(newLog):
     global database
     # This can probably be optimised, do if have time
-    valuesList = [newLog.name, newLog.date, newLog.time, newLog.loggedBy,
-                  newLog.downloadedBy, newLog.description, newLog.project,
+    valuesList = [newLog.name, newLog.time, newLog.loggedBy,
+                  newLog.description, newLog.project,
                   newLog.work_pack, newLog.job_sheet, newLog.test_number, newLog.id]
     sql_insert_metadata = """UPDATE main 
-                             SET name = ?, date = ?, time = ?, logged_by = ?, downloaded_by = ?, description = ?, project = ?, work_pack = ?, job_sheet = ?, test_number = ?
+                             SET name = ?, time = ?, logged_by = ?, description = ?, project = ?, work_pack = ?, job_sheet = ?, test_number = ?
                              WHERE id = ?;"""
     conn = sqlite3.connect(database)
     cur = conn.cursor()
@@ -127,9 +127,9 @@ def GetRecentMetaData():
     logMeta.job_sheet = row[3]
     logMeta.name = row[4]
     logMeta.test_number = row[5]
-    logMeta.time = row[7]
-    logMeta.loggedBy = row[8]
-    logMeta.description = row[10]
+    logMeta.time = row[6]
+    logMeta.loggedBy = row[7]
+    logMeta.description = row[8]
     conn.close()
     return logMeta
 
@@ -238,7 +238,7 @@ def ReadLog(id):
     logMeta = lgOb.LogMeta()
     # Get the metadata for the log from main table
     row = cur.execute('SELECT id, project, work_pack, job_sheet, name, test_number, date, time, ' +
-                      'logged_by, downloaded_by, config, data, size, description FROM main WHERE id = ?;',[str(id)]).fetchone()
+                      'logged_by, data, config, description FROM main WHERE id = ?;',[str(id)]).fetchone()
     # Create new logMeta from data
     logMeta.id = row[0]
     logMeta.project = row[1]
@@ -249,11 +249,9 @@ def ReadLog(id):
     logMeta.date = row[6]
     logMeta.time = row[7]
     logMeta.loggedBy = row[8]
-    logMeta.downloadedBy = row[9]
+    logMeta.data_path = row[9]
     logMeta.config_path = row[10]
-    logMeta.data_path = row[11]
-    logMeta.size = row[12]
-    logMeta.description = row[13]
+    logMeta.description = row[11]
     if logMeta.description == None:
         logMeta.description = ""
     # Get config data for log
