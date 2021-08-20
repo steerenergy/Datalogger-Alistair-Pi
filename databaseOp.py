@@ -179,9 +179,6 @@ def ReadConfigMeta(id):
     # Retrieves time interval, description, name, project, work_pack and job_sheet
     values = cur.execute("SELECT time, description, name, project, work_pack, job_sheet FROM main WHERE id = ?;",[id]).fetchone()
     conn.close()
-    # If description is None, set to empty string
-    if values[1] == None:
-        values[1] = ""
     return values
 
 
