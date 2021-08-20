@@ -55,6 +55,7 @@ def setupDatabase():
     empty = ""
     cur.execute("UPDATE main SET downloaded_by = ? WHERE downloaded_by is NULL;",[empty])
     cur.execute("UPDATE main SET description = ? WHERE description is NULL;",[empty])
+    conn.commit()
     conn.close()
     return
 
