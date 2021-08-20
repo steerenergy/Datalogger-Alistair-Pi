@@ -50,6 +50,11 @@ def setupDatabase():
     if rows != None:
         for row in rows:
             UpdateSize(row[0],file_rw.GetSize(GetDataPath(row[0])))
+
+    # If downloaded_by or description are NULL, set to empty string
+    empty = ""
+    cur.execute("UPDATE main SET downloaded_by = ? WHERE downloaded_by is NULL;",[empty])
+    cur.execute("UPDATE main SET description = ? WHERE description is NULL;",[empty])
     conn.close()
     return
 
