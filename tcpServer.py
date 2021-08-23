@@ -161,6 +161,7 @@ class TcpClient():
         # Instruct the GUI to print the config settings received
         self.connTcp.send("Print")
         self.connTcp.send("\nConfig for " + newLog.name + " received.")
+        self.connTcp.send("Time interval: {}".format(newLog.time))
         for pin in newLog.config:
             if pin.enabled is True:
                 # Print settings for each pin enabled
