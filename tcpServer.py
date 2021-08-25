@@ -69,7 +69,7 @@ class TcpClient():
         except ConnectionError or ConnectionResetError or ConnectionAbortedError:
             # Log forced disconnect and close client connection
             self.quitEvent.set()
-            logWrite(self.address[0] + " disconnected.")
+            #logWrite(self.address[0] + " disconnected.")
         return
 
 
@@ -96,7 +96,7 @@ class TcpClient():
         while len(rows) < 16:
             data = self.TcpReceive()
             rows.append(data.split('\u001f'))
-        logWrite("Config Received")
+        logWrite(self.address[0] + " Config Received")
         # Iterate through rows of data
         # One row contains settings for one Pin
         for i in range(0, 16):
@@ -131,7 +131,7 @@ class TcpClient():
         # Get the current test number for the name
         # If there are no logs with the name, returns 0
         newLog.test_number = db.GetTestNumber(newLog.name)
-        logWrite("Metadata received")
+        logWrite(self.address[0] + " Metadata received")
 
         # Receive all config settings using ReceiveConfig()
         newLog.config = self.ReceiveConfig()
@@ -203,6 +203,7 @@ class TcpClient():
             packet += pin.units
             # Send Pin data packet to client
             self.TcpSend(packet)
+        logWrite(self.address[0] + " Sent config " + path)
         return
 
 
@@ -213,6 +214,7 @@ class TcpClient():
         requestedLogs = self.TcpReceive().split('\u001f')
         if requestedLogs == ['No_Logs_Requested']:
             self.TcpSend(str(0))
+            logWrite(self.address[0] + " no logs requested")
             return
         # Hold logs to be sent to the client in a queue
         logQueue = Queue()
@@ -257,6 +259,7 @@ class TcpClient():
                             + str(f"{Decimal(pin.m):.14f}").rstrip('0').rstrip('.') + '\u001f'
                             + str(f"{Decimal(pin.c):.14f}").rstrip('0').rstrip('.'))
                 self.TcpSend(pinData)
+            logWrite(self.address[0] + " Sent log " + logMeta.name + " " + str(logMeta.test_number))
             logQueue.task_done()
 
 
@@ -267,6 +270,7 @@ class TcpClient():
         # Sends GUI response back to client
         response = self.connTcp.recv()
         self.TcpSend(response)
+        logWrite(self.address[0] + (" Logger Response: ") + response)
 
 
     # Stops a log from a TCP command
@@ -276,6 +280,7 @@ class TcpClient():
         # Sends GUi response back to client
         response = self.connTcp.recv()
         self.TcpSend(response)
+        logWrite(self.address[0] + (" Logger Response: ") + response)
 
 
     # Receives search criteria from client and searches for a log
@@ -349,6 +354,7 @@ class TcpClient():
                        + pin.inputType + '\u001f' + str(pin.gain) + '\u001f' + str(pin.scaleMin) + '\u001f'
                        + str(pin.scaleMax) + '\u001f' + pin.units + '\u001f' + str(Decimal(pin.m)) + '\u001f' + str(Decimal(pin.c)))
             self.TcpSend(pinData)
+        logWrite(self.address[0] + " Sent config " + db.GetConfigPath(requestedConfig))
         return
 
 
@@ -369,6 +375,7 @@ class TcpClient():
             for value in row:
                 line += str(value) + "\u001f"
             self.TcpSend(line.rstrip("\u001f"))
+        logWrite(self.address[0] + " Database Exported")
         return
 
 
@@ -393,18 +400,13 @@ class TcpClient():
         # Closed is sent when user doesn't change username on the client application
         if user != "Closed":
             self.user = self.TcpReceive()
+        logWrite(self.address[0] + " user changed to " + self.user)
 
 
     # Client interfaces with logger using commands sent using TCP
     # Subroutine receives incoming commands from client and handles them
     def CommandHandler(self):
         try:
-            # Receive username
-            self.user = self.TcpReceive()
-            # If this is a test connection, close connection
-            if self.user == "Quit":
-                logWrite(self.address[0] + " quitting.")
-                self.quitEvent.set()
             # Whilst connection is not set to be closed, listen for commands
             while self.quitEvent.is_set() is False and self.exitTcp.is_set() is False:
                 command = self.TcpReceive()
@@ -432,7 +434,7 @@ class TcpClient():
                     self.quitEvent.set()
                 else:
                     # Note: This is only really relevant for CLI interactions with server
-                    self.TcpSend("Command not recognised\n")
+                    self.TcpSend("Command not recognised")
         except ConnectionAbortedError or ConnectionError or ConnectionResetError or BrokenPipeError:
             self.quitEvent.set()
             # Log forced disconnect i.e. if the user program is not closed properly
@@ -499,8 +501,16 @@ def run(connTcp, exitTcp):
             # Create new thread to deal with new client
             # This allows multiple clients to connect at once
             new_client = TcpClient(client_socket, address, connTcp, exitTcp)
-            worker = Thread(target=new_client.CommandHandler, args=())
-            worker.start()
+            # Receive username
+            user = new_client.TcpReceive()
+            # If this is a test connection, close connection
+            if user != "Quit":
+                new_client.user = user
+                worker = Thread(target=new_client.CommandHandler, args=())
+                worker.start()
+            else:
+                logWrite(new_client.address[0] + " quitting.")
+                new_client = None
 
             # Log Connection
             logWrite(address[0] + " connected.")
