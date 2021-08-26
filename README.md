@@ -33,5 +33,5 @@ If you encounter an issue whilst using the application, please report the issue 
 * Steps to reproduce the issue
 * 'piError.log' for a Logger Issue
 
-Any questions, message Alistair-L-R
+Any questions, message Alistair-L-R.
 Happy Logging!
