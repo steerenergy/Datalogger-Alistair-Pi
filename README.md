@@ -25,7 +25,7 @@ You can install the project by going onto a Raspberry Pi 3B+ terminal and using 
 If you wish to develop this project, you will need to be added to the steerenergy organisation and you will need to speak to Alistair-L-R or NickRyanSteer to get the required documents. **Note: It is unlikely this project will need development unless Steer Energy directly ask for it and have a need for further development.**
 
 ## Issues
-If you encounter an issue whilst using the application, please report the issue [here](https://github.com/steerenergy/Datalogger-Alistair-UI/issues) and we will try to fix it as soon as possible. In your report, please include these details if applicable:
+If you encounter an issue whilst using the application, please report the issue [here](https://github.com/steerenergy/Datalogger-Alistair-Pi/issues) and we will try to fix it as soon as possible. In your report, please include these details if applicable:
 * The version of the software
 * Error messages - screenshots ideal
 * Screenshots/Photos to show issues
