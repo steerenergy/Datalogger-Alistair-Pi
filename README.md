@@ -19,7 +19,7 @@ This project was written mainly in Python 3.8.8 and was created with:
 * Adafruit ADS1115 Analog to Digital Converters
 
 ## Installation
-You can install the project by going onto a Raspberry Pi 3B+ terminal and using 'git clone https://github.com/steerenergy/Datalogger-Alistair-Pi.git' to clone the Github repository into a location of your choosing. Then you can start the application using 'python3 main.py' to begin the logger. More details on installation can be found in the Technical Documentation and the RPI Setup Guide. Ask NickRyanSteer or Alistair-L-R if you want the documentation.
+You can install the project by going onto a Raspberry Pi 3B+ terminal and using `git clone https://github.com/steerenergy/Datalogger-Alistair-Pi.git` to clone the Github repository into a location of your choosing. Then you can start the application using `python3 main.py` to begin the logger. More details on installation can be found in the Technical Documentation and the RPI Setup Guide. Ask NickRyanSteer or Alistair-L-R if you want the documentation.
 
 ## Development
 If you wish to develop this project, you will need to be added to the steerenergy organisation and you will need to speak to Alistair-L-R or NickRyanSteer to get the required documents. **Note: It is unlikely this project will need development unless Steer Energy directly ask for it and have a need for further development.**
