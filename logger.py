@@ -227,7 +227,7 @@ class Logger():
     # Logging Script
     # Normally this function is run in a separate process to everything else
     # This is to make sure that logging is consistent, accurate and unaffected by GUI slowdowns.
-    def log(self, logEnbl, values):
+    def log(self, logEnbl, values, readOnce):
         # Sets the priority of the process higher
         p = psutil.Process(os.getpid())
         try:
@@ -253,7 +253,7 @@ class Logger():
             startTime = time.perf_counter()
             # While set to log, log data
             # Event is set by GUI when log is toggled
-            while logEnbl.is_set() == False:
+            while not logEnbl.is_set():
                 try:
                     # Get current datetime and time elapsed from start
                     currentDateTime = datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")
@@ -264,6 +264,8 @@ class Logger():
                         adcValues[idx] = pin.value
                         values[idx] = pin.value
                     writer.writerow([currentDateTime] + [timeElapsed] + adcValues)
+                    if (readOnce.is_set() == False):
+                        readOnce.set()
                     # Reset list values (so we can see if code fails)
                     adcValues = [0] * csvRows
                 except OSError:
