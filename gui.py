@@ -90,6 +90,7 @@ class WindowTop(Frame):
         self.logProcess = None
         self.stop = None
         self.values = None
+        self.readOnce = None
 
         # Will later hold liveDataThread
         self.liveDataThread = None
@@ -150,8 +151,10 @@ class WindowTop(Frame):
                 # values array stores a copy of the most recent values logged
                 # Used by the live data output to retrieve the data
                 self.values = Array('f', self.logger.logComp.enabled, lock=True)
+                # read once event tells gui once values have been read at least once
+                self.readOnce = Event()
                 # Setup and start log process
-                self.logProcess = Process(target=self.logger.log, args=(self.stop, self.values))
+                self.logProcess = Process(target=self.logger.log, args=(self.stop, self.values, self.readOnce))
                 self.logProcess.start()
             # If settings import fails, stop the log startup
             # The reason for failure will be displayed to user in the Live Data Textbox
@@ -323,7 +326,11 @@ class WindowTop(Frame):
         buffer = [0] * self.logger.logComp.enabled
 
         # Don't print live data when logging has not started
-        while not self.logger.logEnbl or 0 in self.values[:]:
+        while not self.logger.logEnbl:
+            pass
+
+        # Wait until all values have been read once
+        while not self.readOnce.is_set():
             pass
 
         # When data has arrived, set startTime and drawTime for live graph
