@@ -9,8 +9,7 @@ import logObjects as lgOb
 database = r"logs.db"
 
 # Creates the main table in the database if it doesn't already exist
-# Also checks that all entries have raw data paths and sizes
-# If any don't, it will attempt to find them
+# Runs DatabaseCheck() to check various values are valid and correct
 def setupDatabase():
     global database
     # SQL statement to create main table
@@ -35,28 +34,8 @@ def setupDatabase():
     cur = conn.cursor()
     cur.execute(sql_create_main_table)
     conn.commit()
-
-    # Scan through database and find any entries missing logData
-    # Try to find data file and update
-    rows = cur.execute("SELECT id, date FROM main WHERE data is NULL;").fetchall()
-    if rows != None:
-        for row in rows:
-            path = file_rw.CheckData(row[1])
-            if path != "":
-                UpdateDataPath(row[0],path)
-
-    # Find entries with data and no size and update size
-    rows = cur.execute("SELECT id FROM main WHERE data is NOT NULL AND size is NULL;").fetchall()
-    if rows != None:
-        for row in rows:
-            UpdateSize(row[0],file_rw.GetSize(GetDataPath(row[0])))
-
-    # If downloaded_by or description are NULL, set to empty string
-    empty = ""
-    cur.execute("UPDATE main SET downloaded_by = ? WHERE downloaded_by is NULL;",[empty])
-    cur.execute("UPDATE main SET description = ? WHERE description is NULL;",[empty])
-    conn.commit()
     conn.close()
+    DatabaseCheck()
     return
 
 
@@ -361,6 +340,53 @@ def GetDatabase():
     data = cur.execute("SELECT * FROM main").fetchall()
     conn.close()
     return info, data
+
+
+# Checks that various values in database are valid and correct
+# Checks that file paths tie to files
+def DatabaseCheck():
+    global database
+    conn = sqlite3.connect(database)
+    cur = conn.cursor()
+
+    # Scan through database and find any entries missing logData
+    # Try to find data file and update
+    rows = cur.execute("SELECT id, date FROM main WHERE data is NULL;").fetchall()
+    if rows != None:
+        for row in rows:
+            path = file_rw.CheckData(row[1])
+            if path != "":
+                UpdateDataPath(row[0], path)
+
+    # Find entries with logData and make sure file still exists
+    rows = cur.execute("SELECT id, data FROM main WHERE data IS NOT NULL;").fetchall()
+    if rows != None:
+        for row in rows:
+            path = file_rw.CheckData(row[1])
+            if path == "":
+                UpdateDataPath(row[0], None)
+
+    # Find entries with data and no size and update size
+    rows = cur.execute("SELECT id FROM main WHERE data is NOT NULL AND size is NULL;").fetchall()
+    if rows != None:
+        for row in rows:
+            UpdateSize(row[0], file_rw.GetSize(GetDataPath(row[0])))
+
+    # Find entries with config and make sure file still exists
+    rows = cur.execute("SELECT id, config FROM main WHERE config IS NOT NULL;").fetchall()
+    if rows != None:
+        for row in rows:
+            path = file_rw.CheckData(row[1])
+            if path != "":
+                UpdateConfigPath(row[0], None)
+
+    # If downloaded_by or description are NULL, set to empty string
+    empty = ""
+    cur.execute("UPDATE main SET downloaded_by = ? WHERE downloaded_by is NULL;", [empty])
+    cur.execute("UPDATE main SET description = ? WHERE description is NULL;", [empty])
+    conn.commit()
+    conn.close()
+    return
 
 # This is the code that is run when the program is loaded.
 # If the module were to be imported, the code inside the if statement would not run.

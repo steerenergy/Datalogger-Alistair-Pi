@@ -108,6 +108,10 @@ class Logger():
             except TypeError:
                 printFunc("ERROR - Failed to read Input Settings - Have you sent over a log config")
                 self.logEnbl = False
+            except FileNotFoundError:
+                printFunc("ERROR - Failed to read Input Settings - Have you sent over a log config")
+                db.DatabaseCheck()
+                self.logEnbl = False
 
             # List of pins to be logged and the list containing the logging functions
             self.adcHeader = []

@@ -36,7 +36,8 @@ class TcpClient():
     # Used to send TCP data to client
     # Errors will be caught by commandHandler
     def TcpSend(self, data):
-        self.client_socket.send(bytes(data + "\u0004", "utf-8"))
+        if not self.quitEvent.is_set():
+            self.client_socket.send(bytes(data + "\u0004", "utf-8"))
 
 
     # Receives data from client
@@ -186,6 +187,11 @@ class TcpClient():
             # If no logs have been logged, there will be no recent interval or config
             self.TcpSend("No Config Found")
             return
+        except FileNotFoundError:
+            # If the config file cannot be found, tell user
+            self.TcpSend("No Config Found")
+            db.DatabaseCheck()
+            return
         # Sends the metadata to the users computer
         for value in values:
             self.TcpSend(str(value))
@@ -228,8 +234,13 @@ class TcpClient():
         # Read each requested log and add to the queue of logs to be sent
         for log in requestedLogs:
             db.SetDownloaded(log, self.user)
-            logMeta = db.ReadLog(log)
-            logQueue.put(logMeta)
+            try:
+                logMeta = db.ReadLog(log)
+                logQueue.put(logMeta)
+            except FileNotFoundError:
+                db.DatabaseCheck()
+                logMeta = lgOb.LogMeta(name=db.GetName(log),config="Not_Found")
+                logQueue.put(logMeta)
         allRead.set()
         # Wait until logQueue is empty and all logs have been sent
         # Also will close streamLog thread
@@ -241,26 +252,31 @@ class TcpClient():
         while allRead.is_set() is False or logQueue.unfinished_tasks > 0:
             # Dequeue one log from the log queue
             logMeta = logQueue.get()
-            # Write the metadata to a packet and send to client
-            metaData = (str(logMeta.id) + '\u001f' + str(logMeta.project) + '\u001f'
-                        + str(logMeta.work_pack) + '\u001f' + str(logMeta.job_sheet)
-                        + '\u001f' + logMeta.name + '\u001f' + str(logMeta.test_number)
-                        + '\u001f' + str(logMeta.date) + '\u001f' + str(logMeta.time)
-                       +'\u001f'+ logMeta.loggedBy + '\u001f' + str(logMeta.data_path)
-                        + '\u001f' + logMeta.description)
-            self.TcpSend(metaData)
-            # Write data for each pin to a packet and send them to client
-            for pin in logMeta.config:
-                pinData = (str(pin.id) + '\u001f' + pin.name + '\u001f'
-                            + str(pin.enabled) + '\u001f' + pin.fName + '\u001f'
-                            + pin.inputType + '\u001f' + str(pin.gain) + '\u001f'
-                            + str(pin.scaleMin) + '\u001f'+ str(pin.scaleMax) + '\u001f'
-                            + pin.units + '\u001f'
-                            + str(f"{Decimal(pin.m):.14f}").rstrip('0').rstrip('.') + '\u001f'
-                            + str(f"{Decimal(pin.c):.14f}").rstrip('0').rstrip('.'))
-                self.TcpSend(pinData)
-            logWrite(self.address[0] + " Sent log " + logMeta.name + " " + str(logMeta.test_number))
-            logQueue.task_done()
+            if logMeta.config == "Not_Found":
+                self.TcpSend("Config_Not_Found")
+                self.TcpSend("Config for {} not found, skipping download.".format(logMeta.name))
+                logQueue.task_done()
+            else:
+                # Write the metadata to a packet and send to client
+                metaData = (str(logMeta.id) + '\u001f' + str(logMeta.project) + '\u001f'
+                            + str(logMeta.work_pack) + '\u001f' + str(logMeta.job_sheet)
+                            + '\u001f' + logMeta.name + '\u001f' + str(logMeta.test_number)
+                            + '\u001f' + str(logMeta.date) + '\u001f' + str(logMeta.time)
+                            +'\u001f'+ logMeta.loggedBy + '\u001f' + str(logMeta.data_path)
+                            + '\u001f' + logMeta.description)
+                self.TcpSend(metaData)
+                # Write data for each pin to a packet and send them to client
+                for pin in logMeta.config:
+                    pinData = (str(pin.id) + '\u001f' + pin.name + '\u001f'
+                                + str(pin.enabled) + '\u001f' + pin.fName + '\u001f'
+                                + pin.inputType + '\u001f' + str(pin.gain) + '\u001f'
+                                + str(pin.scaleMin) + '\u001f'+ str(pin.scaleMax) + '\u001f'
+                                + pin.units + '\u001f'
+                                + str(f"{Decimal(pin.m):.14f}").rstrip('0').rstrip('.') + '\u001f'
+                                + str(f"{Decimal(pin.c):.14f}").rstrip('0').rstrip('.'))
+                    self.TcpSend(pinData)
+                logWrite(self.address[0] + " Sent log " + logMeta.name + " " + str(logMeta.test_number))
+                logQueue.task_done()
 
 
     # Starts a log from a TCP command
@@ -343,8 +359,13 @@ class TcpClient():
             return
         # Read config metadata from database
         values = db.ReadConfigMeta(requestedConfig)
-        # Read config pin data from file
-        config = file_rw.ReadLogConfig(db.GetConfigPath(requestedConfig))
+        try:
+            # Read config pin data from file
+            config = file_rw.ReadLogConfig(db.GetConfigPath(requestedConfig))
+        except FileNotFoundError:
+            self.TcpSend("No_Config_Found")
+            db.DatabaseCheck()
+            return
         # Send config metadata to client
         for value in values:
             self.TcpSend(str(value))

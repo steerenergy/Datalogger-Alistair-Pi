@@ -35,6 +35,8 @@ def ReadLogConfig(path):
                 pin.m = config[section].getfloat('m')
                 pin.c = config[section].getfloat('c')
             configData.append(pin)
+    if configData == []:
+        raise FileNotFoundError
     return configData
 
 
@@ -53,7 +55,6 @@ def WriteLogConfig(log,name):
         file_data += "project = " + str(log.project) + "\n"
         file_data += "workpack = " + str(log.work_pack) + "\n"
         file_data += "jobsheet = " + str(log.job_sheet) + "\n\n"
-
         # Iterate through each Pin and write the data for that Pin
         for pin in log.config:
             file_data += "[" + pin.name + "]\n"
@@ -82,9 +83,7 @@ def RenameConfig(path,timestamp):
 
 
 # Used to check if a raw data file exists for a log
-# This is done using the date of the log as all raw data files are name using the date
-def CheckData(date):
-    rawpath = "files/outbox/raw{}.csv".format(date)
+def CheckData(rawpath):
     # If the file exists, return the path of the file
     if path.exists(rawpath):
         return rawpath

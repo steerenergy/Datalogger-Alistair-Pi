@@ -18,23 +18,26 @@ class Pin():
 # Holds metadata and config about a log
 class LogMeta():
 
-    def __init__(self):
-        self.id = 0
-        self.project = 0
-        self.work_pack = 0
-        self.job_sheet = 0
-        self.name = ""
-        self.test_number = 0
-        self.date = ""
-        self.time = 0
-        self.loggedBy = ""
-        self.downloadedBy = ""
-        self.config = []
-        self.enabled = 0
-        self.config_path = ""
-        self.data_path = ""
-        self.size = 0
-        self.description = ""
+    def __init__(self, id=0, project=0, work_pack=0, job_sheet=0, name = "", test_number=0, date="", time=0,
+                 loggedBy="", downloadedBy="", config=None, enabled=0, config_path="", data_path="", size=0, description=0):
+        if config is None:
+            config = []
+        self.id = id
+        self.project = project
+        self.work_pack = work_pack
+        self.job_sheet = job_sheet
+        self.name = name
+        self.test_number = test_number
+        self.date = date
+        self.time = time
+        self.loggedBy = loggedBy
+        self.downloadedBy = downloadedBy
+        self.config = config
+        self.enabled = enabled
+        self.config_path = config_path
+        self.data_path = data_path
+        self.size = size
+        self.description = description
 
     # Returns the metadata printed at the start of a log
     def GetMeta(self):
