@@ -201,7 +201,7 @@ def SearchLog(args):
             sql += key + " = ? AND "
             values.append(args[key])
     # Add data is NOT NULL to make sure only logs with datafiles can be downloaded
-    sql += "data IS NOT NULL;"
+    sql += "config IS NOT NULL AND data IS NOT NULL;"
     # Fetch all logs that match query
     logs = cur.execute(sql,values).fetchall()
     # If no logs found, throw error which is caught
@@ -354,7 +354,7 @@ def DatabaseCheck():
     rows = cur.execute("SELECT id, date FROM main WHERE data is NULL;").fetchall()
     if rows != None:
         for row in rows:
-            path = file_rw.CheckData(row[1])
+            path = file_rw.CheckData("files/outbox/raw{}.csv".format(row[1]))
             if path != "":
                 UpdateDataPath(row[0], path)
 
