@@ -1,6 +1,4 @@
-from queue import Queue
-
-# Holds data about a single pin/channel
+# Holds data about a single ads1115 pin/channel
 class Pin():
 
     def __init__(self):
@@ -17,101 +15,54 @@ class Pin():
         self.c = 0
 
 
-# Acts as a configfile, holding information about all the pins/channels
-class ConfigFile():
-    pinList = []
-    enabled = 0
+# Holds metadata and config about a log
+class LogMeta():
 
-    def __init__(self):
-        self.pinList = []
-        self.enabled = 0
+    def __init__(self, id=0, project=0, work_pack=0, job_sheet=0, name = "", test_number=0, date="", time=0,
+                 loggedBy="", downloadedBy="", config=None, enabled=0, config_path="", data_path="", size=0, description=0):
+        if config is None:
+            config = []
+        self.id = id
+        self.project = project
+        self.work_pack = work_pack
+        self.job_sheet = job_sheet
+        self.name = name
+        self.test_number = test_number
+        self.date = date
+        self.time = time
+        self.loggedBy = loggedBy
+        self.downloadedBy = downloadedBy
+        self.config = config
+        self.enabled = enabled
+        self.config_path = config_path
+        self.data_path = data_path
+        self.size = size
+        self.description = description
 
-    # Used to return a Pin object from their name
+    # Returns the metadata printed at the start of a log
+    def GetMeta(self):
+        values = {'id': self.id, 'project': self.project, 'work pack': self.work_pack, 'job sheet': self.job_sheet,
+                  'name': self.name, 'test number': self.test_number, 'time interval': self.time,
+                  'logged by': self.loggedBy, 'description': self.description}
+        return values
+
+    # Used to return the Pin object corresponding to a name
     def GetPin(self,name):
-        for pin in self.pinList:
+        for pin in self.config:
             if pin.name == name:
                 return pin
 
+    # Set enabled to the number of pins enabled
     def SetEnabled(self):
-        for pin in self.pinList:
+        for pin in self.config:
             if pin.enabled:
                 self.enabled += 1
 
 
-# Holds all data about a log
-# Contains a ConfigFile and LogData object
-class LogMeta():
-
-    def __init__(self):
-        self.id = 0
-        self.project = 0
-        self.work_pack = 0
-        self.job_sheet = 0
-        self.name = ""
-        self.test_number = 0
-        self.date = ""
-        self.time = 0
-        self.loggedBy = ""
-        self.downloadedBy = ""
-        self.config = ConfigFile()
-        self.config_path = ""
-        self.data_path = ""
-        self.size = 0
-        self.description = ""
-
-    def GetMeta(self):
-        values = {}
-        values['id'] = self.id
-        values['project'] = self.project
-        values['work pack'] = self.work_pack
-        values['job sheet'] = self.job_sheet
-        values['name'] = self.name
-        values['test number'] = self.test_number
-        values['date'] = self.date
-        values['time interval'] = self.time
-        values['logged by'] = self.loggedBy
-        values['downloaded by'] = self.downloadedBy
-        values['description'] = self.description
-        return values
-
-
-"""
-# Holds the logged data for a log
-class LogData():
-
-    def __init__(self):
-        self.timeStamp = []
-        self.time = []
-        # rawData and convData are lists which contain lists
-        # Each list inside corresponds to data from a single pin/channel
-        self.rawData = []
-        self.convData = []
-        self.tcpQueue = Queue()
-
-    # Initialises the rawData and convData by populating them with empty lists
-    def InitRawConv(self,pinNum):
-        for i in range(0,pinNum):
-            self.rawData.append([])
-            self.convData.append([])
-
-    # Used to add one value to each rawData column
-    def AddRawData(self, values):
-        i = 0
-        for value in values:
-            self.rawData[i].append(value)
-            i += 1
-
-    # Used to add one value to each convData column
-    def AddConvData(self, values):
-        i = 0
-        for value in values:
-            self.convData[i].append(value)
-            i += 1
-
-    # Gets the most recent data from the rawData column
-    def GetLatest(self):
-        row = []
-        for column in self.rawData:
-            row.append(column[-1])
-        return row
-"""
+# This is the code that is run when the program is loaded.
+# If the module were to be imported, the code inside the if statement would not run.
+if __name__ == "__main__":
+    # Warning that logger will not work
+    print("\nWARNING - This script cannot be run directly."
+          "\nPlease run 'main.py' to start the logger, or use the desktop icon.\n")
+    # Script will exit
