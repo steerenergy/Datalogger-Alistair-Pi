@@ -377,7 +377,7 @@ def DatabaseCheck():
     if rows != None:
         for row in rows:
             path = file_rw.CheckData(row[1])
-            if path != "":
+            if path == "":
                 UpdateConfigPath(row[0], None)
 
     # If downloaded_by or description are NULL, set to empty string
