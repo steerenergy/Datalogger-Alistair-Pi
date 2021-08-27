@@ -182,6 +182,8 @@ class TcpClient():
             values = db.ReadConfigMeta(db.GetRecentId())
             # Retrieves config data from database
             path = db.GetConfigPath(db.GetRecentId())
+            if path == None:
+                raise FileNotFoundError
             recentConfig = file_rw.ReadLogConfig(path)
         # Catch error when no logs in database
         except ValueError:
