@@ -111,7 +111,8 @@ class WindowTop(Frame):
         self.logger = Logger()
 
         # Start commandHandler, which handles communication between TCP server and GUI
-        self.after(1000, self.commandHandler, connGui)
+        self.connGui = connGui
+        self.after(1000, self.commandHandler)
 
         # Pass exitTcp event to GUI so server can be closed from GUI
         self.exitTcp = exitTcp
@@ -164,7 +165,7 @@ class WindowTop(Frame):
                 self.logButton.config(text="Start Logging")
                 # Re-enable Button
                 self.logButton['state'] = 'normal'
-                return
+                return "Failed"
             # Startup Live Data Thread which handles displaying live data to user
             self.liveDataThread = threading.Thread(target=self.liveData, args=())
             self.liveDataThread.daemon = True
@@ -185,6 +186,7 @@ class WindowTop(Frame):
             # Check to see if logProcess and liveDataThread have ended
             self.logProcess.join()
             self.logThreadStopCheck()
+        return "Successful"
 
     # Is triggered when 'Stop Logging' ic clicked and is called until liveDataThread is dead
     # If liveDataThread has finished the 'start logging' button is changed and enabled
@@ -400,33 +402,35 @@ class WindowTop(Frame):
 
     # This function handles commands from the TCP server
     # It is run periodically every 0.1 seconds
-    def commandHandler(self, connGui):
+    def commandHandler(self):
         # If there are no commands to process, return
-        if not connGui.poll():
-            self.after(100, self.commandHandler, connGui)
+        if not self.connGui.poll():
+            self.after(100, self.commandHandler)
             return
         # Receive command from Pipe
-        command = connGui.recv()
+        command = self.connGui.recv()
 
         if command == "Start":
             # If the logger is not running, start logger and tell TCP server
             if not self.logger.logEnbl:
-                self.logToggle()
-                connGui.send("Logger started")
+                if self.logToggle() == "Successful":
+                    self.connGui.send("Logger started")
+                else:
+                    self.connGui.send("An error occurred, check logger screen for details")
             # If logger is already running, tell TCP server
             else:
-                connGui.send("Logger already running")
+                self.connGui.send("Logger already running")
         elif command == "Stop":
             # If the logger is running, stop logger and tell TCP server
             if self.logger.logEnbl:
                 self.logToggle()
-                connGui.send("Logger stopped")
+                self.connGui.send("Logger stopped")
             # If the logger is not running, tell TCP server
             else:
-                connGui.send("Logger not running")
+                self.connGui.send("Logger not running")
         elif command == "Print":
             # Prints the next data in the Pipe to the Live Data Textbox
-            self.textboxOutput(connGui.recv())
+            self.textboxOutput(self.connGui.recv())
         elif command == "BindFailed":
             # If there is a bind error when starting TCP server, alert user
             errorLogger = logging.getLogger('error_logger')
@@ -438,7 +442,7 @@ class WindowTop(Frame):
             self.exitTcp.set()
             root.destroy()
             errorLogger.info("\nGUI Closed Successfully")
-        self.after(100, self.commandHandler, connGui)
+        self.after(100, self.commandHandler)
 
     # Used at the end of a log to check quality of logged data
     def DataCheck(self):
