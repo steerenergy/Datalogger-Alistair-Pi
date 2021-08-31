@@ -24,11 +24,11 @@ def setupDatabase():
                                         date text,
                                         time real NOT NULL,
                                         logged_by text,
-                                        downloaded_by text,
+                                        downloaded_by text DEFAULT '',
                                         config text,
                                         data text,
                                         size integer,
-                                        description text);"""
+                                        description text DEFAULT '');"""
     # Connect to database and execute SQL statement
     conn = sqlite3.connect(database)
     cur = conn.cursor()
