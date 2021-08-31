@@ -102,16 +102,7 @@ class Logger():
         try:
             # Gets the most recent config filepath from the database
             self.logComp.config_path = db.GetConfigPath(db.GetRecentId())
-            try:
-                self.logComp.config = file_rw.ReadLogConfig(self.logComp.config_path)
-            # If file doesn't exist, alert user and stop log
-            except TypeError:
-                printFunc("ERROR - Failed to read Input Settings - Have you sent over a log config")
-                self.logEnbl = False
-            except FileNotFoundError:
-                printFunc("ERROR - Failed to read Input Settings - Have you sent over a log config")
-                db.DatabaseCheck()
-                self.logEnbl = False
+            self.logComp.config = file_rw.ReadLogConfig(self.logComp.config_path)
 
             # List of pins to be logged and the list containing the logging functions
             self.adcHeader = []
@@ -153,9 +144,17 @@ class Logger():
             printFunc("ERROR - Couldn't find ADC board")
             printFunc("Check boards are connected correctly and pins are set for the connected boards.")
             self.logEnbl = False
+        # If file doesn't exist, alert user and stop log
+        except TypeError:
+            printFunc("ERROR - Failed to read Input Settings - Have you sent over a log config")
+            self.logEnbl = False
+        except FileNotFoundError:
+            printFunc("ERROR - Failed to read Input Settings - Have you sent over a log config")
+            db.DatabaseCheck()
+            self.logEnbl = False
 
 
-    # Checks that log test number hasn't already been used
+            # Checks that log test number hasn't already been used
     # This is to stop database collisions if logger is rerun without uploading a new config
     def checkTestNumber(self):
         # Check that the most recent log has no data file

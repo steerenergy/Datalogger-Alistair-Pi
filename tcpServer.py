@@ -6,7 +6,7 @@ import time
 import databaseOp as db
 import logObjects as lgOb
 from queue import Queue
-from multiprocessing import Event
+from multiprocessing import Event, Lock
 from datetime import datetime
 from threading import Thread
 from decimal import Decimal
@@ -15,13 +15,15 @@ import file_rw
 
 class TcpClient():
     # Initialise new Client
-    def __init__(self, client_socket, address, connTcp, exitTcp):
+    def __init__(self, client_socket, address, connTcp, exitTcp, lock):
         # Store socket and address
         self.client_socket = client_socket
         self.address = address
         # Store Pipe and Event for communicating with GUI
         self.connTcp = connTcp
         self.exitTcp = exitTcp
+        # Store Event for locking Pipe to stop multiple client threads using it at once
+        self.lock = lock
         # Setup dataQueue and quitEvent for client connection
         self.dataQueue = Queue()
         self.quitEvent = Event()
@@ -119,6 +121,15 @@ class TcpClient():
 
     # Receive Log meta data from client
     def ReceiveLogMeta(self):
+        # Lock to stop simultaneous access to connTcp by multiple client threads
+        self.lock.acquire(block=True)
+        self.connTcp.send("LoggerStatus")
+        status = self.connTcp.recv()
+        self.lock.release()
+        if status == "Running":
+            self.TcpSend("LoggerRunning")
+            return
+        self.TcpSend("UploadClear")
         metadata = self.TcpReceive().split('\u001f')
         # Create new LogMeta object to hold data
         newLog = lgOb.LogMeta()
@@ -159,6 +170,8 @@ class TcpClient():
             db.WriteLog(newLog)
         # Write the config settings to a file on the Pi
         file_rw.WriteLogConfig(newLog, newLog.name)
+        # Lock so that connTcp cannot be accessed by another client thread
+        self.lock.acquire(block=True)
         # Instruct the GUI to print the config settings received
         self.connTcp.send("Print")
         self.connTcp.send("\nConfig for " + newLog.name + " received.")
@@ -171,6 +184,7 @@ class TcpClient():
                 self.connTcp.send(
                 "Pin {} set to log {}. I: {} G: {} SMin: {} SMax: {}".format(pin.id, pin.fName, pin.inputType, pin.gain,
                                                                              pin.scaleMin, pin.scaleMax))
+        self.lock.release()
         return
 
 
@@ -284,20 +298,26 @@ class TcpClient():
 
     # Starts a log from a TCP command
     def StartLog(self):
+        # Lock so that two client threads don't try to read/write to connTcp at same time
+        self.lock.acquire(block=True)
         # Sends command to the GUI to start log
         self.connTcp.send("Start")
         # Sends GUI response back to client
         response = self.connTcp.recv()
+        self.lock.release()
         self.TcpSend(response)
         logWrite(self.address[0] + (" Logger Response: ") + response)
 
 
     # Stops a log from a TCP command
     def StopLog(self):
+        # Lock so that two client threads don't try to read/write to connTcp at same time
+        self.lock.acquire(block=True)
         # Sends command to the GUI to start log
         self.connTcp.send("Stop")
         # Sends GUi response back to client
         response = self.connTcp.recv()
+        self.lock.release()
         self.TcpSend(response)
         logWrite(self.address[0] + (" Logger Response: ") + response)
 
@@ -459,7 +479,7 @@ class TcpClient():
                 else:
                     # Note: This is only really relevant for CLI interactions with server
                     self.TcpSend("Command not recognised")
-        except ConnectionAbortedError or ConnectionError or ConnectionResetError or BrokenPipeError:
+        except ConnectionAbortedError or ConnectionError or ConnectionResetError:
             self.quitEvent.set()
             # Log forced disconnect i.e. if the user program is not closed properly
             logWrite(self.address[0] + " disconnected.")
@@ -516,6 +536,8 @@ def run(connTcp, exitTcp):
     server_socket.listen(5)
     logWrite("Awaiting Connection...")
 
+    # Lock used to stop multiple clients trying to write to connTcp simultaneously
+    lock = Lock()
     # Accept connections until program is terminated
     while exitTcp.is_set() is False:
         try:
@@ -524,7 +546,7 @@ def run(connTcp, exitTcp):
             client_socket.settimeout(None)
             # Create new thread to deal with new client
             # This allows multiple clients to connect at once
-            new_client = TcpClient(client_socket, address, connTcp, exitTcp)
+            new_client = TcpClient(client_socket, address, connTcp, exitTcp, lock)
             # Receive username
             user = new_client.TcpReceive()
             # If this is a test connection, close connection
