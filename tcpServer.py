@@ -6,7 +6,7 @@ import time
 import databaseOp as db
 import logObjects as lgOb
 from queue import Queue
-from multiprocessing import Event
+from multiprocessing import Event, Lock
 from datetime import datetime
 from threading import Thread
 from decimal import Decimal
@@ -15,13 +15,15 @@ import file_rw
 
 class TcpClient():
     # Initialise new Client
-    def __init__(self, client_socket, address, connTcp, exitTcp):
+    def __init__(self, client_socket, address, connTcp, exitTcp, lock):
         # Store socket and address
         self.client_socket = client_socket
         self.address = address
         # Store Pipe and Event for communicating with GUI
         self.connTcp = connTcp
         self.exitTcp = exitTcp
+        # Store Event for locking Pipe to stop multiple client threads using it at once
+        self.lock = lock
         # Setup dataQueue and quitEvent for client connection
         self.dataQueue = Queue()
         self.quitEvent = Event()
@@ -294,10 +296,14 @@ class TcpClient():
 
     # Stops a log from a TCP command
     def StopLog(self):
+        while self.lock.is_set():
+            pass
+        self.lock.set()
         # Sends command to the GUI to start log
         self.connTcp.send("Stop")
         # Sends GUi response back to client
         response = self.connTcp.recv()
+        lock = False
         self.TcpSend(response)
         logWrite(self.address[0] + (" Logger Response: ") + response)
 
@@ -444,7 +450,9 @@ class TcpClient():
                 elif command == "Start_Log":
                     self.StartLog()
                 elif command == "Stop_Log":
+                    self.lock.aquire()
                     self.StopLog()
+                    self.lock.release()
                 elif command == "Search_Log":
                     self.SearchLog()
                 elif command == "Change_User":
@@ -516,6 +524,7 @@ def run(connTcp, exitTcp):
     server_socket.listen(5)
     logWrite("Awaiting Connection...")
 
+    lock = Lock()
     # Accept connections until program is terminated
     while exitTcp.is_set() is False:
         try:
@@ -524,7 +533,7 @@ def run(connTcp, exitTcp):
             client_socket.settimeout(None)
             # Create new thread to deal with new client
             # This allows multiple clients to connect at once
-            new_client = TcpClient(client_socket, address, connTcp, exitTcp)
+            new_client = TcpClient(client_socket, address, connTcp, exitTcp, lock)
             # Receive username
             user = new_client.TcpReceive()
             # If this is a test connection, close connection
