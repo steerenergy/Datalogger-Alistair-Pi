@@ -328,7 +328,7 @@ class WindowTop(Frame):
         buffer = [0] * self.logger.logComp.enabled
 
         # Don't print live data when logging has not started
-        while not self.logger.logEnbl:
+        while not self.logger.logEnbl and self.logProcess.is_alive():
             pass
 
         # Wait until all values have been read once
