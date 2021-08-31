@@ -332,7 +332,7 @@ class WindowTop(Frame):
             pass
 
         # Wait until all values have been read once
-        while not self.readOnce.is_set():
+        while not self.readOnce.is_set() and self.logger.logEnbl:
             pass
 
         # When data has arrived, set startTime and drawTime for live graph
