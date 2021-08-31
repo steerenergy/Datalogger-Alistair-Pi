@@ -286,20 +286,26 @@ class TcpClient():
 
     # Starts a log from a TCP command
     def StartLog(self):
+        # Lock so that two client threads don't try to read/write to connTcp at same time
+        self.lock.acquire(block=True)
         # Sends command to the GUI to start log
         self.connTcp.send("Start")
         # Sends GUI response back to client
         response = self.connTcp.recv()
+        self.lock.release()
         self.TcpSend(response)
         logWrite(self.address[0] + (" Logger Response: ") + response)
 
 
     # Stops a log from a TCP command
     def StopLog(self):
+        # Lock so that two client threads don't try to read/write to connTcp at same time
+        self.lock.acquire(block=True)
         # Sends command to the GUI to start log
         self.connTcp.send("Stop")
         # Sends GUi response back to client
         response = self.connTcp.recv()
+        self.lock.release()
         self.TcpSend(response)
         logWrite(self.address[0] + (" Logger Response: ") + response)
 
@@ -446,9 +452,7 @@ class TcpClient():
                 elif command == "Start_Log":
                     self.StartLog()
                 elif command == "Stop_Log":
-                    self.lock.acquire(block=True)
                     self.StopLog()
-                    self.lock.release()
                 elif command == "Search_Log":
                     self.SearchLog()
                 elif command == "Change_User":
@@ -520,6 +524,7 @@ def run(connTcp, exitTcp):
     server_socket.listen(5)
     logWrite("Awaiting Connection...")
 
+    # Lock used to stop multiple clients trying to write to connTcp simultaneously
     lock = Lock()
     # Accept connections until program is terminated
     while exitTcp.is_set() is False:
