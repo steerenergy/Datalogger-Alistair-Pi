@@ -431,6 +431,13 @@ class WindowTop(Frame):
         elif command == "Print":
             # Prints the next data in the Pipe to the Live Data Textbox
             self.textboxOutput(self.connGui.recv())
+        elif command == "LoggerStatus":
+            # Returns whether logger is running or not
+            # Used to stop config upload when logger is running
+            if self.logger.logEnbl:
+                self.connGui.send("Running")
+            else:
+                self.connGui.send("Stopped")
         elif command == "BindFailed":
             # If there is a bind error when starting TCP server, alert user
             errorLogger = logging.getLogger('error_logger')

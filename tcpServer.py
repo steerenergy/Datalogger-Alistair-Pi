@@ -121,6 +121,15 @@ class TcpClient():
 
     # Receive Log meta data from client
     def ReceiveLogMeta(self):
+        # Lock to stop simultaneous access to connTcp by multiple client threads
+        self.lock.acquire(block=True)
+        self.connTcp.send("LoggerStatus")
+        status = self.connTcp.recv()
+        self.lock.release()
+        if status == "Running":
+            self.TcpSend("LoggerRunning")
+            return
+        self.TcpSend("UploadClear")
         metadata = self.TcpReceive().split('\u001f')
         # Create new LogMeta object to hold data
         newLog = lgOb.LogMeta()
