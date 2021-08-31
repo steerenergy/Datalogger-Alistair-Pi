@@ -432,41 +432,41 @@ class TcpClient():
     # Client interfaces with logger using commands sent using TCP
     # Subroutine receives incoming commands from client and handles them
     def CommandHandler(self):
-        #try:
-        # Whilst connection is not set to be closed, listen for commands
-        while self.quitEvent.is_set() is False and self.exitTcp.is_set() is False:
-            command = self.TcpReceive()
-            # Log what command was sent
-            logWrite(self.address[0] + " " + command)
-            # Compare command to known commands and execute appropriate subroutine
-            if command == "Request_Recent_Config":
-                self.GetRecentConfig()
-            elif command == "Upload_Config":
-                self.ReceiveLogMeta()
-            elif command == "Start_Log":
-                self.StartLog()
-            elif command == "Stop_Log":
-                self.lock.acquire(block=True)
-                self.StopLog()
-                self.lock.release()
-            elif command == "Search_Log":
-                self.SearchLog()
-            elif command == "Change_User":
-                self.ChangeUser()
-            elif command == "Export_Database":
-                self.ExportDatabase()
-            elif command == "Help":
-                self.PrintHelp()
-            elif command == "Quit":
-                logWrite(self.address[0] + " quitting.")
-                self.quitEvent.set()
-            else:
-                # Note: This is only really relevant for CLI interactions with server
-                self.TcpSend("Command not recognised")
-        #except ConnectionAbortedError or ConnectionError or ConnectionResetError:
-        #    self.quitEvent.set()
+        try:
+            # Whilst connection is not set to be closed, listen for commands
+            while self.quitEvent.is_set() is False and self.exitTcp.is_set() is False:
+                command = self.TcpReceive()
+                # Log what command was sent
+                logWrite(self.address[0] + " " + command)
+                # Compare command to known commands and execute appropriate subroutine
+                if command == "Request_Recent_Config":
+                    self.GetRecentConfig()
+                elif command == "Upload_Config":
+                    self.ReceiveLogMeta()
+                elif command == "Start_Log":
+                    self.StartLog()
+                elif command == "Stop_Log":
+                    self.lock.acquire(block=True)
+                    self.StopLog()
+                    self.lock.release()
+                elif command == "Search_Log":
+                    self.SearchLog()
+                elif command == "Change_User":
+                    self.ChangeUser()
+                elif command == "Export_Database":
+                    self.ExportDatabase()
+                elif command == "Help":
+                    self.PrintHelp()
+                elif command == "Quit":
+                    logWrite(self.address[0] + " quitting.")
+                    self.quitEvent.set()
+                else:
+                    # Note: This is only really relevant for CLI interactions with server
+                    self.TcpSend("Command not recognised")
+        except ConnectionAbortedError or ConnectionError or ConnectionResetError:
+            self.quitEvent.set()
             # Log forced disconnect i.e. if the user program is not closed properly
-        #    logWrite(self.address[0] + " disconnected.")
+            logWrite(self.address[0] + " disconnected.")
         # Make sure quitEvent is set
         self.quitEvent.set()
         # Shutdown and close socket, and join listener thread to save resources
