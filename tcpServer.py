@@ -161,6 +161,8 @@ class TcpClient():
             db.WriteLog(newLog)
         # Write the config settings to a file on the Pi
         file_rw.WriteLogConfig(newLog, newLog.name)
+        # Lock so that connTcp cannot be accessed by another client thread
+        self.lock.acquire(block=True)
         # Instruct the GUI to print the config settings received
         self.connTcp.send("Print")
         self.connTcp.send("\nConfig for " + newLog.name + " received.")
@@ -173,6 +175,7 @@ class TcpClient():
                 self.connTcp.send(
                 "Pin {} set to log {}. I: {} G: {} SMin: {} SMax: {}".format(pin.id, pin.fName, pin.inputType, pin.gain,
                                                                              pin.scaleMin, pin.scaleMax))
+        self.lock.release()
         return
 
 
