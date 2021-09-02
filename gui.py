@@ -458,16 +458,16 @@ class WindowTop(Frame):
         path = Path(db.GetDataPath(self.logger.logComp.id))
         # Read data in DataFrame
         data = pd.read_csv(path)
-        # Count the number of lines logger
+        # Count the number of lines logged
         numLines = data['Time Interval (seconds)'].count()
         self.textboxOutput("Logged {} lines of data".format(numLines))
 
         # Setup variables for calculating time interval accuracy
         differences = 0
         times = data['Time Interval (seconds)']
-        prev = 0
+        prev = times[0]
         incorrect = 0
-        for timeElapsed in times:
+        for timeElapsed in times[1:]:
             # Calculate time interval between two consecutive points
             difference = round(float(timeElapsed) - prev, 1)
             # If time interval is incorrect, increment incorrect by 1
@@ -477,7 +477,7 @@ class WindowTop(Frame):
             prev = float(timeElapsed)
         # Output number of incorrect time intervals
         self.textboxOutput("{} lines had a time interval not equal to {}".format(incorrect, self.logger.logComp.time))
-        average = differences / numLines
+        average = differences / (numLines - 1)
         # Output average time interval
         self.textboxOutput("Average time interval: {}".format(average))
 
