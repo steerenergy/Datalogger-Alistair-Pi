@@ -219,8 +219,11 @@ class Logger():
         MBEachSecond = (rowMBytes * self.logComp.enabled) / self.logComp.time
         # Calculate time remaining using free space
         timeRemSeconds = remainingSpace / MBEachSecond
-        # Add time in seconds to current datetime to give data it will run out of space
-        timeRemDate = datetime.now() + timedelta(0, timeRemSeconds)
+        try:
+            # Add time in seconds to current datetime to give data it will run out of space
+            timeRemDate = datetime.now() + timedelta(0, timeRemSeconds)
+        except OverflowError:
+            timeRemDate = datetime.max
         printFunc("With the current config, you will run out of space on approximately: {}"
               "\nIf you need more space, use the UI to download previous logs and delete them on the Pi."
             .format(timeRemDate.strftime("%Y-%m-%d %H:%M:%S")))
