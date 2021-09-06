@@ -388,11 +388,11 @@ class WindowTop(Frame):
                             # If graph cannot be drawn, ignore as not fatal
                             # Graph will be updated during next redraw
                             """Drawing failed, this doesn't matter as graph will be drawn next time"""
-                    # Only store 1000 data points for time and pin data to avoid memory leak
-                    if len(timeData) > 1000:
-                        timeData = timeData[-1000:]
-                        for i in range(0, len(logData)):
-                            logData[i] = logData[i][-1000:]
+                # Only store 1000 data points for time and pin data to avoid memory leak
+                if len(timeData) > 1000:
+                    timeData = timeData[-1000:]
+                    for i in range(0, len(logData)):
+                        logData[i] = logData[i][-1000:]
             # Sleep so that while loop is not run too quickly
             # Otherwise screen judders
             time.sleep(0.01)
