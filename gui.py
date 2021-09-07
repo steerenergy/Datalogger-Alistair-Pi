@@ -462,24 +462,19 @@ class WindowTop(Frame):
         numLines = data['Time Interval (seconds)'].count()
         self.textboxOutput("Logged {} lines of data".format(numLines))
 
-        # Setup variables for calculating time interval accuracy
-        differences = 0
-        times = data['Time Interval (seconds)']
-        prev = times[0]
-        incorrect = 0
-        for timeElapsed in times[1:]:
-            # Calculate time interval between two consecutive points
-            difference = round(float(timeElapsed) - prev, 1)
-            # If time interval is incorrect, increment incorrect by 1
-            if difference != self.logger.logComp.time:
-                incorrect += 1
-            differences += difference
-            prev = float(timeElapsed)
+        # Get Series of times between each time reading
+        intervals = data['Time Interval (seconds)'].diff().dropna()
+        # Calculate number of incorrect intervals
+        incorrect = intervals[round(intervals,1) != self.logger.logComp.time].count()
         # Output number of incorrect time intervals
         self.textboxOutput("{} lines had a time interval not equal to {}".format(incorrect, self.logger.logComp.time))
-        average = differences / (numLines - 1)
+        # Calculate average interval between data readings
+        average = intervals.mean()
         # Output average time interval
         self.textboxOutput("Average time interval: {}".format(average))
+        # Calculate maximum absolute deviation from set interval
+        maxDev = intervals.sub(self.logger.logComp.time).abs().max()
+        self.textboxOutput("Maximum absolute deviation from set interval {} was {}".format(self.logger.logComp.time,maxDev))
 
 
 # Setup error logging
