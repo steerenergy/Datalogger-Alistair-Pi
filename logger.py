@@ -219,8 +219,11 @@ class Logger():
         MBEachSecond = (rowMBytes * self.logComp.enabled) / self.logComp.time
         # Calculate time remaining using free space
         timeRemSeconds = remainingSpace / MBEachSecond
-        # Add time in seconds to current datetime to give data it will run out of space
-        timeRemDate = datetime.now() + timedelta(0, timeRemSeconds)
+        try:
+            # Add time in seconds to current datetime to give data it will run out of space
+            timeRemDate = datetime.now() + timedelta(0, timeRemSeconds)
+        except OverflowError:
+            timeRemDate = datetime.max
         printFunc("With the current config, you will run out of space on approximately: {}"
               "\nIf you need more space, use the UI to download previous logs and delete them on the Pi."
             .format(timeRemDate.strftime("%Y-%m-%d %H:%M:%S")))
@@ -246,6 +249,13 @@ class Logger():
         adcValues = [0] * csvRows
         # Get timestamp for filename
         timeStamp = datetime.now().strftime("%Y%m%d-%H%M%S")
+        self.logComp.date = timeStamp
+        # Update date on database
+        db.AddDate(self.logComp.date, self.logComp.id)
+        # Update config file
+        self.logComp.config_path = db.GetConfigPath(self.logComp.id)
+        file_rw.RenameConfig(self.logComp.config_path, self.logComp.date)
+        db.UpdateConfigPath(self.logComp.id, "files/outbox/conf{}.ini".format(self.logComp.date))
 
         # CSV - Create/Open CSV file and print headers
         with open('files/outbox/raw{}.csv'.format(timeStamp), 'w', newline='') as csvfile:
@@ -278,13 +288,7 @@ class Logger():
                 timeDiff = (time.perf_counter() - startTime)
                 time.sleep(timeInterval - (timeDiff % timeInterval))
 
-        self.logComp.date = timeStamp
-        # Update date on database
-        db.AddDate(self.logComp.date,self.logComp.id)
-        # Update config file
-        self.logComp.config_path = db.GetConfigPath(self.logComp.id)
-        file_rw.RenameConfig(self.logComp.config_path,self.logComp.date)
-        db.UpdateConfigPath(self.logComp.id,"files/outbox/conf{}.ini".format(self.logComp.date))
+
         # Add path of raw data to database entry
         db.UpdateDataPath(self.logComp.id,"files/outbox/raw{}.csv".format(self.logComp.date))
         # Add size of log to database entry
