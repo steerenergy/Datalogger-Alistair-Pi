@@ -469,11 +469,11 @@ class WindowTop(Frame):
         # Output number of incorrect time intervals
         self.textboxOutput("{} lines had a time interval not equal to {}".format(incorrect, self.logger.logComp.time))
         # Calculate average interval between data readings
-        average = intervals.mean()
+        average = round(intervals.mean(),5)
         # Output average time interval
         self.textboxOutput("Average time interval: {}".format(average))
         # Calculate maximum absolute deviation from set interval
-        maxDev = intervals.sub(self.logger.logComp.time).abs().max()
+        maxDev = round(intervals.sub(self.logger.logComp.time).abs().max(),5)
         self.textboxOutput("Maximum absolute deviation from set interval {} was {}".format(self.logger.logComp.time,maxDev))
 
 
