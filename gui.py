@@ -29,7 +29,7 @@ class WindowTop(Frame):
         self.master = master
 
         # Changing the title of our master widget
-        self.master.title("Steer Energy Data Logger V2.1.3")
+        self.master.title("Steer Energy Data Logger V2.1.4")
         self.pack()
 
         # Create Layout Frames
@@ -388,11 +388,11 @@ class WindowTop(Frame):
                             # If graph cannot be drawn, ignore as not fatal
                             # Graph will be updated during next redraw
                             """Drawing failed, this doesn't matter as graph will be drawn next time"""
-                    # Only store 1000 data points for time and pin data to avoid memory leak
-                    if len(timeData) > 1000:
-                        timeData = timeData[-1000:]
-                        for i in range(0, len(logData)):
-                            logData[i] = logData[i][-1000:]
+                # Only store 1000 data points for time and pin data to avoid memory leak
+                if len(timeData) > 1000:
+                    timeData = timeData[-1000:]
+                    for i in range(0, len(logData)):
+                        logData[i] = logData[i][-1000:]
             # Sleep so that while loop is not run too quickly
             # Otherwise screen judders
             time.sleep(0.01)
@@ -458,28 +458,23 @@ class WindowTop(Frame):
         path = Path(db.GetDataPath(self.logger.logComp.id))
         # Read data in DataFrame
         data = pd.read_csv(path)
-        # Count the number of lines logger
+        # Count the number of lines logged
         numLines = data['Time Interval (seconds)'].count()
         self.textboxOutput("Logged {} lines of data".format(numLines))
 
-        # Setup variables for calculating time interval accuracy
-        differences = 0
-        times = data['Time Interval (seconds)']
-        prev = 0
-        incorrect = 0
-        for timeElapsed in times:
-            # Calculate time interval between two consecutive points
-            difference = round(float(timeElapsed) - prev, 1)
-            # If time interval is incorrect, increment incorrect by 1
-            if difference != self.logger.logComp.time:
-                incorrect += 1
-            differences += difference
-            prev = float(timeElapsed)
+        # Get Series of times between each time reading
+        intervals = data['Time Interval (seconds)'].diff().dropna()
+        # Calculate number of incorrect intervals
+        incorrect = intervals[round(intervals,1) != self.logger.logComp.time].count()
         # Output number of incorrect time intervals
         self.textboxOutput("{} lines had a time interval not equal to {}".format(incorrect, self.logger.logComp.time))
-        average = differences / numLines
+        # Calculate average interval between data readings
+        average = round(intervals.mean(),5)
         # Output average time interval
         self.textboxOutput("Average time interval: {}".format(average))
+        # Calculate maximum absolute deviation from set interval
+        maxDev = round(intervals.sub(self.logger.logComp.time).abs().max(),5)
+        self.textboxOutput("Maximum absolute deviation from set interval {} was {}".format(self.logger.logComp.time,maxDev))
 
 
 # Setup error logging
