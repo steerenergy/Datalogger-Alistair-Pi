@@ -262,6 +262,7 @@ class WindowTop(Frame):
 
     # Toggles between the textbox and live graph being displayed
     def switchDisplay(self):
+        self.switchButton['state'] = 'disabled'
         if self.textBox:
             # Unpack textbox and scrollbar
             self.liveDataText.pack_forget()
@@ -282,6 +283,7 @@ class WindowTop(Frame):
             self.liveDataText.pack()
             # Set textBox to true so program knows textbox is displayed
             self.textBox = True
+        self.switchButton['state'] = 'normal'
 
     # Live Data Output
     # Function is run in separate thread to ensure it doesn't interfere with GUI operations
