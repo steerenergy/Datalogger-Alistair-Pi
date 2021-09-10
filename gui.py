@@ -373,15 +373,14 @@ class WindowTop(Frame):
                     # Update yData and xData which are plotted on live graph
                     yData = logData[channel][:length]
                     xData = timeData[:length]
-                    # Clear axis, plot new data and set grid to true
-                    self.ax1.clear()
-                    self.ax1.plot(xData, yData)
-                    self.ax1.grid()
-
                     # Graph is redrawn a maximum of once per second
                     # If graph is due to be redrawn, redraw graph
                     if (time.perf_counter() - drawTime) > max(1, self.logger.logComp.time):
                         try:
+                            # Clear axis, plot new data and set grid to true
+                            self.ax1.clear()
+                            self.ax1.plot(xData, yData)
+                            self.ax1.grid()
                             # Redraw graph
                             self.canvas.draw_idle()
                             # Update drawTime
