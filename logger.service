@@ -3,14 +3,13 @@ Description=Start Logger
 After=multi-user.target
 
 [Service]
-Type=oneshot
+Type=idle
 User=pi
 Environment=DISPLAY=:0
 Environment=XAUTHORITY=/home/pi/.Xauthority
-ExecStart=whoami
 ExecStart=/usr/bin/python3 /home/pi/Github/Datalogger-Alistair-Pi/main.py
 WorkingDirectory=/home/pi/Github/Datalogger-Alistair-Pi/
-Restart=no
+Restart=on-failure
 RestartSec=10s
 KillMode=process
 
