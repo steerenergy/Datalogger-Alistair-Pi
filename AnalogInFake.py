@@ -18,8 +18,7 @@ class AnalogIn:
     @property
     def value(self):
         """Returns the value of an ADC pin as an integer."""
-        #return random.randint(0, 32767)
-        return 0
+        return random.randint(0, 32767)
 
 # This is the code that is run when the program is loaded.
 # If the module were to be imported, the code inside the if statement would not run.
