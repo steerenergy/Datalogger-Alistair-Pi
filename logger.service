@@ -1,0 +1,18 @@
+[Unit]
+Description=Start Logger
+After=multi-user.target
+
+[Service]
+Type=oneshot
+User=pi
+Environment=DISPLAY=:0
+Environment=XAUTHORITY=/home/pi/.Xauthority
+ExecStart=whoami
+ExecStart=/usr/bin/python3 /home/pi/Github/Datalogger-Alistair-Pi/main.py
+WorkingDirectory=/home/pi/Github/Datalogger-Alistair-Pi/
+Restart=no
+RestartSec=10s
+KillMode=process
+
+[Install]
+WantedBy=multi-user.target
