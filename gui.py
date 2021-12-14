@@ -96,7 +96,7 @@ class WindowTop(Frame):
         self.liveDataThread = None
 
         # Live Data Graph
-        self.liveFigure = plt.Figure(figsize=(6, 5), dpi=100)
+        self.liveFigure = plt.Figure(figsize=(6,5),dpi=100)
         self.ax1 = self.liveFigure.add_subplot(111)
         self.canvas = FigureCanvasTkAgg(self.liveFigure, self.liveDataFrame)
         self.canvas.draw()
@@ -338,8 +338,7 @@ class WindowTop(Frame):
         while not self.readOnce.is_set() and self.logger.logEnbl:
             pass
 
-        # When data has arrived, set startTime and drawTime for live graph
-        startTime = time.perf_counter()
+        # When data has arrived, set drawTime for live graph
         drawTime = 0
 
         # Live data loop, outputs live data to graph or textbox for as long as the log runs
@@ -352,7 +351,7 @@ class WindowTop(Frame):
                 ValuesPrint = "|{:>8}".format(round(currentVals[0],1))
                 # Create a nice string to print with the values in
                 # Only prints data that is being logged
-                timeData.append(round(time.perf_counter() - startTime, 2))
+                timeData.append(currentVals[0])
                 for no, val in enumerate(currentVals[1:]):
                     # Get the name of the pin so it can be used with pinDict
                     pinName = adcHeader[no]
