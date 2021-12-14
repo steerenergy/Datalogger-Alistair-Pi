@@ -323,7 +323,7 @@ class WindowTop(Frame):
         # Print the heading with all the pins
         self.textboxOutput("{}|".format(adcHeaderPrint))
         # Print a nice horizontal line so it all looks pretty
-        self.textboxOutput("-" * (9 * self.logger.logComp.enabled + 1))
+        self.textboxOutput("-" * (9 * (self.logger.logComp.enabled + 1)))
 
         # Create buffer to store previous time
         # Used to detect whether new data has been logged or not
