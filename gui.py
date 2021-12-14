@@ -151,7 +151,7 @@ class WindowTop(Frame):
                 self.stop = Event()
                 # values array stores a copy of the most recent values logged
                 # Used by the live data output to retrieve the data
-                self.values = Array('f', self.logger.logComp.enabled, lock=True)
+                self.values = Array('f', self.logger.logComp.enabled + 1, lock=True)
                 # read once event tells gui once values have been read at least once
                 self.readOnce = Event()
                 # Setup and start log process
@@ -304,7 +304,7 @@ class WindowTop(Frame):
         # Print start of live data to user
         self.textboxOutput("Live Data:\n")
         # Get values of pins being logged from self.logger.logComp
-        adcHeaderPrint = ""
+        adcHeaderPrint = "|{:>4}{:>4}".format("Time","(s)")
         for pin in self.logger.logComp.config:
             if pin.enabled:
                 # Add pin to graph drop down menu
@@ -325,11 +325,12 @@ class WindowTop(Frame):
         # Print a nice horizontal line so it all looks pretty
         self.textboxOutput("-" * (9 * self.logger.logComp.enabled + 1))
 
-        # Create buffer to store previous data
+        # Create buffer to store previous time
         # Used to detect whether new data has been logged or not
-        buffer = [0] * self.logger.logComp.enabled
+        buffer = 0
 
         # Don't print live data when logging has not started
+        # Unnecessary??
         while not self.logger.logEnbl and self.logProcess.is_alive():
             pass
 
@@ -346,13 +347,13 @@ class WindowTop(Frame):
             # Get most recent logged data
             currentVals = self.values[:]
             # If data is new, output data
-            if currentVals != buffer:
-                buffer = currentVals
-                ValuesPrint = ""
+            if currentVals[0] != buffer:
+                buffer = currentVals[0]
+                ValuesPrint = "|{:>8}".format(round(currentVals[0],1))
                 # Create a nice string to print with the values in
                 # Only prints data that is being logged
                 timeData.append(round(time.perf_counter() - startTime, 2))
-                for no, val in enumerate(currentVals):
+                for no, val in enumerate(currentVals[1:]):
                     # Get the name of the pin so it can be used with pinDict
                     pinName = adcHeader[no]
                     # Calculate converted value using pinDict m and c values

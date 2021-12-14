@@ -271,11 +271,12 @@ class Logger():
                     # Get current datetime and time elapsed from start
                     currentDateTime = datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")
                     timeElapsed = round(time.perf_counter() - startTime, 2)
+                    values[0] = timeElapsed
                     # Export Data to Spreadsheet inc current datetime and time elapsed
                     # Set values array for live data output
                     for idx, pin in enumerate(self.adcToLog):
                         adcValues[idx] = pin.value
-                        values[idx] = pin.value
+                        values[idx + 1] = pin.value
                     writer.writerow([currentDateTime] + [timeElapsed] + adcValues)
                     if (readOnce.is_set() == False):
                         readOnce.set()
